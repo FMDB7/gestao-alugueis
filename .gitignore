@@ -1,0 +1,7 @@
+# Não commitar dados sensíveis
+# (config.js pode ficar — clientId e tenantId são IDs públicos, não segredos)
+
+.DS_Store
+*.log
+node_modules/
+.vercel/
