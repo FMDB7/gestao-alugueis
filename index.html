@@ -3,239 +3,170 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Gestão de Aluguéis</title>
-<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script>
-const CONFIG = {
-  clientId: "b270c0cd-fc9a-4551-84f5-2fe3c6be60fa",
-  tenantId: "8003b84e-097a-420a-afa4-ca9eab1bc74d",
-  fileId: "947BE6F8-B5A9-47BA-889C-975B03BC4E15",
-  redirectUri: window.location.origin,
-  tableName: "BASE",
-  sheetName: "BASE"
-};
-</script>
+<title>Gestão de Aluguéis — TOP Internacional</title>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#f5f6fa;--surface:#fff;--surface2:#f0f2f8;
-  --border:#e0e3ef;--border2:#c8cce0;
-  --text:#1a1d2e;--text2:#5a5e78;--text3:#9397b0;
-  --blue:#2563eb;--blue-light:#eff4ff;
-  --green:#059669;--green-light:#ecfdf5;
-  --red:#dc2626;--red-light:#fef2f2;
-  --amber:#d97706;--amber-light:#fffbeb;
-  --purple:#7c3aed;
-  --radius:10px;--radius-sm:6px;
-  --shadow:0 1px 4px rgba(0,0,0,.08);
-}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
-
-/* LOGIN SCREEN */
-#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:1.5rem}
-.login-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:2.5rem 2rem;text-align:center;max-width:380px;width:90%;box-shadow:0 4px 24px rgba(0,0,0,.1)}
-.login-logo{font-size:2.5rem;margin-bottom:.75rem}
-.login-title{font-size:20px;font-weight:700;margin-bottom:.4rem}
-.login-sub{font-size:13px;color:var(--text2);margin-bottom:1.5rem;line-height:1.5}
-.btn-ms{display:flex;align-items:center;justify-content:center;gap:10px;background:#0078d4;color:#fff;border:none;border-radius:6px;padding:11px 20px;font-size:14px;font-weight:600;cursor:pointer;width:100%;transition:background .15s}
-.btn-ms:hover{background:#005fa3}
-.ms-icon{width:20px;height:20px}
-
-/* NAV */
-.nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;gap:0;position:sticky;top:0;z-index:100}
-.nav-brand{font-size:15px;font-weight:700;color:var(--blue);padding:1rem 1.25rem 1rem 0;border-right:1px solid var(--border);margin-right:.5rem;white-space:nowrap;display:flex;align-items:center;gap:6px}
-.nav-tabs{display:flex;gap:0;overflow-x:auto;flex:1}
-.nav-tab{padding:0 1rem;height:52px;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--text2);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:color .15s}
-.nav-tab:hover{color:var(--text)}
-.nav-tab.active{color:var(--blue);border-bottom-color:var(--blue)}
-.nav-user{margin-left:auto;display:flex;align-items:center;gap:10px;padding-left:1rem;border-left:1px solid var(--border)}
-.nav-avatar{width:32px;height:32px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
-.nav-name{font-size:12px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.btn-logout{background:none;border:1px solid var(--border2);border-radius:5px;padding:4px 10px;font-size:12px;color:var(--text2);cursor:pointer}
-.btn-logout:hover{color:var(--red);border-color:var(--red)}
-
-/* PAGES */
-.page{display:none;padding:1.5rem;max-width:1100px;margin:0 auto}
+:root{--ink:#0f1117;--ink2:#4a4f66;--ink3:#9399b8;--bg:#f7f8fc;--surface:#ffffff;--surface2:#f0f2f9;--border:#e4e7f4;--border2:#cdd2eb;--blue:#2d5be3;--blue2:#1a3db8;--blue-bg:#eef2fd;--green:#0d9e6e;--green-bg:#e8f8f3;--red:#d93b3b;--red-bg:#fdf0f0;--amber:#c97d0a;--amber-bg:#fdf5e6;--purple:#6d3fd4;--purple-bg:#f2eeff;--teal:#0891b2;--teal-bg:#e8f7fb;--r:10px;--r-sm:6px;--sh:0 1px 3px rgba(0,0,0,.06);--font:'Inter',system-ui,sans-serif}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5;min-height:100vh}
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f1117 0%,#1a2456 50%,#0f1117 100%)}
+.login-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:20px;padding:3rem 2.5rem;width:100%;max-width:420px;text-align:center}
+.login-logo{width:56px;height:56px;background:linear-gradient(135deg,#2d5be3,#6d3fd4);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 1.5rem}
+.login-title{font-size:22px;font-weight:700;color:#fff;margin-bottom:.4rem}
+.login-sub{font-size:13px;color:rgba(255,255,255,.45);margin-bottom:2rem;line-height:1.6}
+.btn-demo{width:100%;padding:12px;border-radius:10px;background:rgba(255,255,255,.07);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.12);font-size:14px;font-weight:500;cursor:pointer;margin-bottom:.75rem;transition:all .2s}
+.btn-demo:hover{background:rgba(45,91,227,.3);color:#fff;border-color:rgba(45,91,227,.5)}
+.login-footer{font-size:11px;color:rgba(255,255,255,.2);margin-top:1.5rem}
+#app{display:none;min-height:100vh}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:220px;background:#0f1117;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100}
+.sidebar-logo{padding:1.25rem;border-bottom:1px solid rgba(255,255,255,.06)}
+.sidebar-logo-mark{width:32px;height:32px;background:linear-gradient(135deg,#2d5be3,#6d3fd4);border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:15px;margin-bottom:.5rem}
+.sidebar-title{font-size:13px;font-weight:700;color:#fff;line-height:1.2}
+.sidebar-sub{font-size:10px;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.06em}
+.sidebar-nav{flex:1;padding:.75rem 0;overflow-y:auto}
+.nav-section{padding:.5rem 1.25rem .2rem;font-size:10px;font-weight:600;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.1em}
+.nav-item{display:flex;align-items:center;gap:.625rem;padding:.6rem 1.25rem;color:rgba(255,255,255,.45);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;border-left:3px solid transparent}
+.nav-item:hover{color:rgba(255,255,255,.8);background:rgba(255,255,255,.04)}
+.nav-item.active{color:#fff;background:rgba(45,91,227,.18);border-left-color:#2d5be3}
+.nav-item svg{width:15px;height:15px;flex-shrink:0}
+.sidebar-user{padding:1rem 1.25rem;border-top:1px solid rgba(255,255,255,.06)}
+.user-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem}
+.user-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#2d5be3,#6d3fd4);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.user-name{font-size:12px;color:rgba(255,255,255,.55);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn-out{width:100%;padding:5px;border-radius:5px;background:transparent;border:1px solid rgba(255,255,255,.07);color:rgba(255,255,255,.3);font-size:11px;cursor:pointer;transition:all .15s}
+.btn-out:hover{color:#d93b3b;border-color:rgba(217,59,59,.25)}
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column;min-width:0}
+.status-bar{display:flex;align-items:center;gap:.5rem;font-size:12px;color:var(--ink2);background:var(--surface);border-bottom:1px solid var(--border);padding:.4rem 1.5rem;position:sticky;top:0;z-index:50}
+.s-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.s-dot.ok{background:#0d9e6e}
+.s-dot.err{background:#d93b3b}
+.s-dot.sync{background:#c97d0a;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.page{display:none}
 .page.active{display:block}
-
-/* CARDS */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;box-shadow:var(--shadow);margin-bottom:1rem}
-.card-title{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:1rem;text-transform:uppercase;letter-spacing:.05em}
-
-/* KPIs */
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:1rem}
-.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.1rem}
-.kpi-label{font-size:11px;color:var(--text3);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
-.kpi-val{font-size:22px;font-weight:700}
-.kpi-sub{font-size:11px;color:var(--text3);margin-top:3px}
-.kpi.blue{border-left:3px solid var(--blue)}
-.kpi.green{border-left:3px solid var(--green)}
-.kpi.amber{border-left:3px solid var(--amber)}
-.kpi.purple{border-left:3px solid var(--purple)}
-
-/* FORMS */
-.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px}
-.form-group{display:flex;flex-direction:column;gap:4px}
-label{font-size:12px;font-weight:600;color:var(--text2)}
-input,select,textarea{border:1px solid var(--border2);border-radius:var(--radius-sm);padding:7px 10px;font-size:13px;color:var(--text);background:var(--surface);width:100%;transition:border .15s}
-input:focus,select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px #2563eb18}
-input[type=number]{text-align:right}
-
-/* BUTTONS */
-.btn{padding:7px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:6px;transition:all .15s;white-space:nowrap}
-.btn:hover{filter:brightness(.92)}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+.page-title{font-size:15px;font-weight:700}
+.content{padding:1.5rem}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:1rem}
+.card-hd{padding:.875rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:11px;font-weight:700;color:var(--ink2);text-transform:uppercase;letter-spacing:.06em}
+.card-body{padding:1.25rem}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.875rem;margin-bottom:1.25rem}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.25rem;box-shadow:var(--sh);border-top:3px solid var(--border)}
+.kpi.blue{border-top-color:#2d5be3}
+.kpi.green{border-top-color:#0d9e6e}
+.kpi.amber{border-top-color:#c97d0a}
+.kpi.purple{border-top-color:#6d3fd4}
+.kpi.teal{border-top-color:#0891b2}
+.kpi-label{font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.35rem}
+.kpi-val{font-size:22px;font-weight:700;color:var(--ink)}
+.kpi-sub{font-size:11px;color:var(--ink3);margin-top:.25rem}
+.btn{display:inline-flex;align-items:center;gap:.375rem;padding:.45rem .9rem;border-radius:var(--r-sm);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;white-space:nowrap;font-family:var(--font)}
+.btn:hover{filter:brightness(.9)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
-.btn-primary{background:var(--blue);color:#fff}
-.btn-success{background:var(--green);color:#fff}
-.btn-danger{background:var(--red);color:#fff;padding:4px 10px;font-size:12px}
-.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2)}
-.btn-sm{padding:4px 10px;font-size:12px}
-
-/* TABLE */
-.table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th{background:var(--surface2);padding:8px 10px;text-align:left;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;border-bottom:1px solid var(--border)}
-td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:#fafbff}
-td input[type=number]{border:1px solid transparent;background:transparent;padding:3px 5px;border-radius:4px;width:100%;min-width:90px;text-align:right}
-td input[type=number]:focus{background:var(--blue-light);border-color:var(--blue);outline:none}
-
-/* BADGE */
-.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
-.badge-blue{background:var(--blue-light);color:var(--blue)}
-.badge-green{background:var(--green-light);color:var(--green)}
-.badge-amber{background:var(--amber-light);color:var(--amber)}
-.badge-red{background:var(--red-light);color:var(--red)}
-
-/* INNER TABS */
-.inner-tabs{display:flex;gap:6px;margin-bottom:1.25rem;background:var(--surface2);border-radius:var(--radius-sm);padding:4px;width:fit-content}
-.inner-tab{padding:6px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;border:none;background:transparent;transition:all .15s}
-.inner-tab.active{background:var(--surface);color:var(--blue);font-weight:700;box-shadow:var(--shadow)}
-
-/* FILTERS */
-.filters-row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:1rem}
-.filters-row .form-group{flex:1;min-width:120px;max-width:200px}
-
-/* CHARTS */
-.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-@media(max-width:640px){.charts-row{grid-template-columns:1fr}}
+.btn-primary{background:#2d5be3;color:#fff}
+.btn-success{background:#0d9e6e;color:#fff}
+.btn-danger{background:#d93b3b;color:#fff;padding:.25rem .6rem;font-size:11px}
+.btn-ghost{background:transparent;color:var(--ink2);border:1px solid var(--border2)}
+.btn-sm{padding:.3rem .7rem;font-size:12px}
+.fg{display:flex;flex-direction:column;gap:.3rem}
+.fl{font-size:12px;font-weight:600;color:var(--ink2)}
+.fc{border:1px solid var(--border2);border-radius:var(--r-sm);padding:.45rem .7rem;font-size:13px;color:var(--ink);background:var(--surface);width:100%;font-family:var(--font);transition:border .15s}
+.fc:focus{outline:none;border-color:#2d5be3;box-shadow:0 0 0 3px rgba(45,91,227,.1)}
+input[type=number].fc{text-align:right}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:.75rem}
+.filters{display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end;margin-bottom:1rem}
+.filters .fg{flex:1;min-width:110px;max-width:180px}
+.tabs{display:flex;gap:.25rem;background:var(--surface2);border-radius:var(--r-sm);padding:.25rem;width:fit-content;margin-bottom:1.25rem}
+.tab{padding:.38rem .875rem;border-radius:5px;font-size:13px;font-weight:500;color:var(--ink2);cursor:pointer;border:none;background:transparent;transition:all .15s;font-family:var(--font)}
+.tab.active{background:var(--surface);color:#2d5be3;font-weight:600;box-shadow:var(--sh)}
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:700px){.charts-grid{grid-template-columns:1fr}}
 .chart-wrap{position:relative;width:100%}
-
-/* SEC HEADER */
-.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px}
-.sec-title{font-size:16px;font-weight:700}
-
-/* SYNC STATUS */
-.sync-bar{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);background:var(--surface2);border-radius:6px;padding:5px 10px;margin-bottom:1rem}
-.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0}
-.sync-dot.syncing{background:var(--amber);animation:pulse 1s infinite}
-.sync-dot.error{background:var(--red)}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-
-/* EMPTY */
-.empty{text-align:center;padding:2.5rem 1rem;color:var(--text3);font-size:13px}
-
-/* SPINNER */
-.spinner{display:inline-block;width:16px;height:16px;border:2px solid #fff4;border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* TOAST */
-#toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#1a1d2e;color:#fff;padding:.65rem 1.2rem;border-radius:var(--radius-sm);font-size:13px;font-weight:500;opacity:0;transform:translateY(8px);transition:all .25s;z-index:9999;pointer-events:none;max-width:320px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{background:var(--surface2);padding:.55rem .875rem;text-align:left;font-size:11px;font-weight:700;color:var(--ink2);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;border-bottom:1px solid var(--border)}
+tbody td{padding:.65rem .875rem;border-bottom:1px solid var(--border);color:var(--ink);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--bg)}
+.tn{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.ttot{background:var(--blue-bg)!important;font-weight:700;color:#2d5be3}
+.badge{display:inline-flex;align-items:center;padding:.12rem .5rem;border-radius:20px;font-size:11px;font-weight:600}
+.bb{background:var(--blue-bg);color:#2d5be3}
+.bg2{background:var(--green-bg);color:#0d9e6e}
+.ba{background:var(--amber-bg);color:#c97d0a}
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--ink3)}
+.empty-icon{font-size:2rem;margin-bottom:.5rem;opacity:.4}
+#toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#0f1117;color:#fff;padding:.6rem 1.1rem;border-radius:var(--r-sm);font-size:13px;font-weight:500;opacity:0;transform:translateY(8px);transition:all .25s;z-index:9999;max-width:300px;pointer-events:none}
 #toast.show{opacity:1;transform:translateY(0)}
-
-/* REPORT */
-.report-table th{background:var(--blue);color:#fff}
-.report-table tr:nth-child(even) td{background:#f8f9ff}
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.grade-input{border:1px solid transparent;background:transparent;padding:.2rem .4rem;border-radius:4px;width:100%;min-width:82px;text-align:right;font-size:12px;font-family:var(--font);color:var(--ink)}
+.grade-input:focus{background:var(--blue-bg);border-color:#2d5be3;outline:none}
+.rbar{height:5px;background:#2d5be3;border-radius:3px;display:inline-block;vertical-align:middle;margin-right:5px}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-card">
     <div class="login-logo">🏢</div>
     <div class="login-title">Gestão de Aluguéis</div>
-    <div class="login-sub">Dados salvos no seu Excel (OneDrive for Business).<br>Faça login com sua conta Microsoft corporativa.</div>
-    <button class="btn-ms" onclick="signIn()">
-      <svg class="ms-icon" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
-        <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
-        <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
-        <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
-      </svg>
-      Entrar com Microsoft
-    </button>
+    <div class="login-sub">Sistema de controle de despesas<br>TOP Internacional • Powered by Supabase</div>
+    <button class="btn-demo" onclick="loginDemo()">▶ Entrar no sistema</button>
+    <div class="login-footer">Dados armazenados com segurança no Supabase (PostgreSQL)</div>
   </div>
-  <div style="font-size:12px;color:var(--text3)">Versão 1.0 — Microsoft Graph API</div>
 </div>
 
-<!-- APP -->
-<div id="app-screen" style="display:none">
-  <nav class="nav">
-    <div class="nav-brand">🏢 Gestão de Aluguéis</div>
-    <div class="nav-tabs">
-      <button class="nav-tab active" onclick="showPage('lancamento',this)">📋 Lançamento</button>
-      <button class="nav-tab" onclick="showPage('dashboard',this)">📊 Dashboard</button>
-      <button class="nav-tab" onclick="showPage('relatorio',this)">📄 Relatório</button>
-      <button class="nav-tab" onclick="showPage('cadastros',this)">⚙️ Cadastros</button>
-    </div>
-    <div class="nav-user">
-      <div class="nav-avatar" id="nav-initials">?</div>
-      <div class="nav-name" id="nav-name">...</div>
-      <button class="btn-logout" onclick="signOut()">Sair</button>
-    </div>
-  </nav>
+<div id="app">
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-mark">🏢</div>
+        <div class="sidebar-title">Gestão de Aluguéis</div>
+        <div class="sidebar-sub">TOP Internacional</div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">Principal</div>
+        <div class="nav-item active" onclick="goPage('dashboard',this)">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard
+        </div>
+        <div class="nav-item" onclick="goPage('lancamento',this)">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Lançamento
+        </div>
+        <div class="nav-section">Análise</div>
+        <div class="nav-item" onclick="goPage('relatorio',this)">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Relatório
+        </div>
+        <div class="nav-section">Config</div>
+        <div class="nav-item" onclick="goPage('cadastros',this)">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Cadastros
+        </div>
+      </nav>
+      <div class="sidebar-user">
+        <div class="user-row"><div class="user-av" id="uav">FM</div><div class="user-name" id="uname">Financeiro</div></div>
+        <button class="btn-out" onclick="logout()">Sair</button>
+      </div>
+    </aside>
 
-  <!-- SYNC BAR -->
-  <div style="max-width:1100px;margin:0 auto;padding:.75rem 1.5rem 0">
-    <div class="sync-bar">
-      <div class="sync-dot" id="sync-dot"></div>
-      <span id="sync-status">Conectado ao OneDrive</span>
-      <span style="margin-left:auto;color:var(--text3)" id="sync-file"></span>
-    </div>
-  </div>
+    <div class="main">
+      <div class="status-bar">
+        <div class="s-dot ok" id="sdot"></div>
+        <span id="stxt">Conectado ao Supabase</span>
+        <span style="margin-left:auto;color:var(--ink3);font-size:11px" id="stime"></span>
+      </div>
 
-  <!-- ══ LANÇAMENTO ══ -->
-  <div class="page active" id="page-lancamento">
-    <div class="sec-header">
-      <div class="sec-title">Lançamento Mensal</div>
-    </div>
-    <div class="inner-tabs">
-      <button class="inner-tab active" onclick="showInner('lt-form',this)">Formulário</button>
-      <button class="inner-tab" onclick="showInner('lt-grade',this)">Grade Editável</button>
-      <button class="inner-tab" onclick="showInner('lt-historico',this)">Histórico</button>
-    </div>
-
-    <!-- FORMULÁRIO -->
-    <div id="lt-form">
-      <div class="card">
-        <div class="card-title">Novo Lançamento</div>
-        <div class="form-grid" style="margin-bottom:1rem">
-          <div class="form-group">
-            <label>Empresa *</label>
-            <select id="f-empresa" onchange="onEmpresaChange()"><option value="">Selecione...</option></select>
-          </div>
-          <div class="form-group">
-            <label>Loja *</label>
-            <select id="f-loja" onchange="renderFormLista()"><option value="">Selecione...</option></select>
-          </div>
-          <div class="form-group">
-            <label>Ano *</label>
-            <select id="f-ano" onchange="renderFormLista()">
-              <option value="2024">2024</option>
-              <option value="2025">2025</option>
-              <option value="2026" selected>2026</option>
-              <option value="2027">2027</option>
-              <option value="2028">2028</option>
-              <option value="2029">2029</option>
-              <option value="2030">2030</option>
+      <div id="page-dashboard" class="page active">
+        <div class="topbar">
+          <div class="page-title">Dashboard</div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+            <select class="fc" id="d-ano" onchange="renderDash()" style="width:105px">
+              <option value="">Todos anos</option><option value="2024">2024</option>
+              <option value="2025">2025</option><option value="2026" selected>2026</option>
+              <option value="2027">2027</option><option value="2028">2028</option>
             </select>
-          </div>
-          <div class="form-group">
-            <label>Mês *</label>
-            <select id="f-mes" onchange="renderFormLista()">
+            <select class="fc" id="d-mes" onchange="renderDash()" style="width:125px">
+              <option value="">Todos meses</option>
               <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option>
               <option value="MARÇO">Março</option><option value="ABRIL">Abril</option>
               <option value="MAIO">Maio</option><option value="JUNHO">Junho</option>
@@ -243,858 +174,418 @@ td input[type=number]:focus{background:var(--blue-light);border-color:var(--blue
               <option value="SETEMBRO">Setembro</option><option value="OUTUBRO">Outubro</option>
               <option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
             </select>
+            <select class="fc" id="d-emp" onchange="renderDash()" style="width:155px"><option value="">Todas empresas</option></select>
+            <button class="btn btn-ghost btn-sm" onclick="loadData()">↺ Atualizar</button>
           </div>
-          <div class="form-group">
-            <label>Categoria *</label>
-            <select id="f-categoria"><option value="">Selecione...</option></select>
-          </div>
-          <div class="form-group">
-            <label>Valor (R$) *</label>
-            <input type="number" id="f-valor" placeholder="0,00" step="0.01" min="0"/>
-          </div>
-          <div class="form-group">
-            <label>Observação</label>
-            <input type="text" id="f-obs" placeholder="Opcional"/>
-          </div>
-          <div class="form-group" style="justify-content:flex-end">
-            <label>&nbsp;</label>
-            <button class="btn btn-primary" id="btn-salvar" onclick="salvarLancamento()">+ Salvar no Excel</button>
+        </div>
+        <div class="content">
+          <div class="kpi-grid" id="d-kpis"></div>
+          <div class="charts-grid" style="margin-bottom:1rem">
+            <div class="card" style="grid-column:1/-1;margin-bottom:0">
+              <div class="card-hd"><div class="card-title">Evolução mensal</div>
+                <div style="display:flex;gap:10px;font-size:11px;color:var(--ink3)">
+                  <span style="display:flex;align-items:center;gap:4px"><span style="width:16px;height:2px;background:#2d5be3;display:inline-block"></span>2025</span>
+                  <span style="display:flex;align-items:center;gap:4px"><span style="width:16px;height:2px;background:#0d9e6e;display:inline-block"></span>2026</span>
+                </div>
+              </div>
+              <div class="card-body"><div class="chart-wrap" style="height:210px"><canvas id="c-mensal"></canvas></div></div>
+            </div>
+            <div class="card" style="margin-bottom:0"><div class="card-hd"><div class="card-title">Por empresa</div></div><div class="card-body"><div class="chart-wrap" style="height:190px"><canvas id="c-empresa"></canvas></div></div></div>
+            <div class="card" style="margin-bottom:0"><div class="card-hd"><div class="card-title">Por categoria</div></div><div class="card-body"><div class="chart-wrap" style="height:190px"><canvas id="c-cat"></canvas></div></div></div>
+            <div class="card" style="margin-bottom:0"><div class="card-hd"><div class="card-title">Por cidade</div></div><div class="card-body"><div class="chart-wrap" style="height:190px"><canvas id="c-cidade"></canvas></div></div></div>
+            <div class="card" style="margin-bottom:0"><div class="card-hd"><div class="card-title">Top 10 lojas</div></div><div class="card-body"><div class="chart-wrap" style="height:270px"><canvas id="c-loja"></canvas></div></div></div>
           </div>
         </div>
       </div>
-      <div class="card">
-        <div class="card-title">Lançamentos do período</div>
-        <div id="form-lista-wrap"><div class="empty">Selecione empresa, loja, ano e mês.</div></div>
-      </div>
-    </div>
 
-    <!-- GRADE -->
-    <div id="lt-grade" style="display:none">
-      <div class="card">
-        <div class="card-title">Filtros da Grade</div>
-        <div class="filters-row">
-          <div class="form-group"><label>Empresa</label><select id="g-empresa"><option value="">Todas</option></select></div>
-          <div class="form-group"><label>Ano</label><select id="g-ano">
-            <option value="2024">2024</option><option value="2025">2025</option>
-            <option value="2026" selected>2026</option><option value="2027">2027</option>
-            <option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option>
-          </select></div>
-          <div class="form-group"><label>Mês</label><select id="g-mes">
-            <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option>
-            <option value="MARÇO">Março</option><option value="ABRIL">Abril</option>
-            <option value="MAIO">Maio</option><option value="JUNHO" selected>Junho</option>
-            <option value="JULHO">Julho</option><option value="AGOSTO">Agosto</option>
-            <option value="SETEMBRO">Setembro</option><option value="OUTUBRO">Outubro</option>
-            <option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
-          </select></div>
-          <div style="display:flex;gap:6px;align-items:flex-end">
-            <button class="btn btn-ghost" onclick="carregarGrade()">Carregar</button>
-            <button class="btn btn-success" id="btn-salvar-grade" onclick="salvarGrade()">💾 Salvar no Excel</button>
+      <div id="page-lancamento" class="page">
+        <div class="topbar"><div class="page-title">Lançamento Mensal</div></div>
+        <div class="content">
+          <div class="tabs">
+            <button class="tab active" onclick="showTab('lt-form',this)">Formulário</button>
+            <button class="tab" onclick="showTab('lt-grade',this)">Grade</button>
+            <button class="tab" onclick="showTab('lt-hist',this)">Histórico</button>
+          </div>
+          <div id="lt-form">
+            <div class="card"><div class="card-hd"><div class="card-title">Novo lançamento</div></div>
+              <div class="card-body">
+                <div class="fgrid" style="margin-bottom:.875rem">
+                  <div class="fg"><label class="fl">Empresa *</label><select class="fc" id="f-emp" onchange="updateLojas('f-loja','f-emp');renderFL()"><option value="">Selecione...</option></select></div>
+                  <div class="fg"><label class="fl">Loja *</label><select class="fc" id="f-loja" onchange="renderFL()"><option value="">Selecione...</option></select></div>
+                  <div class="fg"><label class="fl">Ano *</label><select class="fc" id="f-ano" onchange="renderFL()">
+                    <option value="2024">2024</option><option value="2025">2025</option><option value="2026" selected>2026</option>
+                    <option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option>
+                  </select></div>
+                  <div class="fg"><label class="fl">Mês *</label><select class="fc" id="f-mes" onchange="renderFL()">
+                    <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option><option value="MARÇO">Março</option>
+                    <option value="ABRIL">Abril</option><option value="MAIO">Maio</option><option value="JUNHO">Junho</option>
+                    <option value="JULHO">Julho</option><option value="AGOSTO">Agosto</option><option value="SETEMBRO">Setembro</option>
+                    <option value="OUTUBRO">Outubro</option><option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
+                  </select></div>
+                  <div class="fg"><label class="fl">Categoria *</label><select class="fc" id="f-cat"><option value="">Selecione...</option></select></div>
+                  <div class="fg"><label class="fl">Valor (R$) *</label><input type="number" class="fc" id="f-val" placeholder="0,00" step="0.01" min="0"/></div>
+                  <div class="fg"><label class="fl">Observação</label><input type="text" class="fc" id="f-obs" placeholder="Opcional"/></div>
+                  <div class="fg" style="justify-content:flex-end"><label class="fl">&nbsp;</label><button class="btn btn-primary" id="btn-salvar" onclick="salvar()">+ Salvar</button></div>
+                </div>
+              </div>
+            </div>
+            <div class="card"><div class="card-hd"><div class="card-title">Lançamentos do período</div></div>
+              <div class="card-body" id="form-lista"><div class="empty"><div class="empty-icon">📋</div><div>Selecione empresa, loja, ano e mês</div></div></div>
+            </div>
+          </div>
+          <div id="lt-grade" style="display:none">
+            <div class="card"><div class="card-hd"><div class="card-title">Filtros da grade</div></div>
+              <div class="card-body">
+                <div class="filters">
+                  <div class="fg"><label class="fl">Empresa</label><select class="fc" id="g-emp"><option value="">Todas</option></select></div>
+                  <div class="fg"><label class="fl">Ano</label><select class="fc" id="g-ano">
+                    <option value="2024">2024</option><option value="2025">2025</option><option value="2026" selected>2026</option>
+                    <option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option>
+                  </select></div>
+                  <div class="fg"><label class="fl">Mês</label><select class="fc" id="g-mes">
+                    <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option><option value="MARÇO">Março</option>
+                    <option value="ABRIL">Abril</option><option value="MAIO">Maio</option><option value="JUNHO" selected>Junho</option>
+                    <option value="JULHO">Julho</option><option value="AGOSTO">Agosto</option><option value="SETEMBRO">Setembro</option>
+                    <option value="OUTUBRO">Outubro</option><option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
+                  </select></div>
+                  <div style="display:flex;gap:.5rem;align-items:flex-end">
+                    <button class="btn btn-ghost" onclick="carregarGrade()">Carregar</button>
+                    <button class="btn btn-success" id="btn-grade" onclick="salvarGrade()">💾 Salvar grade</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card" style="overflow-x:auto"><div id="grade-wrap"><div class="empty"><div class="empty-icon">📊</div><div>Configure e clique em Carregar</div></div></div></div>
+          </div>
+          <div id="lt-hist" style="display:none">
+            <div class="card"><div class="card-body">
+              <div class="filters">
+                <div class="fg"><label class="fl">Empresa</label><select class="fc" id="h-emp"><option value="">Todas</option></select></div>
+                <div class="fg"><label class="fl">Loja</label><select class="fc" id="h-loja"><option value="">Todas</option></select></div>
+                <div class="fg"><label class="fl">Ano</label><select class="fc" id="h-ano"><option value="">Todos</option>
+                  <option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option></select></div>
+                <div class="fg"><label class="fl">Mês</label><select class="fc" id="h-mes"><option value="">Todos</option>
+                  <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option><option value="MARÇO">Março</option>
+                  <option value="ABRIL">Abril</option><option value="MAIO">Maio</option><option value="JUNHO">Junho</option>
+                  <option value="JULHO">Julho</option><option value="AGOSTO">Agosto</option><option value="SETEMBRO">Setembro</option>
+                  <option value="OUTUBRO">Outubro</option><option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
+                </select></div>
+                <div class="fg"><label class="fl">Categoria</label><select class="fc" id="h-cat"><option value="">Todas</option></select></div>
+                <div style="display:flex;align-items:flex-end"><button class="btn btn-ghost" onclick="renderHist()">Filtrar</button></div>
+              </div>
+            </div></div>
+            <div class="card"><div id="hist-wrap"><div class="empty"><div class="empty-icon">🔍</div><div>Clique em Filtrar</div></div></div></div>
           </div>
         </div>
       </div>
-      <div class="card">
-        <div class="table-wrap" id="grade-wrap"><div class="empty">Configure os filtros e clique em Carregar.</div></div>
-      </div>
-    </div>
 
-    <!-- HISTÓRICO -->
-    <div id="lt-historico" style="display:none">
-      <div class="card">
-        <div class="filters-row">
-          <div class="form-group"><label>Empresa</label><select id="h-empresa"><option value="">Todas</option></select></div>
-          <div class="form-group"><label>Loja</label><select id="h-loja"><option value="">Todas</option></select></div>
-          <div class="form-group"><label>Ano</label><select id="h-ano"><option value="">Todos</option>
-            <option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option>
-            <option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option>
-          </select></div>
-          <div class="form-group"><label>Mês</label><select id="h-mes"><option value="">Todos</option>
-            <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option>
-            <option value="MARÇO">Março</option><option value="ABRIL">Abril</option>
-            <option value="MAIO">Maio</option><option value="JUNHO">Junho</option>
-            <option value="JULHO">Julho</option><option value="AGOSTO">Agosto</option>
-            <option value="SETEMBRO">Setembro</option><option value="OUTUBRO">Outubro</option>
-            <option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
-          </select></div>
-          <div class="form-group"><label>Categoria</label><select id="h-cat"><option value="">Todas</option></select></div>
-          <div style="display:flex;align-items:flex-end"><button class="btn btn-ghost" onclick="renderHistorico()">Filtrar</button></div>
+      <div id="page-relatorio" class="page">
+        <div class="topbar"><div class="page-title">Relatório</div></div>
+        <div class="content">
+          <div class="card"><div class="card-body">
+            <div class="filters">
+              <div class="fg"><label class="fl">Empresa</label><select class="fc" id="r-emp" onchange="updateLojasFilt()"><option value="">Todas</option></select></div>
+              <div class="fg"><label class="fl">Loja</label><select class="fc" id="r-loja"><option value="">Todas</option></select></div>
+              <div class="fg"><label class="fl">Ano</label><select class="fc" id="r-ano"><option value="">Todos</option>
+                <option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option></select></div>
+              <div class="fg"><label class="fl">Mês</label><select class="fc" id="r-mes"><option value="">Todos</option>
+                <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option><option value="MARÇO">Março</option>
+                <option value="ABRIL">Abril</option><option value="MAIO">Maio</option><option value="JUNHO">Junho</option>
+                <option value="JULHO">Julho</option><option value="AGOSTO">Agosto</option><option value="SETEMBRO">Setembro</option>
+                <option value="OUTUBRO">Outubro</option><option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
+              </select></div>
+              <div class="fg"><label class="fl">Categoria</label><select class="fc" id="r-cat"><option value="">Todas</option></select></div>
+              <div class="fg"><label class="fl">Agrupar por</label><select class="fc" id="r-grp">
+                <option value="empresa">Empresa</option><option value="loja">Loja</option><option value="categoria">Categoria</option>
+                <option value="cidade">Cidade</option><option value="mes">Mês</option><option value="ano">Ano</option>
+              </select></div>
+              <div style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="renderRel()">Gerar</button></div>
+            </div>
+          </div></div>
+          <div class="card"><div id="rel-wrap"><div class="empty"><div class="empty-icon">📄</div><div>Configure e clique em Gerar</div></div></div></div>
         </div>
       </div>
-      <div class="card">
-        <div id="historico-wrap"><div class="empty">Clique em Filtrar para carregar os dados do Excel.</div></div>
-      </div>
-    </div>
-  </div>
 
-  <!-- ══ DASHBOARD ══ -->
-  <div class="page" id="page-dashboard">
-    <div class="sec-header">
-      <div class="sec-title">Dashboard</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <select id="d-ano" style="font-size:13px;padding:5px 8px;border-radius:6px;border:1px solid var(--border2)" onchange="renderDashboard()">
-          <option value="">Todos os anos</option><option value="2024">2024</option>
-          <option value="2025">2025</option><option value="2026">2026</option>
-          <option value="2027">2027</option><option value="2028">2028</option>
-          <option value="2029">2029</option><option value="2030">2030</option>
-        </select>
-        <select id="d-mes" style="font-size:13px;padding:5px 8px;border-radius:6px;border:1px solid var(--border2)" onchange="renderDashboard()">
-          <option value="">Todos os meses</option>
-          <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option>
-          <option value="MARÇO">Março</option><option value="ABRIL">Abril</option>
-          <option value="MAIO">Maio</option><option value="JUNHO">Junho</option>
-          <option value="JULHO">Julho</option><option value="AGOSTO">Agosto</option>
-          <option value="SETEMBRO">Setembro</option><option value="OUTUBRO">Outubro</option>
-          <option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
-        </select>
-        <select id="d-empresa" style="font-size:13px;padding:5px 8px;border-radius:6px;border:1px solid var(--border2)" onchange="renderDashboard()">
-          <option value="">Todas as empresas</option>
-        </select>
-        <button class="btn btn-ghost btn-sm" onclick="loadAllData()">🔄 Atualizar</button>
-      </div>
-    </div>
-    <div class="kpi-grid" id="d-kpis"></div>
-    <div class="charts-row">
-      <div class="card" style="grid-column:1/-1">
-        <div class="card-title">Evolução mensal — 2025 vs 2026</div>
-        <div class="chart-wrap" style="height:220px"><canvas id="c-mensal" role="img" aria-label="Evolução mensal"></canvas></div>
-      </div>
-    </div>
-    <div class="charts-row">
-      <div class="card">
-        <div class="card-title">Por empresa</div>
-        <div class="chart-wrap" style="height:200px"><canvas id="c-empresa" role="img" aria-label="Por empresa"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="card-title">Por categoria</div>
-        <div class="chart-wrap" style="height:200px"><canvas id="c-cat" role="img" aria-label="Por categoria"></canvas></div>
-      </div>
-    </div>
-    <div class="charts-row">
-      <div class="card">
-        <div class="card-title">Por cidade</div>
-        <div class="chart-wrap" style="height:200px"><canvas id="c-cidade" role="img" aria-label="Por cidade"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="card-title">Top 10 lojas</div>
-        <div class="chart-wrap" style="height:300px"><canvas id="c-loja" role="img" aria-label="Top lojas"></canvas></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ RELATÓRIO ══ -->
-  <div class="page" id="page-relatorio">
-    <div class="sec-header"><div class="sec-title">Relatório</div></div>
-    <div class="card">
-      <div class="filters-row">
-        <div class="form-group"><label>Empresa</label><select id="r-empresa"><option value="">Todas</option></select></div>
-        <div class="form-group"><label>Loja</label><select id="r-loja"><option value="">Todas</option></select></div>
-        <div class="form-group"><label>Ano</label><select id="r-ano"><option value="">Todos</option>
-          <option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option>
-          <option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option>
-        </select></div>
-        <div class="form-group"><label>Mês</label><select id="r-mes"><option value="">Todos</option>
-          <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option>
-          <option value="MARÇO">Março</option><option value="ABRIL">Abril</option>
-          <option value="MAIO">Maio</option><option value="JUNHO">Junho</option>
-          <option value="JULHO">Julho</option><option value="AGOSTO">Agosto</option>
-          <option value="SETEMBRO">Setembro</option><option value="OUTUBRO">Outubro</option>
-          <option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
-        </select></div>
-        <div class="form-group"><label>Categoria</label><select id="r-cat"><option value="">Todas</option></select></div>
-        <div class="form-group"><label>Agrupar por</label><select id="r-group">
-          <option value="EMPRESA">Empresa</option><option value="LOJAS">Loja</option>
-          <option value="CATEGORIA">Categoria</option><option value="CIDADE">Cidade</option>
-          <option value="Mês">Mês</option><option value="ANO">Ano</option>
-        </select></div>
-        <div style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="renderRelatorio()">Gerar</button></div>
-      </div>
-    </div>
-    <div class="card"><div id="relatorio-wrap"><div class="empty">Configure os filtros e clique em Gerar.</div></div></div>
-  </div>
-
-  <!-- ══ CADASTROS ══ -->
-  <div class="page" id="page-cadastros">
-    <div class="sec-title" style="margin-bottom:1rem">Cadastros</div>
-    <div class="inner-tabs">
-      <button class="inner-tab active" onclick="showInner('cad-empresas',this)">Empresas</button>
-      <button class="inner-tab" onclick="showInner('cad-lojas',this)">Lojas</button>
-      <button class="inner-tab" onclick="showInner('cad-categorias',this)">Categorias</button>
-    </div>
-    <div id="cad-empresas">
-      <div class="card">
-        <div class="card-title">Nova Empresa</div>
-        <div style="display:flex;gap:8px;align-items:flex-end">
-          <div class="form-group" style="flex:1"><label>Nome</label><input type="text" id="new-empresa" placeholder="Ex: TABATINGA FREE SHOP"/></div>
-          <button class="btn btn-primary" onclick="addEmpresa()">Adicionar</button>
+      <div id="page-cadastros" class="page">
+        <div class="topbar"><div class="page-title">Cadastros</div></div>
+        <div class="content">
+          <div class="tabs">
+            <button class="tab active" onclick="showTab('cad-emp',this)">Empresas</button>
+            <button class="tab" onclick="showTab('cad-loja',this)">Lojas</button>
+            <button class="tab" onclick="showTab('cad-cat',this)">Categorias</button>
+          </div>
+          <div id="cad-emp">
+            <div class="card"><div class="card-hd"><div class="card-title">Nova empresa</div></div>
+              <div class="card-body" style="display:flex;gap:.5rem">
+                <input type="text" class="fc" id="new-emp" placeholder="Nome da empresa" style="flex:1"/>
+                <button class="btn btn-primary" onclick="addEmpresa()">Adicionar</button>
+              </div>
+            </div>
+            <div class="card"><div id="list-emp"><div class="empty"><div>Nenhuma empresa</div></div></div></div>
+          </div>
+          <div id="cad-loja" style="display:none">
+            <div class="card"><div class="card-hd"><div class="card-title">Nova loja</div></div>
+              <div class="card-body">
+                <div class="fgrid" style="margin-bottom:.875rem">
+                  <div class="fg"><label class="fl">Nome *</label><input type="text" class="fc" id="nl-nome" placeholder="Ex: Amazonas Shopping"/></div>
+                  <div class="fg"><label class="fl">Empresa *</label><select class="fc" id="nl-emp"><option value="">Selecione...</option></select></div>
+                  <div class="fg"><label class="fl">Cidade *</label><input type="text" class="fc" id="nl-cidade" placeholder="Ex: MANAUS"/></div>
+                  <div class="fg"><label class="fl">UF *</label><input type="text" class="fc" id="nl-uf" maxlength="2" placeholder="AM"/></div>
+                </div>
+                <button class="btn btn-primary" onclick="addLoja()">Adicionar loja</button>
+              </div>
+            </div>
+            <div class="card"><div id="list-loja"><div class="empty"><div>Nenhuma loja</div></div></div></div>
+          </div>
+          <div id="cad-cat" style="display:none">
+            <div class="card"><div class="card-hd"><div class="card-title">Nova categoria</div></div>
+              <div class="card-body" style="display:flex;gap:.5rem">
+                <input type="text" class="fc" id="new-cat" placeholder="Nome da categoria" style="flex:1"/>
+                <button class="btn btn-primary" onclick="addCat()">Adicionar</button>
+              </div>
+            </div>
+            <div class="card"><div id="list-cat"><div class="empty"><div>Nenhuma categoria</div></div></div></div>
+          </div>
         </div>
       </div>
-      <div class="card"><div id="lista-empresas"></div></div>
-    </div>
-    <div id="cad-lojas" style="display:none">
-      <div class="card">
-        <div class="card-title">Nova Loja</div>
-        <div class="form-grid" style="margin-bottom:1rem">
-          <div class="form-group"><label>Nome *</label><input type="text" id="new-loja-nome" placeholder="Ex: Amazonas Shopping"/></div>
-          <div class="form-group"><label>Empresa *</label><select id="new-loja-empresa"><option value="">Selecione...</option></select></div>
-          <div class="form-group"><label>Cidade *</label><input type="text" id="new-loja-cidade" placeholder="Ex: MANAUS"/></div>
-          <div class="form-group"><label>UF *</label><input type="text" id="new-loja-uf" maxlength="2" placeholder="AM"/></div>
-        </div>
-        <button class="btn btn-primary" onclick="addLoja()">Adicionar Loja</button>
-      </div>
-      <div class="card"><div id="lista-lojas"></div></div>
-    </div>
-    <div id="cad-categorias" style="display:none">
-      <div class="card">
-        <div class="card-title">Nova Categoria</div>
-        <div style="display:flex;gap:8px;align-items:flex-end">
-          <div class="form-group" style="flex:1"><label>Nome</label><input type="text" id="new-categoria" placeholder="Ex: IPTU"/></div>
-          <button class="btn btn-primary" onclick="addCategoria()">Adicionar</button>
-        </div>
-      </div>
-      <div class="card"><div id="lista-categorias"></div></div>
     </div>
   </div>
 </div>
-
 <div id="toast"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-// ══════════════════════════════════════════════════════════
-// MSAL — Microsoft Authentication
-// ══════════════════════════════════════════════════════════
-const msalConfig = {
-  auth: {
-    clientId: CONFIG.clientId,
-    authority: `https://login.microsoftonline.com/${CONFIG.tenantId}`,
-    redirectUri: CONFIG.redirectUri
-  },
-  cache: { cacheLocation: 'sessionStorage', storeAuthStateInCookie: false }
-};
-const msalInstance = new msal.PublicClientApplication(msalConfig);
-const SCOPES = ['Files.ReadWrite', 'User.Read'];
-let accessToken = null;
-let currentUser = null;
-
-async function signIn() {
-  try {
-    const resp = await msalInstance.loginPopup({ scopes: SCOPES });
-    msalInstance.setActiveAccount(resp.account);
-    await afterLogin(resp.account);
-  } catch(e) {
-    toast('❌ Erro no login: ' + e.message);
-  }
-}
-
-async function getToken() {
-  const account = msalInstance.getActiveAccount();
-  if (!account) throw new Error('Não autenticado');
-  try {
-    const resp = await msalInstance.acquireTokenSilent({ scopes: SCOPES, account });
-    return resp.accessToken;
-  } catch {
-    const resp = await msalInstance.acquireTokenPopup({ scopes: SCOPES });
-    return resp.accessToken;
-  }
-}
-
-async function afterLogin(account) {
-  currentUser = account;
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app-screen').style.display = 'block';
-  const initials = (account.name || account.username).split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
-  document.getElementById('nav-initials').textContent = initials;
-  document.getElementById('nav-name').textContent = account.name || account.username;
-  document.getElementById('sync-file').textContent = 'ALUGUEIS.xlsx';
-  await loadAllData();
-}
-
-function signOut() {
-  msalInstance.logoutPopup();
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('app-screen').style.display = 'none';
-  STATE.lancamentos = [];
-}
-
-// Auto-login se já tiver sessão
-(async()=>{
-  await msalInstance.initialize();
-  const accounts = msalInstance.getAllAccounts();
-  if(accounts.length > 0) {
-    msalInstance.setActiveAccount(accounts[0]);
-    await afterLogin(accounts[0]);
-  }
-})();
-
-// ══════════════════════════════════════════════════════════
-// MICROSOFT GRAPH API — Excel / OneDrive
-// ══════════════════════════════════════════════════════════
-const GRAPH = 'https://graph.microsoft.com/v1.0';
-const FILE = () => `${GRAPH}/me/drive/items/${CONFIG.fileId}`;
-
-async function graphCall(method, url, body) {
-  setSyncing(true);
-  try {
-    const token = await getToken();
-    const opts = {
-      method,
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    };
-    if (body) opts.body = JSON.stringify(body);
-    const resp = await fetch(url, opts);
-    if (!resp.ok) {
-      const err = await resp.json().catch(()=>({}));
-      throw new Error(err?.error?.message || `HTTP ${resp.status}`);
-    }
-    if (resp.status === 204) return null;
-    return await resp.json();
-  } finally {
-    setSyncing(false);
-  }
-}
-
-// Lê todas as linhas da tabela BASE
-async function readExcelTable() {
-  try {
-    const url = `${FILE()}/workbook/tables/${CONFIG.tableName}/rows`;
-    const data = await graphCall('GET', url);
-    if (!data || !data.value) return [];
-    return data.value.map(row => {
-      const v = row.values[0];
-      return {
-        EMPRESA: v[0]||'', LOJAS: (v[1]||'').toString().trim(), ANO: parseInt(v[2])||0,
-        Mês: v[3]||'', CIDADE: v[4]||'', UF: v[5]||'',
-        CATEGORIA: v[6]||'', Valor: parseFloat(v[7])||0,
-        OBS: v[8]||'',
-        MES_NUM: MESES.indexOf(v[3])+1,
-        _rowIndex: row.index
-      };
-    }).filter(r => r.EMPRESA && r.ANO > 0);
-  } catch(e) {
-    toast('❌ Erro ao ler Excel: ' + e.message);
-    setSyncError();
-    return [];
-  }
-}
-
-// Adiciona linha na tabela BASE
-async function addExcelRow(row) {
-  const url = `${FILE()}/workbook/tables/${CONFIG.tableName}/rows/add`;
-  const values = [[
-    row.EMPRESA, row.LOJAS, row.ANO, row.Mês,
-    row.CIDADE, row.UF, row.CATEGORIA,
-    row.Valor, row.OBS||'', row.MES_NUM
-  ]];
-  return graphCall('POST', url, { index: null, values });
-}
-
-// Adiciona múltiplas linhas de uma vez
-async function addExcelRows(rows) {
-  if (!rows.length) return;
-  const url = `${FILE()}/workbook/tables/${CONFIG.tableName}/rows/add`;
-  const values = rows.map(r => [
-    r.EMPRESA, r.LOJAS, r.ANO, r.Mês,
-    r.CIDADE, r.UF, r.CATEGORIA,
-    r.Valor, r.OBS||'', r.MES_NUM
-  ]);
-  return graphCall('POST', url, { index: null, values });
-}
-
-// Deleta linha pelo índice
-async function deleteExcelRow(rowIndex) {
-  const url = `${FILE()}/workbook/tables/${CONFIG.tableName}/rows/itemAt(index=${rowIndex})`;
-  return graphCall('DELETE', url);
-}
-
-// Atualiza valor de linha existente
-async function updateExcelRow(rowIndex, row) {
-  const url = `${FILE()}/workbook/tables/${CONFIG.tableName}/rows/itemAt(index=${rowIndex})`;
-  return graphCall('PATCH', url, { values: [[
-    row.EMPRESA, row.LOJAS, row.ANO, row.Mês,
-    row.CIDADE, row.UF, row.CATEGORIA,
-    row.Valor, row.OBS||'', row.MES_NUM
-  ]]});
-}
-
-// ══════════════════════════════════════════════════════════
-// ESTADO LOCAL (cache dos dados do Excel)
-// ══════════════════════════════════════════════════════════
-const STATE = {
-  lancamentos: [],
-  empresas: [],
-  lojas: [],
-  categorias: [
-    'ALUGUEL','ALUGUEL MIN','ALUGUEL COMPLEM','ALUGUEL DEPOSITO',
-    'CONDOMINIO GERAL','ENCARGOS COMUM','MIDIA','IPTU',
-    'FUNDO DE PROMOÇÃO','ENERGIA','SEGUROS','ÁGUA'
-  ]
-};
-
-async function loadAllData() {
-  toast('🔄 Carregando dados do Excel...');
-  const rows = await readExcelTable();
-  STATE.lancamentos = rows;
-
-  // Extrai empresas e lojas únicas dos dados
-  const empSet = new Set(rows.map(r=>r.EMPRESA).filter(Boolean));
-  STATE.empresas = [...empSet].sort();
-
-  const lojaMap = {};
-  rows.forEach(r => {
-    const key = r.LOJAS + '|' + r.EMPRESA;
-    if (!lojaMap[key]) lojaMap[key] = { nome: r.LOJAS, empresa: r.EMPRESA, cidade: r.CIDADE, uf: r.UF };
+const SB='https://xgzhvsovzxtcdhfkesgd.supabase.co';
+const SK='sb_publishable_ta2o6ZR043COAwmbnGOfnQ_NFm6nyeU';
+async function db(path,opts={}){
+  const r=await fetch(`${SB}/rest/v1/${path}`,{
+    headers:{'apikey':SK,'Authorization':`Bearer ${SK}`,'Content-Type':'application/json','Prefer':opts.prefer||(opts.method==='POST'?'return=representation':''),...(opts.headers||{})},
+    ...opts
   });
-  STATE.lojas = Object.values(lojaMap).sort((a,b)=>a.nome.localeCompare(b.nome));
-
-  populateAllSelects();
-  toast(`✅ ${rows.length} registros carregados do Excel`);
+  if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.message||`HTTP ${r.status}`);}
+  if(r.status===204)return null;
+  return r.json();
 }
+let S={empresas:[],lojas:[],categorias:[],lancamentos:[]};
+const MESES=['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+const CLR=['#2d5be3','#d97706','#0d9e6e','#6d3fd4','#d93b3b','#0891b2','#db2777','#65a30d','#ea580c','#8b5cf6'];
 
-// ══════════════════════════════════════════════════════════
-// SYNC STATUS
-// ══════════════════════════════════════════════════════════
-function setSyncing(on) {
-  const dot = document.getElementById('sync-dot');
-  const txt = document.getElementById('sync-status');
-  if (on) { dot.className='sync-dot syncing'; txt.textContent='Sincronizando com OneDrive...'; }
-  else { dot.className='sync-dot'; txt.textContent='Conectado ao OneDrive'; }
+function loginDemo(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  loadData();
 }
-function setSyncError() {
-  document.getElementById('sync-dot').className='sync-dot error';
-  document.getElementById('sync-status').textContent='Erro de conexão — verifique o Excel';
-}
+function logout(){document.getElementById('login-screen').style.display='flex';document.getElementById('app').style.display='none';}
 
-// ══════════════════════════════════════════════════════════
-// NAVEGAÇÃO
-// ══════════════════════════════════════════════════════════
-function showPage(id, btn) {
+async function loadData(){
+  ss('sync','Carregando...');
+  try{
+    const[e,l,c,la]=await Promise.all([
+      db('empresas?select=*&order=nome'),
+      db('lojas?select=*,empresas(nome)&order=nome'),
+      db('categorias?select=*&order=nome'),
+      db('lancamentos?select=*,empresas(nome),lojas(nome,cidade,uf),categorias(nome)&order=created_at.desc&limit=10000')
+    ]);
+    S.empresas=e||[];
+    S.lojas=(l||[]).map(x=>({...x,empresa_nome:x.empresas?.nome||''}));
+    S.categorias=c||[];
+    S.lancamentos=(la||[]).map(x=>({...x,empresa_nome:x.empresas?.nome||'',loja_nome:x.lojas?.nome||'',cidade:x.lojas?.cidade||'',uf:x.lojas?.uf||'',cat_nome:x.categorias?.nome||''}));
+    ss('ok',`${S.lancamentos.length} registros`);
+    document.getElementById('stime').textContent='Atualizado: '+new Date().toLocaleTimeString('pt-BR');
+    populateSels();renderDash();renderCads();
+  }catch(ex){ss('err','Erro: '+ex.message);toast('❌ '+ex.message);}
+}
+function ss(t,m){const d=document.getElementById('sdot');d.className='s-dot '+t;document.getElementById('stxt').textContent=m;}
+
+function populateSels(){
+  const en=S.empresas.map(e=>e.nome).sort();
+  const cn=S.categorias.map(c=>c.nome).sort();
+  const ln=S.lojas.map(l=>l.nome).sort();
+  fs('f-emp',en,'Selecione...');fs('f-cat',cn,'Selecione...');
+  fs('g-emp',en,'Todas');
+  fs('h-emp',en,'Todas');fs('h-loja',ln,'Todas');fs('h-cat',cn,'Todas');
+  fs('d-emp',en,'Todas as empresas');
+  fs('r-emp',en,'Todas');fs('r-loja',ln,'Todas');fs('r-cat',cn,'Todas');
+  fs('nl-emp',en,'Selecione...');
+}
+function fs(id,arr,e0){const el=document.getElementById(id);if(!el)return;const cv=el.value;el.innerHTML=`<option value="">${e0}</option>`+arr.map(v=>`<option value="${v}">${v}</option>`).join('');if(cv)el.value=cv;}
+function updateLojas(tid,sid){const e=document.getElementById(sid).value;fs(tid,S.lojas.filter(l=>!e||l.empresa_nome===e).map(l=>l.nome).sort(),'Selecione...');}
+function updateLojasFilt(){const e=document.getElementById('r-emp').value;fs('r-loja',S.lojas.filter(l=>!e||l.empresa_nome===e).map(l=>l.nome).sort(),'Todas');}
+
+function goPage(id,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   btn.classList.add('active');
-  if (id==='dashboard') renderDashboard();
-  if (id==='cadastros') renderCadastros();
+  if(id==='dashboard')renderDash();
+  if(id==='cadastros')renderCads();
 }
-
-function showInner(id, btn) {
-  btn.parentElement.querySelectorAll('.inner-tab').forEach(b=>b.classList.remove('active'));
+function showTab(id,btn){
+  btn.parentElement.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  let el = btn.parentElement.nextElementSibling;
-  while(el) { el.style.display = el.id===id?'block':'none'; el=el.nextElementSibling; }
+  let el=btn.parentElement.nextElementSibling;
+  while(el){el.style.display=el.id===id?'block':'none';el=el.nextElementSibling;}
 }
 
-// ══════════════════════════════════════════════════════════
-// SELECTS
-// ══════════════════════════════════════════════════════════
-function populateAllSelects() {
-  const emp = STATE.empresas;
-  const cat = STATE.categorias.sort();
-  const lojas = STATE.lojas.map(l=>l.nome).sort();
-
-  fillSel('f-empresa', emp, '-- Empresa --');
-  fillSel('f-categoria', cat, '-- Categoria --');
-  fillSel('f-loja', lojas, '-- Loja --');
-  fillSel('g-empresa', emp, 'Todas');
-  fillSel('h-empresa', emp, 'Todas');
-  fillSel('h-loja', lojas, 'Todas');
-  fillSel('h-cat', cat, 'Todas');
-  fillSel('d-empresa', emp, 'Todas as empresas');
-  fillSel('r-empresa', emp, 'Todas');
-  fillSel('r-loja', lojas, 'Todas');
-  fillSel('r-cat', cat, 'Todas');
-  fillSel('new-loja-empresa', emp, 'Selecione...');
-  fillSel('lista-cat-select', cat, 'Todas');
+async function salvar(){
+  const en=document.getElementById('f-emp').value,ln=document.getElementById('f-loja').value;
+  const ano=parseInt(document.getElementById('f-ano').value),mes=document.getElementById('f-mes').value;
+  const cn=document.getElementById('f-cat').value,val=parseFloat(document.getElementById('f-val').value)||0;
+  const obs=document.getElementById('f-obs').value;
+  if(!en||!ln||!cn){toast('⚠️ Preencha empresa, loja e categoria');return;}
+  if(val<=0){toast('⚠️ Informe um valor');return;}
+  const btn=document.getElementById('btn-salvar');btn.disabled=true;btn.innerHTML='<div class="spinner"></div>';
+  try{
+    const e=S.empresas.find(x=>x.nome===en),l=S.lojas.find(x=>x.nome===ln),c=S.categorias.find(x=>x.nome===cn);
+    if(!e||!l||!c){toast('❌ Cadastro não encontrado');return;}
+    await db('lancamentos',{method:'POST',body:JSON.stringify({empresa_id:e.id,loja_id:l.id,categoria_id:c.id,ano,mes,mes_num:MESES.indexOf(mes)+1,valor:val,obs})});
+    toast('✅ Salvo!');document.getElementById('f-val').value='';document.getElementById('f-obs').value='';
+    await loadData();renderFL();
+  }catch(ex){toast('❌ '+ex.message);}
+  finally{btn.disabled=false;btn.innerHTML='+ Salvar';}
 }
-
-function fillSel(id, arr, empty) {
-  const sel = document.getElementById(id);
-  if (!sel) return;
-  const cur = sel.value;
-  sel.innerHTML = `<option value="">${empty}</option>`;
-  arr.forEach(v => {
-    const o = document.createElement('option');
-    o.value = v; o.textContent = v; sel.appendChild(o);
-  });
-  if (cur) sel.value = cur;
-}
-
-function onEmpresaChange() {
-  const emp = document.getElementById('f-empresa').value;
-  const lojas = STATE.lojas.filter(l=>!emp||l.empresa===emp).map(l=>l.nome).sort();
-  fillSel('f-loja', lojas, '-- Loja --');
-  renderFormLista();
-}
-
-// ══════════════════════════════════════════════════════════
-// LANÇAMENTO — FORMULÁRIO
-// ══════════════════════════════════════════════════════════
-async function salvarLancamento() {
-  const emp = document.getElementById('f-empresa').value;
-  const loja = document.getElementById('f-loja').value;
-  const ano = parseInt(document.getElementById('f-ano').value);
-  const mes = document.getElementById('f-mes').value;
-  const cat = document.getElementById('f-categoria').value;
-  const valor = parseFloat(document.getElementById('f-valor').value)||0;
-  const obs = document.getElementById('f-obs').value;
-
-  if (!emp||!loja||!cat) { toast('⚠️ Preencha empresa, loja e categoria'); return; }
-  if (valor <= 0) { toast('⚠️ Informe um valor maior que zero'); return; }
-
-  const btn = document.getElementById('btn-salvar');
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spinner"></div> Salvando...';
-
-  try {
-    const lojaObj = STATE.lojas.find(l=>l.nome===loja);
-    const row = {
-      EMPRESA:emp, LOJAS:loja, ANO:ano, Mês:mes,
-      CIDADE:lojaObj?.cidade||'', UF:lojaObj?.uf||'',
-      CATEGORIA:cat, Valor:valor, OBS:obs,
-      MES_NUM: MESES.indexOf(mes)+1
-    };
-    await addExcelRow(row);
-    STATE.lancamentos.push({ ...row, _rowIndex: STATE.lancamentos.length });
-    toast('✅ Salvo no Excel (OneDrive)!');
-    document.getElementById('f-valor').value = '';
-    document.getElementById('f-obs').value = '';
-    await loadAllData();
-    renderFormLista();
-  } catch(e) {
-    toast('❌ Erro ao salvar: ' + e.message);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '+ Salvar no Excel';
-  }
-}
-
-function renderFormLista() {
-  const emp = document.getElementById('f-empresa').value;
-  const loja = document.getElementById('f-loja').value;
-  const ano = document.getElementById('f-ano').value;
-  const mes = document.getElementById('f-mes').value;
-  const wrap = document.getElementById('form-lista-wrap');
-  if (!loja) { wrap.innerHTML='<div class="empty">Selecione uma loja para ver lançamentos.</div>'; return; }
-  const dados = STATE.lancamentos.filter(l=>
-    (!emp||l.EMPRESA===emp)&&(!loja||l.LOJAS===loja)&&
-    (!ano||String(l.ANO)===ano)&&(!mes||l.Mês===mes)
-  );
-  if (!dados.length) { wrap.innerHTML='<div class="empty">Nenhum lançamento neste período.</div>'; return; }
-  const total = dados.reduce((s,l)=>s+l.Valor,0);
-  wrap.innerHTML=`<div class="table-wrap"><table>
-    <thead><tr><th>Categoria</th><th>Ano</th><th>Mês</th><th style="text-align:right">Valor</th><th>Obs</th></tr></thead>
-    <tbody>${dados.map(l=>`<tr>
-      <td><span class="badge badge-blue">${l.CATEGORIA}</span></td>
-      <td>${l.ANO}</td><td>${l.Mês.slice(0,3)}</td>
-      <td style="text-align:right;font-weight:600">${fmtBR(l.Valor)}</td>
-      <td style="color:var(--text2);font-size:12px">${l.OBS||'—'}</td>
-    </tr>`).join('')}
-    <tr style="background:var(--blue-light)">
-      <td colspan="3" style="font-weight:700">Total</td>
-      <td style="text-align:right;font-weight:700;color:var(--blue)">${fmtBR(total)}</td>
-      <td></td>
-    </tr>
+function renderFL(){
+  const e=document.getElementById('f-emp').value,l=document.getElementById('f-loja').value;
+  const a=document.getElementById('f-ano').value,m=document.getElementById('f-mes').value;
+  const w=document.getElementById('form-lista');
+  if(!l){w.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div>Selecione uma loja</div></div>';return;}
+  const d=S.lancamentos.filter(x=>(!e||x.empresa_nome===e)&&(!l||x.loja_nome===l)&&(!a||String(x.ano)===a)&&(!m||x.mes===m));
+  if(!d.length){w.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div>Nenhum lançamento neste período</div></div>';return;}
+  const tot=d.reduce((s,x)=>s+parseFloat(x.valor),0);
+  w.innerHTML=`<div style="overflow-x:auto"><table><thead><tr><th>Categoria</th><th>Ano</th><th>Mês</th><th style="text-align:right">Valor</th><th>Obs</th><th></th></tr></thead>
+    <tbody>${d.map(x=>`<tr><td><span class="badge bb">${x.cat_nome}</span></td><td>${x.ano}</td><td>${x.mes.slice(0,3)}</td>
+    <td class="tn">${fBR(x.valor)}</td><td style="font-size:11px;color:var(--ink2)">${x.obs||'—'}</td>
+    <td><button class="btn btn-danger" onclick="delL('${x.id}')">✕</button></td></tr>`).join('')}
+    <tr class="ttot"><td colspan="3" style="font-weight:700">Total</td><td class="tn">${fBR(tot)}</td><td colspan="2"></td></tr>
     </tbody></table></div>`;
 }
+async function delL(id){
+  if(!confirm('Remover?'))return;
+  try{await db(`lancamentos?id=eq.${id}`,{method:'DELETE'});toast('🗑️ Removido');await loadData();renderFL();}
+  catch(ex){toast('❌ '+ex.message);}
+}
 
-// ══════════════════════════════════════════════════════════
-// LANÇAMENTO — GRADE
-// ══════════════════════════════════════════════════════════
-let gradeData = [];
-
-function carregarGrade() {
-  const emp = document.getElementById('g-empresa').value;
-  const ano = parseInt(document.getElementById('g-ano').value);
-  const mes = document.getElementById('g-mes').value;
-  const cats = STATE.categorias.sort();
-  const lojas = STATE.lojas.filter(l=>!emp||l.empresa===emp);
-  const wrap = document.getElementById('grade-wrap');
-  if (!lojas.length) { wrap.innerHTML='<div class="empty">Nenhuma loja para este filtro.</div>'; return; }
-
-  gradeData = lojas.map(loja => {
-    const row = { loja:loja.nome, empresa:loja.empresa, cidade:loja.cidade, uf:loja.uf };
-    cats.forEach(cat => {
-      const lanc = STATE.lancamentos.find(l=>l.LOJAS===loja.nome&&l.ANO===ano&&l.Mês===mes&&l.CATEGORIA===cat);
-      row[cat] = lanc ? lanc.Valor : 0;
-    });
+let gd=[];
+function carregarGrade(){
+  const e=document.getElementById('g-emp').value,ano=parseInt(document.getElementById('g-ano').value),mes=document.getElementById('g-mes').value;
+  const lojas=S.lojas.filter(l=>!e||l.empresa_nome===e);
+  const cats=S.categorias.map(c=>c.nome).sort();
+  const w=document.getElementById('grade-wrap');
+  if(!lojas.length){w.innerHTML='<div class="empty"><div>Nenhuma loja</div></div>';return;}
+  gd=lojas.map(loja=>{
+    const row={lid:loja.id,lnome:loja.nome,enome:loja.empresa_nome};
+    cats.forEach(c=>{const l=S.lancamentos.find(x=>x.loja_id===loja.id&&x.ano===ano&&x.mes===mes&&x.cat_nome===c);row[c]=l?parseFloat(l.valor):0;row[c+'_id']=l?l.id:null;});
     return row;
   });
-
-  wrap.innerHTML=`<table><thead><tr>
-    <th style="min-width:160px">Loja</th>
-    ${cats.map(c=>`<th style="min-width:110px">${c.replace('ALUGUEL ','ALU. ')}</th>`).join('')}
-    <th style="text-align:right;min-width:100px">Total</th>
-  </tr></thead><tbody>
-  ${gradeData.map((row,ri)=>{
-    const total = cats.reduce((s,c)=>s+(row[c]||0),0);
-    return `<tr>
-      <td style="white-space:nowrap"><strong>${row.loja}</strong><br><span style="font-size:11px;color:var(--text3)">${row.empresa}</span></td>
-      ${cats.map(c=>`<td><input type="number" step="0.01" min="0" data-ri="${ri}" data-cat="${c}" value="${(row[c]||0).toFixed(2)}" onchange="gradeChange(this)"/></td>`).join('')}
-      <td id="gt-${ri}" style="text-align:right;font-weight:700;color:var(--blue)">${fmtBR(total)}</td>
-    </tr>`;
-  }).join('')}
-  </tbody></table>`;
+  w.innerHTML=`<div style="overflow-x:auto"><table><thead><tr>
+    <th style="min-width:150px">Loja</th>
+    ${cats.map(c=>`<th style="min-width:95px;font-size:10px">${c.replace('ALUGUEL ','ALU. ')}</th>`).join('')}
+    <th style="text-align:right">Total</th></tr></thead><tbody>
+  ${gd.map((row,ri)=>{
+    const tot=cats.reduce((s,c)=>s+(row[c]||0),0);
+    return `<tr><td><strong style="font-size:12px">${row.lnome}</strong><br><span style="font-size:10px;color:var(--ink3)">${row.enome}</span></td>
+    ${cats.map(c=>`<td><input type="number" class="grade-input" step="0.01" min="0" data-ri="${ri}" data-cat="${c}" value="${(row[c]||0).toFixed(2)}" onchange="gchg(this)"/></td>`).join('')}
+    <td id="gt-${ri}" class="tn" style="font-size:12px">${fBR(tot)}</td></tr>`;
+  }).join('')}</tbody></table></div>`;
+}
+function gchg(inp){const ri=parseInt(inp.dataset.ri),c=inp.dataset.cat;gd[ri][c]=parseFloat(inp.value)||0;const cats=S.categorias.map(x=>x.nome).sort();document.getElementById('gt-'+ri).textContent=fBR(cats.reduce((s,c)=>s+(gd[ri][c]||0),0));}
+async function salvarGrade(){
+  const ano=parseInt(document.getElementById('g-ano').value),mes=document.getElementById('g-mes').value;
+  const cats=S.categorias.map(c=>c.nome).sort();
+  const btn=document.getElementById('btn-grade');btn.disabled=true;btn.innerHTML='<div class="spinner"></div>';
+  try{
+    const ins=[];
+    gd.forEach(row=>{cats.forEach(c=>{const v=row[c]||0;if(v<=0||row[c+'_id'])return;const co=S.categorias.find(x=>x.nome===c),eo=S.empresas.find(x=>x.nome===row.enome);if(co&&eo)ins.push({empresa_id:eo.id,loja_id:row.lid,categoria_id:co.id,ano,mes,mes_num:MESES.indexOf(mes)+1,valor:v,obs:''});});});
+    if(ins.length)await db('lancamentos',{method:'POST',body:JSON.stringify(ins)});
+    toast(`✅ ${ins.length} lançamentos salvos!`);await loadData();
+  }catch(ex){toast('❌ '+ex.message);}
+  finally{btn.disabled=false;btn.innerHTML='💾 Salvar grade';}
 }
 
-function gradeChange(input) {
-  const ri = parseInt(input.dataset.ri);
-  const cat = input.dataset.cat;
-  gradeData[ri][cat] = parseFloat(input.value)||0;
-  const total = STATE.categorias.reduce((s,c)=>s+(gradeData[ri][c]||0),0);
-  document.getElementById('gt-'+ri).textContent = fmtBR(total);
+function renderHist(){
+  const e=document.getElementById('h-emp').value,l=document.getElementById('h-loja').value;
+  const a=document.getElementById('h-ano').value,m=document.getElementById('h-mes').value,c=document.getElementById('h-cat').value;
+  const d=S.lancamentos.filter(x=>(!e||x.empresa_nome===e)&&(!l||x.loja_nome===l)&&(!a||String(x.ano)===a)&&(!m||x.mes===m)&&(!c||x.cat_nome===c)).sort((a,b)=>b.ano-a.ano||b.mes_num-a.mes_num);
+  const w=document.getElementById('hist-wrap');
+  if(!d.length){w.innerHTML='<div class="empty"><div class="empty-icon">🔍</div><div>Nenhum resultado</div></div>';return;}
+  const tot=d.reduce((s,x)=>s+parseFloat(x.valor),0);
+  w.innerHTML=`<div style="padding:.75rem 1rem;font-size:13px;color:var(--ink2);border-bottom:1px solid var(--border)"><strong>${d.length}</strong> registros — Total: <strong style="color:#2d5be3">${fBR(tot)}</strong></div>
+  <div style="overflow-x:auto"><table><thead><tr><th>Empresa</th><th>Loja</th><th>Ano</th><th>Mês</th><th>Categoria</th><th>Cidade</th><th style="text-align:right">Valor</th><th>Obs</th><th></th></tr></thead>
+  <tbody>${d.map(x=>`<tr><td style="font-size:11px">${x.empresa_nome}</td><td style="font-weight:600">${x.loja_nome}</td><td>${x.ano}</td><td>${x.mes.slice(0,3)}</td><td><span class="badge bb">${x.cat_nome}</span></td><td style="font-size:12px">${x.cidade}</td><td class="tn">${fBR(x.valor)}</td><td style="font-size:11px;color:var(--ink2)">${x.obs||'—'}</td><td><button class="btn btn-danger" onclick="delL('${x.id}')">✕</button></td></tr>`).join('')}</tbody></table></div>`;
 }
 
-async function salvarGrade() {
-  const ano = parseInt(document.getElementById('g-ano').value);
-  const mes = document.getElementById('g-mes').value;
-  const cats = STATE.categorias.sort();
-  const btn = document.getElementById('btn-salvar-grade');
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spinner"></div> Salvando...';
-
-  try {
-    const novasLinhas = [];
-    gradeData.forEach(row => {
-      cats.forEach(cat => {
-        const val = row[cat]||0;
-        if (val <= 0) return;
-        const exists = STATE.lancamentos.find(l=>l.LOJAS===row.loja&&l.ANO===ano&&l.Mês===mes&&l.CATEGORIA===cat);
-        if (!exists) {
-          novasLinhas.push({
-            EMPRESA:row.empresa, LOJAS:row.loja, ANO:ano, Mês:mes,
-            CIDADE:row.cidade||'', UF:row.uf||'',
-            CATEGORIA:cat, Valor:val, OBS:'',
-            MES_NUM: MESES.indexOf(mes)+1
-          });
-        }
-      });
-    });
-    if (novasLinhas.length) await addExcelRows(novasLinhas);
-    await loadAllData();
-    toast(`✅ ${novasLinhas.length} linhas salvas no Excel!`);
-  } catch(e) {
-    toast('❌ Erro: ' + e.message);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '💾 Salvar no Excel';
-  }
-}
-
-// ══════════════════════════════════════════════════════════
-// LANÇAMENTO — HISTÓRICO
-// ══════════════════════════════════════════════════════════
-function renderHistorico() {
-  const emp = document.getElementById('h-empresa').value;
-  const loja = document.getElementById('h-loja').value;
-  const ano = document.getElementById('h-ano').value;
-  const mes = document.getElementById('h-mes').value;
-  const cat = document.getElementById('h-cat').value;
-  const dados = STATE.lancamentos.filter(l=>
-    (!emp||l.EMPRESA===emp)&&(!loja||l.LOJAS===loja)&&
-    (!ano||String(l.ANO)===ano)&&(!mes||l.Mês===mes)&&(!cat||l.CATEGORIA===cat)
-  ).sort((a,b)=>b.ANO-a.ANO||b.MES_NUM-a.MES_NUM);
-  const wrap = document.getElementById('historico-wrap');
-  if (!dados.length) { wrap.innerHTML='<div class="empty">Nenhum lançamento encontrado.</div>'; return; }
-  const total = dados.reduce((s,l)=>s+l.Valor,0);
-  wrap.innerHTML=`<div style="margin-bottom:.75rem;font-size:13px;color:var(--text2)">
-    ${dados.length} registros — Total: <strong style="color:var(--blue)">${fmtBR(total)}</strong>
-  </div>
-  <div class="table-wrap"><table>
-    <thead><tr><th>Empresa</th><th>Loja</th><th>Ano</th><th>Mês</th><th>Categoria</th><th>Cidade</th><th style="text-align:right">Valor</th><th>Obs</th></tr></thead>
-    <tbody>${dados.map(l=>`<tr>
-      <td style="font-size:11px">${l.EMPRESA}</td>
-      <td style="font-weight:600">${l.LOJAS}</td>
-      <td>${l.ANO}</td><td>${l.Mês.slice(0,3)}</td>
-      <td><span class="badge badge-blue">${l.CATEGORIA}</span></td>
-      <td>${l.CIDADE}</td>
-      <td style="text-align:right;font-weight:600">${fmtBR(l.Valor)}</td>
-      <td style="color:var(--text2);font-size:11px">${l.OBS||'—'}</td>
-    </tr>`).join('')}
-    </tbody></table></div>`;
-}
-
-// ══════════════════════════════════════════════════════════
-// DASHBOARD
-// ══════════════════════════════════════════════════════════
-const MESES = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
-const COLORS = ['#2563eb','#d97706','#059669','#7c3aed','#dc2626','#0891b2','#db2777','#65a30d','#ea580c','#8b5cf6'];
-let charts = {};
-function destroyChart(id) { if(charts[id]){charts[id].destroy();delete charts[id];} }
-
-function renderDashboard() {
-  const ano = document.getElementById('d-ano').value;
-  const mes = document.getElementById('d-mes').value;
-  const emp = document.getElementById('d-empresa').value;
-  const dados = STATE.lancamentos.filter(l=>
-    (!ano||String(l.ANO)===ano)&&(!mes||l.Mês===mes)&&(!emp||l.EMPRESA===emp)
-  );
-  const total = dados.reduce((s,l)=>s+l.Valor,0);
-  const t25 = dados.filter(l=>l.ANO===2025).reduce((s,l)=>s+l.Valor,0);
-  const t26 = dados.filter(l=>l.ANO===2026).reduce((s,l)=>s+l.Valor,0);
-  const nLojas = new Set(dados.map(l=>l.LOJAS)).size;
-
+let CH={};
+function dC(id){if(CH[id]){CH[id].destroy();delete CH[id];}}
+function renderDash(){
+  const a=document.getElementById('d-ano').value,m=document.getElementById('d-mes').value,e=document.getElementById('d-emp').value;
+  const d=S.lancamentos.filter(l=>(!a||String(l.ano)===a)&&(!m||l.mes===m)&&(!e||l.empresa_nome===e));
+  const tot=d.reduce((s,l)=>s+parseFloat(l.valor),0);
+  const t25=d.filter(l=>l.ano===2025).reduce((s,l)=>s+parseFloat(l.valor),0);
+  const t26=d.filter(l=>l.ano===2026).reduce((s,l)=>s+parseFloat(l.valor),0);
+  const nL=new Set(d.map(l=>l.loja_id)).size;
+  const vp=t25>0&&t26>0?((t26-t25)/t25*100):null;
   document.getElementById('d-kpis').innerHTML=`
-    <div class="kpi blue"><div class="kpi-label">Total geral</div><div class="kpi-val">${fmtBR(total)}</div><div class="kpi-sub">${dados.length} lançamentos</div></div>
-    <div class="kpi green"><div class="kpi-label">Total 2025</div><div class="kpi-val">${fmtBR(t25)}</div></div>
-    <div class="kpi amber"><div class="kpi-label">Total 2026</div><div class="kpi-val">${fmtBR(t26)}</div></div>
-    <div class="kpi purple"><div class="kpi-label">Lojas ativas</div><div class="kpi-val">${nLojas}</div></div>`;
-
-  const byMes25 = MESES.map(m=>dados.filter(l=>l.ANO===2025&&l.Mês===m).reduce((s,l)=>s+l.Valor,0));
-  const byMes26 = MESES.map(m=>dados.filter(l=>l.ANO===2026&&l.Mês===m).reduce((s,l)=>s+l.Valor,0));
-  destroyChart('mensal');
-  charts.mensal = new Chart(document.getElementById('c-mensal'),{
-    type:'line',
-    data:{labels:MESES.map(m=>m.slice(0,3)),datasets:[
-      {label:'2025',data:byMes25,borderColor:'#2563eb',backgroundColor:'#2563eb14',borderWidth:2,tension:.35,fill:true,pointRadius:3},
-      {label:'2026',data:byMes26,borderColor:'#059669',backgroundColor:'#05966914',borderWidth:2,tension:.35,fill:true,pointRadius:3,borderDash:[5,3]}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:12}}}},scales:{y:{ticks:{callback:v=>fmtShort(v)},grid:{color:'rgba(0,0,0,.05)'}},x:{grid:{display:false}}}}
-  });
-
-  const emps=[...new Set(dados.map(l=>l.EMPRESA))].sort();
-  destroyChart('empresa');
-  charts.empresa = new Chart(document.getElementById('c-empresa'),{
-    type:'bar',
-    data:{labels:emps.map(e=>e.split(' ').slice(0,2).join(' ')),datasets:[{data:emps.map(e=>dados.filter(l=>l.EMPRESA===e).reduce((s,l)=>s+l.Valor,0)),backgroundColor:COLORS,borderRadius:5}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>fmtShort(v)},grid:{color:'rgba(0,0,0,.05)'}},x:{grid:{display:false},ticks:{font:{size:10}}}}}
-  });
-
-  const cats=[...new Set(dados.map(l=>l.CATEGORIA))].sort();
-  destroyChart('cat');
-  charts.cat = new Chart(document.getElementById('c-cat'),{
-    type:'doughnut',
-    data:{labels:cats,datasets:[{data:cats.map(c=>dados.filter(l=>l.CATEGORIA===c).reduce((s,l)=>s+l.Valor,0)),backgroundColor:COLORS,borderWidth:2,borderColor:'#fff'}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},padding:8}}}}
-  });
-
-  const cids=[...new Set(dados.map(l=>l.CIDADE).filter(Boolean))].sort();
-  destroyChart('cidade');
-  charts.cidade = new Chart(document.getElementById('c-cidade'),{
-    type:'bar',
-    data:{labels:cids,datasets:[{data:cids.map(c=>dados.filter(l=>l.CIDADE===c).reduce((s,l)=>s+l.Valor,0)),backgroundColor:'#7c3aed',borderRadius:5}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>fmtShort(v)},grid:{color:'rgba(0,0,0,.05)'}},x:{grid:{display:false},ticks:{font:{size:10},maxRotation:45}}}}
-  });
-
-  const lojaMap={};
-  dados.forEach(l=>{lojaMap[l.LOJAS]=(lojaMap[l.LOJAS]||0)+l.Valor;});
-  const top10=Object.entries(lojaMap).sort((a,b)=>b[1]-a[1]).slice(0,10);
-  destroyChart('loja');
-  charts.loja = new Chart(document.getElementById('c-loja'),{
-    type:'bar',
-    data:{labels:top10.map(([k])=>k),datasets:[{data:top10.map(([,v])=>v),backgroundColor:'#2563eb',borderRadius:5}]},
-    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>fmtShort(v)},grid:{color:'rgba(0,0,0,.05)'}},y:{grid:{display:false},ticks:{font:{size:11}}}}}
-  });
+    <div class="kpi blue"><div class="kpi-label">Total geral</div><div class="kpi-val">${fS(tot)}</div><div class="kpi-sub">${d.length} lançamentos</div></div>
+    <div class="kpi green"><div class="kpi-label">2025</div><div class="kpi-val">${fS(t25)}</div></div>
+    <div class="kpi amber"><div class="kpi-label">2026</div><div class="kpi-val">${fS(t26)}</div></div>
+    <div class="kpi teal"><div class="kpi-label">Variação</div><div class="kpi-val" style="color:${vp===null?'var(--ink3)':vp>0?'#d93b3b':'#0d9e6e'}">${vp===null?'—':(vp>0?'+':'')+vp.toFixed(1)+'%'}</div><div class="kpi-sub">${vp===null?'—':vp>0?'aumento vs 2025':'redução vs 2025'}</div></div>
+    <div class="kpi purple"><div class="kpi-label">Lojas ativas</div><div class="kpi-val">${nL}</div></div>`;
+  const bm25=MESES.map(m=>d.filter(l=>l.ano===2025&&l.mes===m).reduce((s,l)=>s+parseFloat(l.valor),0));
+  const bm26=MESES.map(m=>d.filter(l=>l.ano===2026&&l.mes===m).reduce((s,l)=>s+parseFloat(l.valor),0));
+  dC('m');CH.m=new Chart(document.getElementById('c-mensal'),{type:'line',data:{labels:MESES.map(m=>m.slice(0,3)),datasets:[{label:'2025',data:bm25,borderColor:'#2d5be3',backgroundColor:'#2d5be312',borderWidth:2,tension:.35,fill:true,pointRadius:3},{label:'2026',data:bm26,borderColor:'#0d9e6e',backgroundColor:'#0d9e6e0d',borderWidth:2,tension:.35,fill:true,pointRadius:3,borderDash:[5,3]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}}}});
+  const emps=[...new Set(d.map(l=>l.empresa_nome))].sort();
+  dC('e');CH.e=new Chart(document.getElementById('c-empresa'),{type:'bar',data:{labels:emps.map(e=>e.split(' ').slice(0,2).join(' ')),datasets:[{data:emps.map(e=>d.filter(l=>l.empresa_nome===e).reduce((s,l)=>s+parseFloat(l.valor),0)),backgroundColor:CLR,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false},ticks:{font:{size:10}}}}}});
+  const cats=[...new Set(d.map(l=>l.cat_nome))].sort();
+  dC('c');CH.c=new Chart(document.getElementById('c-cat'),{type:'doughnut',data:{labels:cats,datasets:[{data:cats.map(c=>d.filter(l=>l.cat_nome===c).reduce((s,l)=>s+parseFloat(l.valor),0)),backgroundColor:CLR,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:10},padding:5}}}}});
+  const cids=[...new Set(d.map(l=>l.cidade).filter(Boolean))].sort();
+  dC('ci');CH.ci=new Chart(document.getElementById('c-cidade'),{type:'bar',data:{labels:cids,datasets:[{data:cids.map(c=>d.filter(l=>l.cidade===c).reduce((s,l)=>s+parseFloat(l.valor),0)),backgroundColor:'#6d3fd4',borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false},ticks:{font:{size:10},maxRotation:40}}}}});
+  const lm={};d.forEach(l=>{lm[l.loja_nome]=(lm[l.loja_nome]||0)+parseFloat(l.valor);});
+  const top=Object.entries(lm).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  dC('l');CH.l=new Chart(document.getElementById('c-loja'),{type:'bar',data:{labels:top.map(([k])=>k),datasets:[{data:top.map(([,v])=>v),backgroundColor:'#2d5be3',borderRadius:5}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},y:{grid:{display:false},ticks:{font:{size:11}}}}}});
 }
 
-// ══════════════════════════════════════════════════════════
-// RELATÓRIO
-// ══════════════════════════════════════════════════════════
-function renderRelatorio() {
-  const emp = document.getElementById('r-empresa').value;
-  const loja = document.getElementById('r-loja').value;
-  const ano = document.getElementById('r-ano').value;
-  const mes = document.getElementById('r-mes').value;
-  const cat = document.getElementById('r-cat').value;
-  const group = document.getElementById('r-group').value;
-  const dados = STATE.lancamentos.filter(l=>
-    (!emp||l.EMPRESA===emp)&&(!loja||l.LOJAS===loja)&&
-    (!ano||String(l.ANO)===ano)&&(!mes||l.Mês===mes)&&(!cat||l.CATEGORIA===cat)
-  );
-  const groupMap={};
-  dados.forEach(l=>{const k=l[group]||'—'; groupMap[k]=(groupMap[k]||0)+l.Valor;});
-  const rows=Object.entries(groupMap).sort((a,b)=>b[1]-a[1]);
-  const total=rows.reduce((s,[,v])=>s+v,0);
-  const wrap=document.getElementById('relatorio-wrap');
-  if(!rows.length){wrap.innerHTML='<div class="empty">Nenhum dado para os filtros selecionados.</div>'; return;}
-  const lbl={EMPRESA:'Empresa',LOJAS:'Loja',CATEGORIA:'Categoria',CIDADE:'Cidade','Mês':'Mês',ANO:'Ano'}[group]||group;
-  wrap.innerHTML=`<div style="margin-bottom:1rem;display:flex;gap:.75rem;flex-wrap:wrap">
-    <span class="badge badge-blue">Total: ${fmtBR(total)}</span>
-    <span class="badge badge-green">${rows.length} ${lbl.toLowerCase()}s</span>
-    <span class="badge badge-amber">${dados.length} lançamentos</span>
-  </div>
-  <div class="table-wrap"><table class="report-table">
-    <thead><tr><th>#</th><th>${lbl}</th><th style="text-align:right">Total (R$)</th><th style="text-align:right">%</th></tr></thead>
-    <tbody>${rows.map(([k,v],i)=>`<tr>
-      <td style="color:var(--text3);font-size:12px">${i+1}</td>
-      <td>${k}</td>
-      <td style="text-align:right;font-weight:700">${fmtBR(v)}</td>
-      <td style="text-align:right">
-        <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px">
-          <div style="height:6px;background:var(--blue);border-radius:3px;width:${Math.round(v/total*80)}px;min-width:2px"></div>
-          ${(v/total*100).toFixed(1)}%
-        </div>
-      </td>
-    </tr>`).join('')}
-    <tr style="background:var(--blue-light);font-weight:700">
-      <td colspan="2">Total Geral</td>
-      <td style="text-align:right;color:var(--blue)">${fmtBR(total)}</td>
-      <td style="text-align:right">100%</td>
-    </tr>
+function renderRel(){
+  const e=document.getElementById('r-emp').value,l=document.getElementById('r-loja').value;
+  const a=document.getElementById('r-ano').value,m=document.getElementById('r-mes').value;
+  const c=document.getElementById('r-cat').value,g=document.getElementById('r-grp').value;
+  const d=S.lancamentos.filter(x=>(!e||x.empresa_nome===e)&&(!l||x.loja_nome===l)&&(!a||String(x.ano)===a)&&(!m||x.mes===m)&&(!c||x.cat_nome===c));
+  const kmap={empresa:'empresa_nome',loja:'loja_nome',categoria:'cat_nome',cidade:'cidade',mes:'mes',ano:'ano'};
+  const k=kmap[g];const gm={};d.forEach(x=>{const v=String(x[k]||'—');gm[v]=(gm[v]||0)+parseFloat(x.valor);});
+  const rows=Object.entries(gm).sort((a,b)=>b[1]-a[1]);const tot=rows.reduce((s,[,v])=>s+v,0);
+  const w=document.getElementById('rel-wrap');
+  if(!rows.length){w.innerHTML='<div class="empty"><div class="empty-icon">📄</div><div>Nenhum dado</div></div>';return;}
+  const lb={empresa:'Empresa',loja:'Loja',categoria:'Categoria',cidade:'Cidade',mes:'Mês',ano:'Ano'}[g];
+  w.innerHTML=`<div style="padding:.75rem 1.25rem;border-bottom:1px solid var(--border);display:flex;gap:.75rem;flex-wrap:wrap">
+    <span class="badge bb">Total: ${fBR(tot)}</span><span class="badge bg2">${rows.length} ${lb.toLowerCase()}s</span><span class="badge ba">${d.length} lançamentos</span>
+  </div><div style="overflow-x:auto"><table>
+    <thead style="background:#2d5be3"><tr><th style="background:#2d5be3;color:#fff">#</th><th style="background:#2d5be3;color:#fff">${lb}</th><th style="background:#2d5be3;color:#fff;text-align:right">Total (R$)</th><th style="background:#2d5be3;color:#fff;text-align:right;min-width:120px">Participação</th></tr></thead>
+    <tbody>${rows.map(([k,v],i)=>`<tr style="${i%2===1?'background:#f8f9ff':''}"><td style="color:var(--ink3);font-size:12px">${i+1}</td><td style="font-weight:500">${k}</td><td class="tn">${fBR(v)}</td>
+    <td style="text-align:right"><span class="rbar" style="width:${Math.round(v/tot*80)}px"></span>${(v/tot*100).toFixed(1)}%</td></tr>`).join('')}
+    <tr class="ttot"><td colspan="2" style="font-weight:700">Total Geral</td><td class="tn">${fBR(tot)}</td><td style="text-align:right">100%</td></tr>
     </tbody></table></div>`;
 }
 
-// ══════════════════════════════════════════════════════════
-// CADASTROS (local — lojas e empresas são extraídas do Excel)
-// ══════════════════════════════════════════════════════════
-function renderCadastros() {
-  const el=document.getElementById('lista-empresas');
-  if(el){
-    if(!STATE.empresas.length){el.innerHTML='<div class="empty">Nenhuma empresa encontrada no Excel.</div>';}
-    else{el.innerHTML=`<div style="font-size:12px;color:var(--text2);margin-bottom:.75rem">Extraídas automaticamente do Excel. Para adicionar, insira um lançamento com a nova empresa.</div>
-    <div class="table-wrap"><table><thead><tr><th>#</th><th>Empresa</th></tr></thead><tbody>
-    ${STATE.empresas.map((e,i)=>`<tr><td style="color:var(--text3)">${i+1}</td><td><strong>${e}</strong></td></tr>`).join('')}
-    </tbody></table></div>`;}
-  }
-  const el2=document.getElementById('lista-lojas');
-  if(el2){
-    if(!STATE.lojas.length){el2.innerHTML='<div class="empty">Nenhuma loja encontrada no Excel.</div>';}
-    else{el2.innerHTML=`<div class="table-wrap"><table><thead><tr><th>Loja</th><th>Empresa</th><th>Cidade</th><th>UF</th></tr></thead><tbody>
-    ${STATE.lojas.map(l=>`<tr><td><strong>${l.nome}</strong></td><td style="font-size:12px">${l.empresa}</td><td>${l.cidade}</td><td><span class="badge badge-blue">${l.uf}</span></td></tr>`).join('')}
-    </tbody></table></div>`;}
-  }
-  const el3=document.getElementById('lista-categorias');
-  if(el3){
-    el3.innerHTML=`<div class="table-wrap"><table><thead><tr><th>#</th><th>Categoria</th><th></th></tr></thead><tbody>
-    ${STATE.categorias.sort().map((c,i)=>`<tr><td style="color:var(--text3)">${i+1}</td><td><strong>${c}</strong></td>
-    <td><button class="btn btn-danger btn-sm" onclick="delCategoria('${c}')">Remover</button></td></tr>`).join('')}
-    </tbody></table></div>`;
-  }
-  fillSel('new-loja-empresa', STATE.empresas, 'Selecione...');
+function renderCads(){
+  const el=document.getElementById('list-emp');
+  if(el&&S.empresas.length)el.innerHTML=`<table><thead><tr><th>#</th><th>Empresa</th><th></th></tr></thead><tbody>${S.empresas.sort((a,b)=>a.nome.localeCompare(b.nome)).map((e,i)=>`<tr><td style="color:var(--ink3)">${i+1}</td><td><strong>${e.nome}</strong></td><td><button class="btn btn-danger" onclick="delEmp('${e.id}')">Remover</button></td></tr>`).join('')}</tbody></table>`;
+  const el2=document.getElementById('list-loja');
+  if(el2&&S.lojas.length)el2.innerHTML=`<div style="overflow-x:auto"><table><thead><tr><th>Loja</th><th>Empresa</th><th>Cidade</th><th>UF</th><th></th></tr></thead><tbody>${S.lojas.sort((a,b)=>a.nome.localeCompare(b.nome)).map(l=>`<tr><td><strong>${l.nome}</strong></td><td style="font-size:12px">${l.empresa_nome}</td><td>${l.cidade||'—'}</td><td><span class="badge bb">${l.uf||'—'}</span></td><td><button class="btn btn-danger" onclick="delLoja('${l.id}')">Remover</button></td></tr>`).join('')}</tbody></table></div>`;
+  const el3=document.getElementById('list-cat');
+  if(el3&&S.categorias.length)el3.innerHTML=`<table><thead><tr><th>#</th><th>Categoria</th><th></th></tr></thead><tbody>${S.categorias.sort((a,b)=>a.nome.localeCompare(b.nome)).map((c,i)=>`<tr><td style="color:var(--ink3)">${i+1}</td><td><strong>${c.nome}</strong></td><td><button class="btn btn-danger" onclick="delCat2('${c.id}')">Remover</button></td></tr>`).join('')}</tbody></table>`;
+  fs('nl-emp',S.empresas.map(e=>e.nome).sort(),'Selecione...');
 }
+async function addEmpresa(){const v=document.getElementById('new-emp').value.trim().toUpperCase();if(!v){toast('⚠️ Informe o nome');return;}try{await db('empresas',{method:'POST',body:JSON.stringify({nome:v})});document.getElementById('new-emp').value='';toast('✅ Empresa adicionada!');await loadData();renderCads();}catch(ex){toast('❌ '+ex.message);}}
+async function delEmp(id){if(!confirm('Remover empresa?'))return;try{await db(`empresas?id=eq.${id}`,{method:'DELETE'});toast('🗑️ Removida');await loadData();renderCads();}catch(ex){toast('❌ '+ex.message);}}
+async function addLoja(){const n=document.getElementById('nl-nome').value.trim(),en=document.getElementById('nl-emp').value,c=document.getElementById('nl-cidade').value.trim().toUpperCase(),u=document.getElementById('nl-uf').value.trim().toUpperCase();if(!n||!en||!c||!u){toast('⚠️ Preencha todos os campos');return;}const e=S.empresas.find(x=>x.nome===en);if(!e)return;try{await db('lojas',{method:'POST',body:JSON.stringify({nome:n,empresa_id:e.id,cidade:c,uf:u})});document.getElementById('nl-nome').value='';document.getElementById('nl-cidade').value='';document.getElementById('nl-uf').value='';toast('✅ Loja adicionada!');await loadData();renderCads();}catch(ex){toast('❌ '+ex.message);}}
+async function delLoja(id){if(!confirm('Remover loja?'))return;try{await db(`lojas?id=eq.${id}`,{method:'DELETE'});toast('🗑️ Removida');await loadData();renderCads();}catch(ex){toast('❌ '+ex.message);}}
+async function addCat(){const v=document.getElementById('new-cat').value.trim().toUpperCase();if(!v){toast('⚠️ Informe o nome');return;}try{await db('categorias',{method:'POST',body:JSON.stringify({nome:v})});document.getElementById('new-cat').value='';toast('✅ Categoria adicionada!');await loadData();renderCads();}catch(ex){toast('❌ '+ex.message);}}
+async function delCat2(id){if(!confirm('Remover categoria?'))return;try{await db(`categorias?id=eq.${id}`,{method:'DELETE'});toast('🗑️ Removida');await loadData();renderCads();}catch(ex){toast('❌ '+ex.message);}}
 
-function addEmpresa() { toast('ℹ️ Empresas são extraídas do Excel. Crie um lançamento com a nova empresa.'); }
+function fBR(v){return'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fS(v){if(v>=1e6)return'R$ '+(v/1e6).toFixed(1)+'M';if(v>=1e3)return'R$ '+(v/1e3).toFixed(0)+'k';return'R$ '+Math.round(v);}
+let tt;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),3000);}
 
-function addLoja() { toast('ℹ️ Lojas são extraídas do Excel. Crie um lançamento com a nova loja.'); }
-
-function addCategoria() {
-  const v = document.getElementById('new-categoria').value.trim().toUpperCase();
-  if(!v){toast('⚠️ Informe o nome'); return;}
-  if(STATE.categorias.includes(v)){toast('⚠️ Já existe'); return;}
-  STATE.categorias.push(v);
-  populateAllSelects();
-  renderCadastros();
-  document.getElementById('new-categoria').value='';
-  toast('✅ Categoria adicionada!');
-}
-function delCategoria(c) {
-  STATE.categorias = STATE.categorias.filter(x=>x!==c);
-  populateAllSelects(); renderCadastros(); toast('🗑️ Removida');
-}
-
-// ══════════════════════════════════════════════════════════
-// UTILS
-// ══════════════════════════════════════════════════════════
-function fmtBR(v){return 'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function fmtShort(v){if(v>=1e6)return'R$ '+(v/1e6).toFixed(1)+'M';if(v>=1e3)return'R$ '+(v/1e3).toFixed(0)+'k';return'R$ '+Math.round(v);}
-
-let toastTimer;
-function toast(msg) {
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
-}
+['f-emp','f-loja','f-ano','f-mes'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('change',()=>{if(id==='f-emp')updateLojas('f-loja','f-emp');renderFL();});});
 </script>
 </body>
 </html>
