@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Gestão de Aluguéis — Top Internacional</title>
+<title>Gestão de Aluguéis — TOP Internacional</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
@@ -112,7 +112,7 @@ tbody tr:hover td{background:var(--bg)}
   <div class="login-card">
     <div class="login-logo">🏢</div>
     <div class="login-title">Gestão de Aluguéis</div>
-    <div class="login-sub">Sistema de controle de Alugueis<br>TOP Internacional • Powered by Supabase</div>
+    <div class="login-sub">Sistema de controle de despesas<br>TOP Internacional • Powered by Supabase</div>
     <button class="btn-demo" onclick="loginDemo()">▶ Entrar no sistema</button>
     <div class="login-footer">Dados armazenados com segurança no Supabase (PostgreSQL)</div>
   </div>
@@ -174,7 +174,8 @@ tbody tr:hover td{background:var(--bg)}
               <option value="SETEMBRO">Setembro</option><option value="OUTUBRO">Outubro</option>
               <option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
             </select>
-            <select class="fc" id="d-emp" onchange="renderDash()" style="width:155px"><option value="">Todas empresas</option></select>
+            <select class="fc" id="d-emp" onchange="updateDashLojas();renderDash()" style="width:155px"><option value="">Todas empresas</option></select>
+            <select class="fc" id="d-loja" onchange="renderDash()" style="width:155px"><option value="">Todas as lojas</option></select>
             <button class="btn btn-ghost btn-sm" onclick="loadData()">↺ Atualizar</button>
           </div>
         </div>
@@ -408,11 +409,17 @@ function populateSels(){
   fs('g-emp',en,'Todas');
   fs('h-emp',en,'Todas');fs('h-loja',ln,'Todas');fs('h-cat',cn,'Todas');
   fs('d-emp',en,'Todas as empresas');
+  fs('d-loja',ln,'Todas as lojas');
   fs('r-emp',en,'Todas');fs('r-loja',ln,'Todas');fs('r-cat',cn,'Todas');
   fs('nl-emp',en,'Selecione...');
 }
 function fs(id,arr,e0){const el=document.getElementById(id);if(!el)return;const cv=el.value;el.innerHTML=`<option value="">${e0}</option>`+arr.map(v=>`<option value="${v}">${v}</option>`).join('');if(cv)el.value=cv;}
 function updateLojas(tid,sid){const e=document.getElementById(sid).value;fs(tid,S.lojas.filter(l=>!e||l.empresa_nome===e).map(l=>l.nome).sort(),'Selecione...');}
+function updateDashLojas(){
+  const e=document.getElementById('d-emp').value;
+  fs('d-loja',S.lojas.filter(l=>!e||l.empresa_nome===e).map(l=>l.nome).sort(),'Todas as lojas');
+  document.getElementById('d-loja').value='';
+}
 function updateLojasFilt(){const e=document.getElementById('r-emp').value;fs('r-loja',S.lojas.filter(l=>!e||l.empresa_nome===e).map(l=>l.nome).sort(),'Todas');}
 
 function goPage(id,btn){
@@ -521,7 +528,8 @@ let CH={};
 function dC(id){if(CH[id]){CH[id].destroy();delete CH[id];}}
 function renderDash(){
   const a=document.getElementById('d-ano').value,m=document.getElementById('d-mes').value,e=document.getElementById('d-emp').value;
-  const d=S.lancamentos.filter(l=>(!a||String(l.ano)===a)&&(!m||l.mes===m)&&(!e||l.empresa_nome===e));
+  const lf=document.getElementById('d-loja').value;
+  const d=S.lancamentos.filter(l=>(!a||String(l.ano)===a)&&(!m||l.mes===m)&&(!e||l.empresa_nome===e)&&(!lf||l.loja_nome===lf));
   const tot=d.reduce((s,l)=>s+parseFloat(l.valor),0);
   const t25=d.filter(l=>l.ano===2025).reduce((s,l)=>s+parseFloat(l.valor),0);
   const t26=d.filter(l=>l.ano===2026).reduce((s,l)=>s+parseFloat(l.valor),0);
