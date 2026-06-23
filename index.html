@@ -112,7 +112,7 @@ tbody tr:hover td{background:var(--bg)}
   <div class="login-card">
     <div class="login-logo">🏢</div>
     <div class="login-title">Gestão de Aluguéis</div>
-    <div class="login-sub">Sistema de controle de Aluguéis<br>TOP Internacional • Powered by Supabase</div>
+    <div class="login-sub">Sistema de controle de despesas Aluguéis<br>Top Internacional • Powered by Supabase</div>
     <button class="btn-demo" onclick="loginDemo()">▶ Entrar no sistema</button>
     <div class="login-footer">Dados armazenados com segurança no Supabase (PostgreSQL)</div>
   </div>
@@ -124,7 +124,7 @@ tbody tr:hover td{background:var(--bg)}
       <div class="sidebar-logo">
         <div class="sidebar-logo-mark">🏢</div>
         <div class="sidebar-title">Gestão de Aluguéis</div>
-        <div class="sidebar-sub">Top Internacional</div>
+        <div class="sidebar-sub">TOP Internacional</div>
       </div>
       <nav class="sidebar-nav">
         <div class="nav-section">Principal</div>
@@ -175,7 +175,7 @@ tbody tr:hover td{background:var(--bg)}
               <option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
             </select>
             <select class="fc" id="d-emp" onchange="updateDashLojas();renderDash()" style="width:155px"><option value="">Todas empresas</option></select>
-            <select class="fc" id="d-loja" onchange="renderDash()" style="width:155px"><option value="">Todas as lojas</option></select>
+            <select class="fc" id="d-loja" onchange="renderDash()" style="width:175px"><option value="">Todas as lojas</option></select>
             <button class="btn btn-ghost btn-sm" onclick="loadData()">↺ Atualizar</button>
           </div>
         </div>
@@ -409,7 +409,7 @@ function populateSels(){
   fs('g-emp',en,'Todas');
   fs('h-emp',en,'Todas');fs('h-loja',ln,'Todas');fs('h-cat',cn,'Todas');
   fs('d-emp',en,'Todas as empresas');
-  fs('d-loja',ln,'Todas as lojas');
+  updateDashLojas();
   fs('r-emp',en,'Todas');fs('r-loja',ln,'Todas');fs('r-cat',cn,'Todas');
   fs('nl-emp',en,'Selecione...');
 }
@@ -417,8 +417,32 @@ function fs(id,arr,e0){const el=document.getElementById(id);if(!el)return;const 
 function updateLojas(tid,sid){const e=document.getElementById(sid).value;fs(tid,S.lojas.filter(l=>!e||l.empresa_nome===e).map(l=>l.nome).sort(),'Selecione...');}
 function updateDashLojas(){
   const e=document.getElementById('d-emp').value;
-  fs('d-loja',S.lojas.filter(l=>!e||l.empresa_nome===e).map(l=>l.nome).sort(),'Todas as lojas');
-  document.getElementById('d-loja').value='';
+  const lojas=S.lojas.filter(l=>!e||l.empresa_nome===e).sort((a,b)=>(a.uf||'').localeCompare(b.uf||'')||a.nome.localeCompare(b.nome));
+  const sel=document.getElementById('d-loja');
+  sel.innerHTML='<option value="">Todas as lojas</option>';
+  // group by UF
+  const ufs=[...new Set(lojas.map(l=>l.uf||''))].filter(Boolean).sort();
+  ufs.forEach(uf=>{
+    const optg=document.createElement('optgroup');
+    optg.label=uf+' — '+estadoNome(uf);
+    lojas.filter(l=>l.uf===uf).forEach(l=>{
+      const o=document.createElement('option');
+      o.value=l.nome;o.textContent=l.nome;
+      optg.appendChild(o);
+    });
+    sel.appendChild(optg);
+  });
+  // lojas sem UF
+  const semUF=lojas.filter(l=>!l.uf);
+  if(semUF.length){
+    const og=document.createElement('optgroup');og.label='Outros';
+    semUF.forEach(l=>{const o=document.createElement('option');o.value=l.nome;o.textContent=l.nome;og.appendChild(o);});
+    sel.appendChild(og);
+  }
+}
+function estadoNome(uf){
+  const m={AC:'Acre',AL:'Alagoas',AP:'Amapá',AM:'Amazonas',BA:'Bahia',CE:'Ceará',DF:'Distrito Federal',ES:'Espírito Santo',GO:'Goiás',MA:'Maranhão',MT:'Mato Grosso',MS:'Mato Grosso do Sul',MG:'Minas Gerais',PA:'Pará',PB:'Paraíba',PR:'Paraná',PE:'Pernambuco',PI:'Piauí',RJ:'Rio de Janeiro',RN:'Rio Grande do Norte',RS:'Rio Grande do Sul',RO:'Rondônia',RR:'Roraima',SC:'Santa Catarina',SP:'São Paulo',SE:'Sergipe',TO:'Tocantins'};
+  return m[uf]||uf;
 }
 function updateLojasFilt(){const e=document.getElementById('r-emp').value;fs('r-loja',S.lojas.filter(l=>!e||l.empresa_nome===e).map(l=>l.nome).sort(),'Todas');}
 
