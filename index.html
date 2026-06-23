@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Gestão de Aluguéis — Top Internacional</title>
+<title>Gestão de Aluguéis — TOP Internacional</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
@@ -112,7 +112,7 @@ tbody tr:hover td{background:var(--bg)}
   <div class="login-card">
     <div class="login-logo">🏢</div>
     <div class="login-title">Gestão de Aluguéis</div>
-    <div class="login-sub">Sistema de controle despesas Aluguéis<br>Top Internacional • Powered by Supabase</div>
+    <div class="login-sub">Sistema de controle de despesas<br>TOP Internacional • Powered by Supabase</div>
     <button class="btn-demo" onclick="loginDemo()">▶ Entrar no sistema</button>
     <div class="login-footer">Dados armazenados com segurança no Supabase (PostgreSQL)</div>
   </div>
@@ -124,7 +124,7 @@ tbody tr:hover td{background:var(--bg)}
       <div class="sidebar-logo">
         <div class="sidebar-logo-mark">🏢</div>
         <div class="sidebar-title">Gestão de Aluguéis</div>
-        <div class="sidebar-sub">Top Internacional</div>
+        <div class="sidebar-sub">TOP Internacional</div>
       </div>
       <nav class="sidebar-nav">
         <div class="nav-section">Principal</div>
@@ -587,17 +587,17 @@ function renderDash(){
   const totalMensal=[...bm25,...bm26].reduce((s,v)=>s+v,0);
   dC('m');CH.m=new Chart(document.getElementById('c-mensal'),{type:'line',data:{labels:MESES.map(m=>m.slice(0,3)),datasets:[{label:'2025',data:bm25,borderColor:'#2d5be3',backgroundColor:'#2d5be312',borderWidth:2,tension:.35,fill:true,pointRadius:3},{label:'2026',data:bm26,borderColor:'#0d9e6e',backgroundColor:'#0d9e6e0d',borderWidth:2,tension:.35,fill:true,pointRadius:3,borderDash:[5,3]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw||0;const pct=totalMensal>0?(v/totalMensal*100).toFixed(1):0;return ` ${ctx.dataset.label}: ${fS(v)} (${pct}%)`;},title:ctx=>`Mês: ${ctx[0].label}`}}},scales:{y:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}}}});
   const emps=[...new Set(d.map(l=>l.empresa_nome))].sort();
-  const empVals=emps.map(e=>d.filter(l=>l.empresa_nome===e).reduce((s,l)=>s+parseFloat(l.valor),0));
-  const empTot=empVals.reduce((s,v)=>s+v,0);
-  dC('e');CH.e=new Chart(document.getElementById('c-empresa'),{type:'bar',data:{labels:emps.map(e=>e.split(' ').slice(0,2).join(' ')),datasets:[{data:empVals,backgroundColor:CLR,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw||0;const pct=empTot>0?(v/empTot*100).toFixed(1):0;return ` ${fS(v)} — ${pct}% do total`;}}}},scales:{y:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false},ticks:{font:{size:10}}}}}});
+  const empPairs=emps.map((e,i)=>({nome:e,val:d.filter(l=>l.empresa_nome===e).reduce((s,l)=>s+parseFloat(l.valor),0),clr:CLR[i%CLR.length]})).sort((a,b)=>b.val-a.val);
+  const empTot=empPairs.reduce((s,x)=>s+x.val,0);
+  dC('e');CH.e=new Chart(document.getElementById('c-empresa'),{type:'bar',data:{labels:empPairs.map(x=>x.nome.split(' ').slice(0,2).join(' ')),datasets:[{data:empPairs.map(x=>x.val),backgroundColor:empPairs.map(x=>x.clr),borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw||0;const pct=empTot>0?(v/empTot*100).toFixed(1):0;return ` ${fS(v)} — ${pct}% do total`;}}}},scales:{y:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false},ticks:{font:{size:10}}}}}});
   const cats=[...new Set(d.map(l=>l.cat_nome))].sort();
   const catVals=cats.map(c=>d.filter(l=>l.cat_nome===c).reduce((s,l)=>s+parseFloat(l.valor),0));
   const catTot=catVals.reduce((s,v)=>s+v,0);
   dC('c');CH.c=new Chart(document.getElementById('c-cat'),{type:'doughnut',data:{labels:cats,datasets:[{data:catVals,backgroundColor:CLR,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:10},padding:5,generateLabels:chart=>{const ds=chart.data.datasets[0];return chart.data.labels.map((lbl,i)=>{const v=ds.data[i];const pct=catTot>0?(v/catTot*100).toFixed(1):0;return{text:`${lbl}: ${pct}%`,fillStyle:ds.backgroundColor[i],strokeStyle:'#fff',lineWidth:2,index:i};});}}},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw||0;const pct=catTot>0?(v/catTot*100).toFixed(1):0;return ` ${fS(v)} — ${pct}%`;}}}}}}); 
   const cids=[...new Set(d.map(l=>l.cidade).filter(Boolean))].sort();
-  const cidVals=cids.map(c=>d.filter(l=>l.cidade===c).reduce((s,l)=>s+parseFloat(l.valor),0));
-  const cidTot=cidVals.reduce((s,v)=>s+v,0);
-  dC('ci');CH.ci=new Chart(document.getElementById('c-cidade'),{type:'bar',data:{labels:cids,datasets:[{data:cidVals,backgroundColor:'#6d3fd4',borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw||0;const pct=cidTot>0?(v/cidTot*100).toFixed(1):0;return ` ${fS(v)} — ${pct}% do total`;}}}},scales:{y:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false},ticks:{font:{size:10},maxRotation:40}}}}});
+  const cidPairs=cids.map((c,i)=>({nome:c,val:d.filter(l=>l.cidade===c).reduce((s,l)=>s+parseFloat(l.valor),0)})).sort((a,b)=>b.val-a.val);
+  const cidTot=cidPairs.reduce((s,x)=>s+x.val,0);
+  dC('ci');CH.ci=new Chart(document.getElementById('c-cidade'),{type:'bar',data:{labels:cidPairs.map(x=>x.nome),datasets:[{data:cidPairs.map(x=>x.val),backgroundColor:'#6d3fd4',borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw||0;const pct=cidTot>0?(v/cidTot*100).toFixed(1):0;return ` ${fS(v)} — ${pct}% do total`;}}}},scales:{y:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false},ticks:{font:{size:10},maxRotation:40}}}}});
   const lm={};d.forEach(l=>{lm[l.loja_nome]=(lm[l.loja_nome]||0)+parseFloat(l.valor);});
   const top=Object.entries(lm).sort((a,b)=>b[1]-a[1]).slice(0,10);
   const lojaTot=top.reduce((s,[,v])=>s+v,0);
