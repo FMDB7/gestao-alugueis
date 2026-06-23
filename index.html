@@ -112,7 +112,7 @@ tbody tr:hover td{background:var(--bg)}
   <div class="login-card">
     <div class="login-logo">🏢</div>
     <div class="login-title">Gestão de Aluguéis</div>
-    <div class="login-sub">Sistema de controle de despesas<br>TOP Internacional • Powered by Supabase</div>
+    <div class="login-sub">Sistema de controle de Alugueis<br>TOP Internacional • Powered by Supabase</div>
     <button class="btn-demo" onclick="loginDemo()">▶ Entrar no sistema</button>
     <div class="login-footer">Dados armazenados com segurança no Supabase (PostgreSQL)</div>
   </div>
@@ -299,7 +299,10 @@ tbody tr:hover td{background:var(--bg)}
                 <option value="empresa">Empresa</option><option value="loja">Loja</option><option value="categoria">Categoria</option>
                 <option value="cidade">Cidade</option><option value="mes">Mês</option><option value="ano">Ano</option>
               </select></div>
-              <div style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="renderRel()">Gerar</button></div>
+              <div style="display:flex;align-items:flex-end;gap:.5rem">
+                <button class="btn btn-primary" onclick="renderRel()">Gerar</button>
+                <button class="btn btn-ghost" onclick="exportPDF()" id="btn-pdf" style="display:none">⬇ PDF</button>
+              </div>
             </div>
           </div></div>
           <div class="card"><div id="rel-wrap"><div class="empty"><div class="empty-icon">📄</div><div>Configure e clique em Gerar</div></div></div></div>
@@ -544,6 +547,8 @@ function renderDash(){
   dC('l');CH.l=new Chart(document.getElementById('c-loja'),{type:'bar',data:{labels:top.map(([k])=>k),datasets:[{data:top.map(([,v])=>v),backgroundColor:'#2d5be3',borderRadius:5}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},y:{grid:{display:false},ticks:{font:{size:11}}}}}});
 }
 
+let relState={rows:[],tot:0,lb:'',d:[],e:'',a:'',m:'',g:''};
+
 function renderRel(){
   const e=document.getElementById('r-emp').value,l=document.getElementById('r-loja').value;
   const a=document.getElementById('r-ano').value,m=document.getElementById('r-mes').value;
@@ -553,16 +558,87 @@ function renderRel(){
   const k=kmap[g];const gm={};d.forEach(x=>{const v=String(x[k]||'—');gm[v]=(gm[v]||0)+parseFloat(x.valor);});
   const rows=Object.entries(gm).sort((a,b)=>b[1]-a[1]);const tot=rows.reduce((s,[,v])=>s+v,0);
   const w=document.getElementById('rel-wrap');
-  if(!rows.length){w.innerHTML='<div class="empty"><div class="empty-icon">📄</div><div>Nenhum dado</div></div>';return;}
+  if(!rows.length){w.innerHTML='<div class="empty"><div class="empty-icon">📄</div><div>Nenhum dado</div></div>';document.getElementById('btn-pdf').style.display='none';return;}
   const lb={empresa:'Empresa',loja:'Loja',categoria:'Categoria',cidade:'Cidade',mes:'Mês',ano:'Ano'}[g];
+  relState={rows,tot,lb,d,e,a,m,g};
+  document.getElementById('btn-pdf').style.display='inline-flex';
   w.innerHTML=`<div style="padding:.75rem 1.25rem;border-bottom:1px solid var(--border);display:flex;gap:.75rem;flex-wrap:wrap">
     <span class="badge bb">Total: ${fBR(tot)}</span><span class="badge bg2">${rows.length} ${lb.toLowerCase()}s</span><span class="badge ba">${d.length} lançamentos</span>
   </div><div style="overflow-x:auto"><table>
     <thead style="background:#2d5be3"><tr><th style="background:#2d5be3;color:#fff">#</th><th style="background:#2d5be3;color:#fff">${lb}</th><th style="background:#2d5be3;color:#fff;text-align:right">Total (R$)</th><th style="background:#2d5be3;color:#fff;text-align:right;min-width:120px">Participação</th></tr></thead>
-    <tbody>${rows.map(([k,v],i)=>`<tr style="${i%2===1?'background:#f8f9ff':''}"><td style="color:var(--ink3);font-size:12px">${i+1}</td><td style="font-weight:500">${k}</td><td class="tn">${fBR(v)}</td>
+    <tbody>${rows.map(([k,v],i)=>`<tr style="${i%2===1?'background:#f8f9ff':''}"><td style="color:#9399b8;font-size:12px">${i+1}</td><td style="font-weight:500">${k}</td><td class="tn">${fBR(v)}</td>
     <td style="text-align:right"><span class="rbar" style="width:${Math.round(v/tot*80)}px"></span>${(v/tot*100).toFixed(1)}%</td></tr>`).join('')}
-    <tr class="ttot"><td colspan="2" style="font-weight:700">Total Geral</td><td class="tn">${fBR(tot)}</td><td style="text-align:right">100%</td></tr>
+    <tr style="background:#eef2fd;font-weight:700"><td colspan="2">Total Geral</td><td class="tn" style="color:#2d5be3">${fBR(tot)}</td><td style="text-align:right">100%</td></tr>
     </tbody></table></div>`;
+}
+
+function exportPDF(){
+  const {rows,tot,lb,d,e,a,m,g}=relState;
+  if(!rows.length){toast('⚠️ Gere o relatório primeiro');return;}
+  const filtros=[];
+  if(e)filtros.push(`Empresa: ${e}`);
+  if(a)filtros.push(`Ano: ${a}`);
+  if(m)filtros.push(`Mês: ${m}`);
+  if(!filtros.length)filtros.push('Todos os dados');
+  const dataHora=new Date().toLocaleString('pt-BR');
+  const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/>
+  <title>Relatório de Aluguéis</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Arial,sans-serif;font-size:12px;color:#1a1a2e;padding:2cm}
+    .header{margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid #2d5be3}
+    .header-top{display:flex;justify-content:space-between;align-items:flex-start}
+    .logo{font-size:18px;font-weight:700;color:#2d5be3}
+    .sub{font-size:11px;color:#666;margin-top:2px}
+    .meta{font-size:10px;color:#888;text-align:right}
+    h2{font-size:15px;font-weight:700;margin:1rem 0 .25rem;color:#1a1a2e}
+    .filtros{font-size:11px;color:#666;margin-bottom:1rem}
+    .badges{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}
+    .badge{padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600}
+    .bb{background:#eef2fd;color:#2d5be3}
+    .bg{background:#e8f8f3;color:#0d9e6e}
+    .ba{background:#fdf5e6;color:#c97d0a}
+    table{width:100%;border-collapse:collapse;margin-top:.5rem}
+    th{background:#2d5be3;color:#fff;padding:7px 10px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+    th:last-child,th:nth-child(3){text-align:right}
+    td{padding:6px 10px;border-bottom:1px solid #e4e7f4;font-size:12px;vertical-align:middle}
+    td:last-child,td:nth-child(3){text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+    tr:nth-child(even) td{background:#f8f9ff}
+    tr:hover td{background:#f0f2f9}
+    .total-row td{background:#eef2fd!important;font-weight:700;color:#2d5be3;border-top:2px solid #2d5be3}
+    .num{color:#9399b8;font-size:11px}
+    .bar-wrap{display:flex;align-items:center;justify-content:flex-end;gap:6px}
+    .bar{height:5px;background:#2d5be3;border-radius:3px;display:inline-block}
+    .footer{margin-top:2rem;padding-top:1rem;border-top:1px solid #e4e7f4;font-size:10px;color:#aaa;text-align:center}
+    @media print{body{padding:1cm}@page{margin:1.5cm}}
+  </style></head><body>
+  <div class="header">
+    <div class="header-top">
+      <div><div class="logo">🏢 Gestão de Aluguéis</div><div class="sub">TOP Internacional</div></div>
+      <div class="meta">Gerado em: ${dataHora}</div>
+    </div>
+  </div>
+  <h2>Relatório por ${lb}</h2>
+  <div class="filtros">Filtros: ${filtros.join(' · ')}</div>
+  <div class="badges">
+    <span class="badge bb">Total: ${fBR(tot)}</span>
+    <span class="badge bg">${rows.length} ${lb.toLowerCase()}s</span>
+    <span class="badge ba">${d.length} lançamentos</span>
+  </div>
+  <table>
+    <thead><tr><th>#</th><th>${lb}</th><th>Total (R$)</th><th>Participação</th></tr></thead>
+    <tbody>
+    ${rows.map(([k,v],i)=>`<tr><td class="num">${i+1}</td><td>${k}</td><td>${fBR(v)}</td>
+    <td><div class="bar-wrap"><span class="bar" style="width:${Math.round(v/tot*70)}px"></span>${(v/tot*100).toFixed(1)}%</div></td></tr>`).join('')}
+    <tr class="total-row"><td colspan="2"><strong>Total Geral</strong></td><td><strong>${fBR(tot)}</strong></td><td><strong>100%</strong></td></tr>
+    </tbody>
+  </table>
+  <div class="footer">Gestão de Aluguéis — TOP Internacional · gestao-alugueis-pi.vercel.app</div>
+  <script>window.onload=()=>window.print();<\/script>
+  </body></html>`;
+  const win=window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
 }
 
 function renderCads(){
