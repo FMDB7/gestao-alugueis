@@ -112,7 +112,7 @@ tbody tr:hover td{background:var(--bg)}
   <div class="login-card">
     <div class="login-logo">🏢</div>
     <div class="login-title">Gestão de Aluguéis</div>
-    <div class="login-sub">Sistema de controle despesas de Aluguéis<br>Top Internacional • Powered by Supabase</div>
+    <div class="login-sub">Sistema controle despesas Aluguéis<br>Top Internacional • Powered by Supabase</div>
     <button class="btn-demo" onclick="loginDemo()">▶ Entrar no sistema</button>
     <div class="login-footer">Dados armazenados com segurança no Supabase (PostgreSQL)</div>
   </div>
@@ -124,7 +124,7 @@ tbody tr:hover td{background:var(--bg)}
       <div class="sidebar-logo">
         <div class="sidebar-logo-mark">🏢</div>
         <div class="sidebar-title">Gestão de Aluguéis</div>
-        <div class="sidebar-sub">TOP Internacional</div>
+        <div class="sidebar-sub">Top Internacional</div>
       </div>
       <nav class="sidebar-nav">
         <div class="nav-section">Principal</div>
@@ -285,8 +285,23 @@ tbody tr:hover td{background:var(--bg)}
         <div class="content">
           <div class="card"><div class="card-body">
             <div class="filters">
-              <div class="fg"><label class="fl">Empresa</label><select class="fc" id="r-emp" onchange="updateLojasFilt()"><option value="">Todas</option></select></div>
-              <div class="fg"><label class="fl">Loja</label><select class="fc" id="r-loja"><option value="">Todas</option></select></div>
+              <div class="fg"><label class="fl">Empresa</label><select class="fc" id="r-emp" onchange="buildLojaDD();renderRel()" ><option value="">Todas</option></select></div>
+              <div class="fg" style="min-width:200px;max-width:280px">
+                <label class="fl">Lojas <span id="r-loja-count" style="color:#2d5be3;font-weight:700"></span></label>
+                <div style="position:relative">
+                  <div id="r-loja-trigger" onclick="toggleLojaDD()" style="border:1px solid var(--border2);border-radius:6px;padding:.45rem .7rem;font-size:13px;cursor:pointer;background:var(--surface);display:flex;justify-content:space-between;align-items:center;user-select:none">
+                    <span id="r-loja-label" style="color:#9399b8">Todas as lojas</span>
+                    <span style="color:#9399b8;font-size:10px">▼</span>
+                  </div>
+                  <div id="r-loja-dd" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface);border:1px solid var(--border2);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:200;max-height:320px;overflow-y:auto;min-width:260px">
+                    <div style="padding:.5rem .75rem;border-bottom:1px solid var(--border);display:flex;gap:.5rem;align-items:center">
+                      <input type="text" id="r-loja-search" class="fc" placeholder="Buscar loja..." oninput="filterLojaDD()" style="flex:1;padding:.3rem .5rem;font-size:12px"/>
+                      <button class="btn btn-ghost btn-sm" onclick="clearLojas()" style="font-size:11px;padding:3px 8px">Limpar</button>
+                    </div>
+                    <div id="r-loja-list"></div>
+                  </div>
+                </div>
+              </div>
               <div class="fg"><label class="fl">Ano</label><select class="fc" id="r-ano"><option value="">Todos</option>
                 <option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option></select></div>
               <div class="fg"><label class="fl">Mês</label><select class="fc" id="r-mes"><option value="">Todos</option>
@@ -410,7 +425,7 @@ function populateSels(){
   fs('h-emp',en,'Todas');fs('h-loja',ln,'Todas');fs('h-cat',cn,'Todas');
   fs('d-emp',en,'Todas as empresas');
   updateDashLojas();
-  fs('r-emp',en,'Todas');fs('r-loja',ln,'Todas');fs('r-cat',cn,'Todas');
+  fs('r-emp',en,'Todas');fs('r-cat',cn,'Todas');buildLojaDD();
   fs('nl-emp',en,'Selecione...');
 }
 function fs(id,arr,e0){const el=document.getElementById(id);if(!el)return;const cv=el.value;el.innerHTML=`<option value="">${e0}</option>`+arr.map(v=>`<option value="${v}">${v}</option>`).join('');if(cv)el.value=cv;}
@@ -444,7 +459,7 @@ function estadoNome(uf){
   const m={AC:'Acre',AL:'Alagoas',AP:'Amapá',AM:'Amazonas',BA:'Bahia',CE:'Ceará',DF:'Distrito Federal',ES:'Espírito Santo',GO:'Goiás',MA:'Maranhão',MT:'Mato Grosso',MS:'Mato Grosso do Sul',MG:'Minas Gerais',PA:'Pará',PB:'Paraíba',PR:'Paraná',PE:'Pernambuco',PI:'Piauí',RJ:'Rio de Janeiro',RN:'Rio Grande do Norte',RS:'Rio Grande do Sul',RO:'Rondônia',RR:'Roraima',SC:'Santa Catarina',SP:'São Paulo',SE:'Sergipe',TO:'Tocantins'};
   return m[uf]||uf;
 }
-function updateLojasFilt(){const e=document.getElementById('r-emp').value;fs('r-loja',S.lojas.filter(l=>!e||l.empresa_nome===e).map(l=>l.nome).sort(),'Todas');}
+function updateLojasFilt(){buildLojaDD();}
 
 function goPage(id,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -582,10 +597,10 @@ function renderDash(){
 let relState={rows:[],tot:0,lb:'',d:[],e:'',a:'',m:'',g:''};
 
 function renderRel(){
-  const e=document.getElementById('r-emp').value,l=document.getElementById('r-loja').value;
+  const e=document.getElementById('r-emp').value,l=getSelectedLojas();
   const a=document.getElementById('r-ano').value,m=document.getElementById('r-mes').value;
   const c=document.getElementById('r-cat').value,g=document.getElementById('r-grp').value;
-  const d=S.lancamentos.filter(x=>(!e||x.empresa_nome===e)&&(!l||x.loja_nome===l)&&(!a||String(x.ano)===a)&&(!m||x.mes===m)&&(!c||x.cat_nome===c));
+  const d=S.lancamentos.filter(x=>(!e||x.empresa_nome===e)&&(!l.length||l.includes(x.loja_nome))&&(!a||String(x.ano)===a)&&(!m||x.mes===m)&&(!c||x.cat_nome===c));
   const kmap={empresa:'empresa_nome',loja:'loja_nome',categoria:'cat_nome',cidade:'cidade',mes:'mes',ano:'ano'};
   const k=kmap[g];const gm={};d.forEach(x=>{const v=String(x[k]||'—');gm[v]=(gm[v]||0)+parseFloat(x.valor);});
   const rows=Object.entries(gm).sort((a,b)=>b[1]-a[1]);const tot=rows.reduce((s,[,v])=>s+v,0);
@@ -691,6 +706,106 @@ async function delCat2(id){if(!confirm('Remover categoria?'))return;try{await db
 
 function fBR(v){return'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fS(v){if(v>=1e6)return'R$ '+(v/1e6).toFixed(1)+'M';if(v>=1e3)return'R$ '+(v/1e3).toFixed(0)+'k';return'R$ '+Math.round(v);}
+
+// ── MULTI-SELECT LOJA ─────────────────────────────
+let selectedLojas=new Set();
+
+function estadoNomeR(uf){
+  const m={AC:'Acre',AL:'Alagoas',AP:'Amapá',AM:'Amazonas',BA:'Bahia',CE:'Ceará',DF:'Distrito Federal',ES:'Espírito Santo',GO:'Goiás',MA:'Maranhão',MT:'Mato Grosso',MS:'Mato Grosso do Sul',MG:'Minas Gerais',PA:'Pará',PB:'Paraíba',PR:'Paraná',PE:'Pernambuco',PI:'Piauí',RJ:'Rio de Janeiro',RN:'Rio Grande do Norte',RS:'Rio Grande do Sul',RO:'Rondônia',RR:'Roraima',SC:'Santa Catarina',SP:'São Paulo',SE:'Sergipe',TO:'Tocantins'};
+  return m[uf]||uf;
+}
+
+function buildLojaDD(){
+  const emp=document.getElementById('r-emp').value;
+  const lojas=S.lojas.filter(l=>!emp||l.empresa_nome===emp).sort((a,b)=>(a.uf||'').localeCompare(b.uf||'')||a.nome.localeCompare(b.nome));
+  selectedLojas=new Set();
+  updateLojaTrigger();
+  renderLojaList(lojas,'');
+}
+
+function renderLojaList(lojas,search){
+  const list=document.getElementById('r-loja-list');
+  if(!list)return;
+  const filtered=search?lojas.filter(l=>l.nome.toLowerCase().includes(search.toLowerCase())||( l.uf||'').toLowerCase().includes(search.toLowerCase())):lojas;
+  const ufs=[...new Set(filtered.map(l=>l.uf||''))].filter(Boolean).sort();
+  let html='';
+  ufs.forEach(uf=>{
+    const uLojas=filtered.filter(l=>l.uf===uf);
+    const allChecked=uLojas.every(l=>selectedLojas.has(l.nome));
+    html+=`<div style="padding:.4rem .75rem;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem;cursor:pointer" onclick="toggleUF('${uf}')">
+      <input type="checkbox" ${allChecked?'checked':''} onchange="toggleUF('${uf}')" onclick="event.stopPropagation()" style="accent-color:#2d5be3"/>
+      <span style="font-size:11px;font-weight:700;color:#2d5be3">${uf}</span>
+      <span style="font-size:11px;color:var(--ink2)">${estadoNomeR(uf)}</span>
+      <span style="font-size:10px;color:var(--ink3);margin-left:auto">${uLojas.length} loja${uLojas.length>1?'s':''}</span>
+    </div>`;
+    uLojas.forEach(l=>{
+      const chk=selectedLojas.has(l.nome);
+      html+=`<div style="padding:.38rem .75rem .38rem 1.5rem;display:flex;align-items:center;gap:.5rem;cursor:pointer;border-bottom:1px solid var(--border)" onclick="toggleLoja('${l.nome.replace(/'/g,"\'")}')">
+        <input type="checkbox" ${chk?'checked':''} onchange="toggleLoja('${l.nome.replace(/'/g,"\'")}'")" onclick="event.stopPropagation()" style="accent-color:#2d5be3"/>
+        <span style="font-size:12px">${l.nome}</span>
+      </div>`;
+    });
+  });
+  if(!html)html='<div style="padding:1rem;text-align:center;font-size:12px;color:var(--ink3)">Nenhuma loja encontrada</div>';
+  list.innerHTML=html;
+}
+
+function toggleLojaDD(){
+  const dd=document.getElementById('r-loja-dd');
+  dd.style.display=dd.style.display==='none'?'block':'none';
+  if(dd.style.display==='block')document.getElementById('r-loja-search').focus();
+}
+
+function filterLojaDD(){
+  const emp=document.getElementById('r-emp').value;
+  const search=document.getElementById('r-loja-search').value;
+  const lojas=S.lojas.filter(l=>!emp||l.empresa_nome===emp).sort((a,b)=>(a.uf||'').localeCompare(b.uf||'')||a.nome.localeCompare(b.nome));
+  renderLojaList(lojas,search);
+}
+
+function toggleLoja(nome){
+  if(selectedLojas.has(nome))selectedLojas.delete(nome);
+  else selectedLojas.add(nome);
+  updateLojaTrigger();
+  filterLojaDD();
+}
+
+function toggleUF(uf){
+  const emp=document.getElementById('r-emp').value;
+  const lojas=S.lojas.filter(l=>(!emp||l.empresa_nome===emp)&&l.uf===uf).map(l=>l.nome);
+  const allChecked=lojas.every(n=>selectedLojas.has(n));
+  if(allChecked)lojas.forEach(n=>selectedLojas.delete(n));
+  else lojas.forEach(n=>selectedLojas.add(n));
+  updateLojaTrigger();
+  filterLojaDD();
+}
+
+function updateLojaTrigger(){
+  const n=selectedLojas.size;
+  const lbl=document.getElementById('r-loja-label');
+  const cnt=document.getElementById('r-loja-count');
+  if(!lbl)return;
+  if(n===0){lbl.textContent='Todas as lojas';lbl.style.color='#9399b8';cnt.textContent='';}
+  else{lbl.textContent=n===1?[...selectedLojas][0]:`${n} lojas selecionadas`;lbl.style.color='#0f1117';cnt.textContent=`(${n})`;}
+}
+
+function clearLojas(){
+  selectedLojas=new Set();
+  updateLojaTrigger();
+  filterLojaDD();
+}
+
+function getSelectedLojas(){return[...selectedLojas];}
+
+// Close dropdown when clicking outside
+document.addEventListener('click',e=>{
+  const dd=document.getElementById('r-loja-dd');
+  const trigger=document.getElementById('r-loja-trigger');
+  if(dd&&trigger&&!dd.contains(e.target)&&!trigger.contains(e.target)){
+    dd.style.display='none';
+  }
+});
+
 let tt;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),3000);}
 
 ['f-emp','f-loja','f-ano','f-mes'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('change',()=>{if(id==='f-emp')updateLojas('f-loja','f-emp');renderFL();});});
