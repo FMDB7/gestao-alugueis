@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Gestão de Aluguéis — Top Internacional</title>
+<title>Gestão de Aluguéis — TOP Internacional</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
@@ -112,7 +112,7 @@ tbody tr:hover td{background:var(--bg)}
   <div class="login-card">
     <div class="login-logo">🏢</div>
     <div class="login-title">Gestão de Aluguéis</div>
-    <div class="login-sub">Sistema controle despesas Aluguéis<br>Top Internacional • Powered by Supabase</div>
+    <div class="login-sub">Sistema de controle de despesas<br>TOP Internacional • Powered by Supabase</div>
     <button class="btn-demo" onclick="loginDemo()">▶ Entrar no sistema</button>
     <div class="login-footer">Dados armazenados com segurança no Supabase (PostgreSQL)</div>
   </div>
@@ -124,7 +124,7 @@ tbody tr:hover td{background:var(--bg)}
       <div class="sidebar-logo">
         <div class="sidebar-logo-mark">🏢</div>
         <div class="sidebar-title">Gestão de Aluguéis</div>
-        <div class="sidebar-sub">Top Internacional</div>
+        <div class="sidebar-sub">TOP Internacional</div>
       </div>
       <nav class="sidebar-nav">
         <div class="nav-section">Principal</div>
@@ -574,24 +574,34 @@ function renderDash(){
   const t26=d.filter(l=>l.ano===2026).reduce((s,l)=>s+parseFloat(l.valor),0);
   const nL=new Set(d.map(l=>l.loja_id)).size;
   const vp=t25>0&&t26>0?((t26-t25)/t25*100):null;
+  const pct25=tot>0?(t25/tot*100):0;
+  const pct26=tot>0?(t26/tot*100):0;
   document.getElementById('d-kpis').innerHTML=`
     <div class="kpi blue"><div class="kpi-label">Total geral</div><div class="kpi-val">${fS(tot)}</div><div class="kpi-sub">${d.length} lançamentos</div></div>
-    <div class="kpi green"><div class="kpi-label">2025</div><div class="kpi-val">${fS(t25)}</div></div>
-    <div class="kpi amber"><div class="kpi-label">2026</div><div class="kpi-val">${fS(t26)}</div></div>
-    <div class="kpi teal"><div class="kpi-label">Variação</div><div class="kpi-val" style="color:${vp===null?'var(--ink3)':vp>0?'#d93b3b':'#0d9e6e'}">${vp===null?'—':(vp>0?'+':'')+vp.toFixed(1)+'%'}</div><div class="kpi-sub">${vp===null?'—':vp>0?'aumento vs 2025':'redução vs 2025'}</div></div>
-    <div class="kpi purple"><div class="kpi-label">Lojas ativas</div><div class="kpi-val">${nL}</div></div>`;
+    <div class="kpi green"><div class="kpi-label">2025</div><div class="kpi-val">${fS(t25)}</div><div class="kpi-sub" style="display:flex;align-items:center;gap:4px"><span style="background:#e8f8f3;color:#0d9e6e;padding:1px 6px;border-radius:10px;font-size:10px;font-weight:700">${pct25.toFixed(1)}% do total</span></div></div>
+    <div class="kpi amber"><div class="kpi-label">2026</div><div class="kpi-val">${fS(t26)}</div><div class="kpi-sub" style="display:flex;align-items:center;gap:4px"><span style="background:#fdf5e6;color:#c97d0a;padding:1px 6px;border-radius:10px;font-size:10px;font-weight:700">${pct26.toFixed(1)}% do total</span></div></div>
+    <div class="kpi teal"><div class="kpi-label">Variação 2025→2026</div><div class="kpi-val" style="color:${vp===null?'var(--ink3)':vp>0?'#d93b3b':'#0d9e6e'}">${vp===null?'—':(vp>0?'+':'')+vp.toFixed(1)+'%'}</div><div class="kpi-sub">${vp===null?'—':vp>0?'↑ aumento vs 2025':'↓ redução vs 2025'}</div></div>
+    <div class="kpi purple"><div class="kpi-label">Lojas ativas</div><div class="kpi-val">${nL}</div><div class="kpi-sub">${S.lojas.length>0?((nL/S.lojas.length)*100).toFixed(0)+'% do cadastro':''}</div></div>`;
   const bm25=MESES.map(m=>d.filter(l=>l.ano===2025&&l.mes===m).reduce((s,l)=>s+parseFloat(l.valor),0));
   const bm26=MESES.map(m=>d.filter(l=>l.ano===2026&&l.mes===m).reduce((s,l)=>s+parseFloat(l.valor),0));
-  dC('m');CH.m=new Chart(document.getElementById('c-mensal'),{type:'line',data:{labels:MESES.map(m=>m.slice(0,3)),datasets:[{label:'2025',data:bm25,borderColor:'#2d5be3',backgroundColor:'#2d5be312',borderWidth:2,tension:.35,fill:true,pointRadius:3},{label:'2026',data:bm26,borderColor:'#0d9e6e',backgroundColor:'#0d9e6e0d',borderWidth:2,tension:.35,fill:true,pointRadius:3,borderDash:[5,3]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}}}});
+  const totalMensal=[...bm25,...bm26].reduce((s,v)=>s+v,0);
+  dC('m');CH.m=new Chart(document.getElementById('c-mensal'),{type:'line',data:{labels:MESES.map(m=>m.slice(0,3)),datasets:[{label:'2025',data:bm25,borderColor:'#2d5be3',backgroundColor:'#2d5be312',borderWidth:2,tension:.35,fill:true,pointRadius:3},{label:'2026',data:bm26,borderColor:'#0d9e6e',backgroundColor:'#0d9e6e0d',borderWidth:2,tension:.35,fill:true,pointRadius:3,borderDash:[5,3]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw||0;const pct=totalMensal>0?(v/totalMensal*100).toFixed(1):0;return ` ${ctx.dataset.label}: ${fS(v)} (${pct}%)`;},title:ctx=>`Mês: ${ctx[0].label}`}}},scales:{y:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}}}});
   const emps=[...new Set(d.map(l=>l.empresa_nome))].sort();
-  dC('e');CH.e=new Chart(document.getElementById('c-empresa'),{type:'bar',data:{labels:emps.map(e=>e.split(' ').slice(0,2).join(' ')),datasets:[{data:emps.map(e=>d.filter(l=>l.empresa_nome===e).reduce((s,l)=>s+parseFloat(l.valor),0)),backgroundColor:CLR,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false},ticks:{font:{size:10}}}}}});
+  const empVals=emps.map(e=>d.filter(l=>l.empresa_nome===e).reduce((s,l)=>s+parseFloat(l.valor),0));
+  const empTot=empVals.reduce((s,v)=>s+v,0);
+  dC('e');CH.e=new Chart(document.getElementById('c-empresa'),{type:'bar',data:{labels:emps.map(e=>e.split(' ').slice(0,2).join(' ')),datasets:[{data:empVals,backgroundColor:CLR,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw||0;const pct=empTot>0?(v/empTot*100).toFixed(1):0;return ` ${fS(v)} — ${pct}% do total`;}}}},scales:{y:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false},ticks:{font:{size:10}}}}}});
   const cats=[...new Set(d.map(l=>l.cat_nome))].sort();
-  dC('c');CH.c=new Chart(document.getElementById('c-cat'),{type:'doughnut',data:{labels:cats,datasets:[{data:cats.map(c=>d.filter(l=>l.cat_nome===c).reduce((s,l)=>s+parseFloat(l.valor),0)),backgroundColor:CLR,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:10},padding:5}}}}});
+  const catVals=cats.map(c=>d.filter(l=>l.cat_nome===c).reduce((s,l)=>s+parseFloat(l.valor),0));
+  const catTot=catVals.reduce((s,v)=>s+v,0);
+  dC('c');CH.c=new Chart(document.getElementById('c-cat'),{type:'doughnut',data:{labels:cats,datasets:[{data:catVals,backgroundColor:CLR,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:10},padding:5,generateLabels:chart=>{const ds=chart.data.datasets[0];return chart.data.labels.map((lbl,i)=>{const v=ds.data[i];const pct=catTot>0?(v/catTot*100).toFixed(1):0;return{text:`${lbl}: ${pct}%`,fillStyle:ds.backgroundColor[i],strokeStyle:'#fff',lineWidth:2,index:i};});}}},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw||0;const pct=catTot>0?(v/catTot*100).toFixed(1):0;return ` ${fS(v)} — ${pct}%`;}}}}}}); 
   const cids=[...new Set(d.map(l=>l.cidade).filter(Boolean))].sort();
-  dC('ci');CH.ci=new Chart(document.getElementById('c-cidade'),{type:'bar',data:{labels:cids,datasets:[{data:cids.map(c=>d.filter(l=>l.cidade===c).reduce((s,l)=>s+parseFloat(l.valor),0)),backgroundColor:'#6d3fd4',borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false},ticks:{font:{size:10},maxRotation:40}}}}});
+  const cidVals=cids.map(c=>d.filter(l=>l.cidade===c).reduce((s,l)=>s+parseFloat(l.valor),0));
+  const cidTot=cidVals.reduce((s,v)=>s+v,0);
+  dC('ci');CH.ci=new Chart(document.getElementById('c-cidade'),{type:'bar',data:{labels:cids,datasets:[{data:cidVals,backgroundColor:'#6d3fd4',borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw||0;const pct=cidTot>0?(v/cidTot*100).toFixed(1):0;return ` ${fS(v)} — ${pct}% do total`;}}}},scales:{y:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false},ticks:{font:{size:10},maxRotation:40}}}}});
   const lm={};d.forEach(l=>{lm[l.loja_nome]=(lm[l.loja_nome]||0)+parseFloat(l.valor);});
   const top=Object.entries(lm).sort((a,b)=>b[1]-a[1]).slice(0,10);
-  dC('l');CH.l=new Chart(document.getElementById('c-loja'),{type:'bar',data:{labels:top.map(([k])=>k),datasets:[{data:top.map(([,v])=>v),backgroundColor:'#2d5be3',borderRadius:5}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},y:{grid:{display:false},ticks:{font:{size:11}}}}}});
+  const lojaTot=top.reduce((s,[,v])=>s+v,0);
+  dC('l');CH.l=new Chart(document.getElementById('c-loja'),{type:'bar',data:{labels:top.map(([k])=>k),datasets:[{data:top.map(([,v])=>v),backgroundColor:'#2d5be3',borderRadius:5}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw||0;const pct=lojaTot>0?(v/lojaTot*100).toFixed(1):0;return ` ${fS(v)} — ${pct}% do top 10`;}}}},scales:{x:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},y:{grid:{display:false},ticks:{font:{size:11}}}}}});
 }
 
 let relState={rows:[],tot:0,lb:'',d:[],e:'',a:'',m:'',g:''};
@@ -705,7 +715,7 @@ async function addCat(){const v=document.getElementById('new-cat').value.trim().
 async function delCat2(id){if(!confirm('Remover categoria?'))return;try{await db(`categorias?id=eq.${id}`,{method:'DELETE'});toast('🗑️ Removida');await loadData();renderCads();}catch(ex){toast('❌ '+ex.message);}}
 
 function fBR(v){return'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function fS(v){if(v>=1e6)return'R$ '+(v/1e6).toFixed(1)+'M';if(v>=1e3)return'R$ '+(v/1e3).toFixed(0)+'k';return'R$ '+Math.round(v);}
+function fS(v){return'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 
 // ── MULTI-SELECT LOJA ─────────────────────────────
 let selectedLojas=new Set();
