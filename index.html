@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Gestão de Aluguéis — Top Internacional</title>
+<title>Gestão de Aluguéis — TOP Internacional</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
@@ -112,9 +112,23 @@ tbody tr:hover td{background:var(--bg)}
   <div class="login-card">
     <div class="login-logo">🏢</div>
     <div class="login-title">Gestão de Aluguéis</div>
-    <div class="login-sub">Controle despesas Alugués<br>Top Internacional • Powered by Supabase</div>
-    <button class="btn-demo" onclick="loginDemo()">▶ Entrar no sistema</button>
-    <div class="login-footer">Dados armazenados com segurança no Supabase (PostgreSQL)</div>
+    <div class="login-sub">TOP Internacional<br>Faça login para acessar o sistema</div>
+    <div style="margin-bottom:1rem;text-align:left">
+      <div style="margin-bottom:.75rem">
+        <label style="font-size:12px;font-weight:600;color:rgba(255,255,255,.5);display:block;margin-bottom:.3rem">E-mail</label>
+        <input type="email" id="login-email" class="fc" placeholder="seu@email.com.br" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1);color:#fff" onkeydown="if(event.key==='Enter')document.getElementById('login-senha').focus()"/>
+      </div>
+      <div style="margin-bottom:.25rem">
+        <label style="font-size:12px;font-weight:600;color:rgba(255,255,255,.5);display:block;margin-bottom:.3rem">Senha</label>
+        <div style="position:relative">
+          <input type="password" id="login-senha" class="fc" placeholder="••••••••" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1);color:#fff;padding-right:2.5rem" onkeydown="if(event.key==='Enter')fazerLogin()"/>
+          <button onclick="toggleSenha()" style="position:absolute;right:.6rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,.4);font-size:14px" id="btn-eye">👁</button>
+        </div>
+      </div>
+      <div id="login-erro" style="color:#ff6b6b;font-size:12px;min-height:18px;margin-top:.4rem"></div>
+    </div>
+    <button class="btn-demo" id="btn-login" onclick="fazerLogin()" style="background:#2d5be3;color:#fff;border:none;font-weight:600">Entrar</button>
+    <div class="login-footer" style="margin-top:1.25rem">Dados protegidos • TOP Internacional © 2026</div>
   </div>
 </div>
 
@@ -153,7 +167,11 @@ tbody tr:hover td{background:var(--bg)}
       <div class="status-bar">
         <div class="s-dot ok" id="sdot"></div>
         <span id="stxt">Conectado ao Supabase</span>
-        <span style="margin-left:auto;color:var(--ink3);font-size:11px" id="stime"></span>
+        <span style="margin-left:auto;display:flex;align-items:center;gap:.75rem">
+          <span id="suser" style="color:var(--ink3);font-size:11px"></span>
+          <span id="stime" style="color:var(--ink3);font-size:11px"></span>
+          <span id="s-countdown" style="color:var(--ink3);font-size:11px;background:var(--surface2);padding:2px 8px;border-radius:10px"></span>
+        </span>
       </div>
 
       <div id="page-dashboard" class="page active">
@@ -332,6 +350,7 @@ tbody tr:hover td{background:var(--bg)}
             <button class="tab active" onclick="showTab('cad-emp',this)">Empresas</button>
             <button class="tab" onclick="showTab('cad-loja',this)">Lojas</button>
             <button class="tab" onclick="showTab('cad-cat',this)">Categorias</button>
+            <button class="tab" onclick="showTab('cad-usr',this);renderUsuarios()">Usuários</button>
           </div>
           <div id="cad-emp">
             <div class="card"><div class="card-hd"><div class="card-title">Nova empresa</div></div>
@@ -365,10 +384,35 @@ tbody tr:hover td{background:var(--bg)}
             </div>
             <div class="card"><div id="list-cat"><div class="empty"><div>Nenhuma categoria</div></div></div></div>
           </div>
+          <div id="cad-usr" style="display:none">
+            <div class="card"><div class="card-hd"><div class="card-title">Novo usuário</div></div>
+              <div class="card-body">
+                <div class="fgrid" style="margin-bottom:.75rem">
+                  <div class="fg"><label class="fl">Nome *</label><input type="text" class="fc" id="nu-nome" placeholder="Nome completo"/></div>
+                  <div class="fg"><label class="fl">E-mail *</label><input type="email" class="fc" id="nu-email" placeholder="email@empresa.com.br"/></div>
+                  <div class="fg"><label class="fl">Senha *</label><input type="password" class="fc" id="nu-senha" placeholder="Mínimo 6 caracteres"/></div>
+                  <div class="fg"><label class="fl">Perfil</label><select class="fc" id="nu-perfil"><option value="usuario">Usuário</option><option value="admin">Administrador</option></select></div>
+                </div>
+                <button class="btn btn-primary" onclick="addUsuario()">Adicionar usuário</button>
+              </div>
+            </div>
+            <div class="card"><div id="list-usr"><div class="empty"><div>Carregando...</div></div></div></div>
+          </div>
         </div>
       </div>
     </div>
   </div>
+
+<!-- EDIT MODAL -->
+<div id="edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;padding:1rem">
+  <div style="background:var(--surface);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.25);width:100%;max-width:520px;overflow:hidden">
+    <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <div style="font-size:15px;font-weight:700">✏️ Editar Lançamento</div>
+      <button onclick="fecharModalEdit()" style="border:none;background:none;cursor:pointer;font-size:18px;color:var(--ink3);line-height:1">×</button>
+    </div>
+    <div style="padding:1.25rem" id="edit-modal-body"></div>
+  </div>
+</div>
 </div>
 <div id="toast"></div>
 
@@ -389,12 +433,81 @@ let S={empresas:[],lojas:[],categorias:[],lancamentos:[]};
 const MESES=['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
 const CLR=['#2d5be3','#d97706','#0d9e6e','#6d3fd4','#d93b3b','#0891b2','#db2777','#65a30d','#ea580c','#8b5cf6'];
 
-function loginDemo(){
-  document.getElementById('login-screen').style.display='none';
-  document.getElementById('app').style.display='block';
-  loadData();
+let currentUser=null;
+let autoRefreshTimer=null;
+
+function toggleSenha(){
+  const inp=document.getElementById('login-senha');
+  const btn=document.getElementById('btn-eye');
+  if(inp.type==='password'){inp.type='text';btn.textContent='🙈';}
+  else{inp.type='password';btn.textContent='👁';}
 }
-function logout(){document.getElementById('login-screen').style.display='flex';document.getElementById('app').style.display='none';}
+
+async function fazerLogin(){
+  const email=document.getElementById('login-email').value.trim().toLowerCase();
+  const senha=document.getElementById('login-senha').value;
+  const erro=document.getElementById('login-erro');
+  const btn=document.getElementById('btn-login');
+  erro.textContent='';
+  if(!email||!senha){erro.textContent='Preencha e-mail e senha.';return;}
+  btn.disabled=true;btn.innerHTML='<div class="spinner" style="border-color:rgba(255,255,255,.3);border-top-color:#fff;display:inline-block"></div> Entrando...';
+  try{
+    const senhaHash=await sha256(senha);
+    const res=await db(`usuarios?email=eq.${encodeURIComponent(email)}&ativo=eq.true&select=*`);
+    if(!res||!res.length){erro.textContent='E-mail não encontrado.';return;}
+    const u=res[0];
+    if(u.senha_hash!==senhaHash){erro.textContent='Senha incorreta.';return;}
+    currentUser=u;
+    // Update last access
+    await db(`usuarios?id=eq.${u.id}`,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({ultimo_acesso:new Date().toISOString()})});
+    // Update UI
+    document.getElementById('uav').textContent=u.nome.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+    document.getElementById('uname').textContent=u.nome;
+    // Add perfil badge
+    if(u.perfil==='admin'){
+      document.getElementById('uname').innerHTML=u.nome+'<br><span style="font-size:9px;background:#2d5be3;color:#fff;padding:1px 5px;border-radius:8px;font-weight:600">ADMIN</span>';
+    }
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    await loadData();
+    startAutoRefresh();
+    // Show/hide admin features
+    toggleAdminFeatures(u.perfil==='admin');
+  }catch(ex){erro.textContent='Erro de conexão. Tente novamente.';}
+  finally{btn.disabled=false;btn.innerHTML='Entrar';}
+}
+
+async function sha256(msg){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(msg));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function toggleAdminFeatures(isAdmin){
+  // Cadastros tab only visible to admin
+  const cadNav=document.querySelector('.nav-item[onclick*="cadastros"]');
+  if(cadNav) cadNav.style.display=isAdmin?'flex':'none';
+}
+
+function startAutoRefresh(){
+  if(autoRefreshTimer)clearInterval(autoRefreshTimer);
+  autoRefreshTimer=setInterval(async()=>{
+    await loadData();
+    // Re-render current page
+    const activePage=document.querySelector('.page.active');
+    if(activePage&&activePage.id==='page-dashboard')renderDash();
+  },120000); // 2 minutos
+}
+
+function logout(){
+  currentUser=null;
+  if(autoRefreshTimer)clearInterval(autoRefreshTimer);
+  document.getElementById('login-email').value='';
+  document.getElementById('login-senha').value='';
+  document.getElementById('login-erro').textContent='';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('app').style.display='none';
+  S={empresas:[],lojas:[],categorias:[],lancamentos:[]};
+}
 
 async function loadData(){
   ss('sync','Carregando...');
@@ -411,6 +524,8 @@ async function loadData(){
     S.lancamentos=(la||[]).map(x=>({...x,empresa_nome:x.empresas?.nome||'',loja_nome:x.lojas?.nome||'',cidade:x.lojas?.cidade||'',uf:x.lojas?.uf||'',cat_nome:x.categorias?.nome||''}));
     ss('ok',`${S.lancamentos.length} registros`);
     document.getElementById('stime').textContent='Atualizado: '+new Date().toLocaleTimeString('pt-BR');
+  if(currentUser)document.getElementById('suser').textContent='👤 '+currentUser.nome;
+  startCountdown();
     populateSels();renderDash();renderCads();
   }catch(ex){ss('err','Erro: '+ex.message);toast('❌ '+ex.message);}
 }
@@ -633,7 +748,7 @@ function renderHist(){
   const tot=d.reduce((s,x)=>s+parseFloat(x.valor),0);
   w.innerHTML=`<div style="padding:.75rem 1rem;font-size:13px;color:var(--ink2);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
     <span><strong>${d.length}</strong> registros — Total: <strong style="color:#2d5be3">${fBR(tot)}</strong></span>
-    <span style="font-size:11px;color:var(--ink3)">Clique em ✏️ para editar qualquer lançamento</span>
+    <span style="font-size:11px;color:var(--ink3)">Clique em ✏️ para editar</span>
   </div>
   <div style="overflow-x:auto"><table><thead><tr>
     <th>Empresa</th><th>Loja</th><th>Ano</th><th>Mês</th><th>Categoria</th><th>Cidade</th>
@@ -643,82 +758,77 @@ function renderHist(){
     <tr id="hrow-${x.id}">
       <td style="font-size:11px">${x.empresa_nome}</td>
       <td style="font-weight:600;font-size:12px">${x.loja_nome}</td>
-      <td>${x.ano}</td>
-      <td>${x.mes.slice(0,3)}</td>
+      <td>${x.ano}</td><td>${x.mes.slice(0,3)}</td>
       <td><span class="badge bb">${x.cat_nome}</span></td>
       <td style="font-size:12px">${x.cidade}</td>
       <td class="tn" id="hval-${x.id}">${fBR(x.valor)}</td>
       <td style="font-size:11px;color:var(--ink2)" id="hobs-${x.id}">${x.obs||'—'}</td>
       <td style="text-align:center">
         <div style="display:flex;gap:4px;justify-content:center">
-          <button class="btn btn-ghost btn-sm" title="Editar" onclick="editHistLanc('${x.id}',${x.valor},'${(x.obs||'').replace(/'/g,"\'")}','${x.cat_nome.replace(/'/g,"\'")}')">✏️</button>
+          <button class="btn btn-ghost btn-sm" title="Editar" onclick="abrirModalEdit('${x.id}')">✏️</button>
           <button class="btn btn-danger" title="Remover" onclick="delLH('${x.id}')">✕</button>
-        </div>
-      </td>
-    </tr>
-    <tr id="hedit-${x.id}" style="display:none;background:var(--blue-bg)">
-      <td colspan="9" style="padding:.875rem 1rem">
-        <div style="display:flex;gap:.75rem;align-items:flex-end;flex-wrap:wrap">
-          <div style="display:flex;flex-direction:column;gap:3px">
-            <label style="font-size:11px;font-weight:600;color:var(--ink2)">Categoria</label>
-            <select id="hedit-cat-${x.id}" class="fc" style="min-width:180px">
-              ${S.categorias.sort((a,b)=>a.nome.localeCompare(b.nome)).map(c=>`<option value="${c.id}" ${c.nome===x.cat_nome?'selected':''}>${c.nome}</option>`).join('')}
-            </select>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:3px">
-            <label style="font-size:11px;font-weight:600;color:var(--ink2)">Ano</label>
-            <select id="hedit-ano-${x.id}" class="fc" style="width:90px">
-              ${[2024,2025,2026,2027,2028,2029,2030].map(y=>`<option value="${y}" ${y===x.ano?'selected':''}>${y}</option>`).join('')}
-            </select>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:3px">
-            <label style="font-size:11px;font-weight:600;color:var(--ink2)">Mês</label>
-            <select id="hedit-mes-${x.id}" class="fc" style="width:120px">
-              ${MESES.map(m=>`<option value="${m}" ${m===x.mes?'selected':''}>${m.slice(0,1)+m.slice(1).toLowerCase()}</option>`).join('')}
-            </select>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:3px">
-            <label style="font-size:11px;font-weight:600;color:var(--ink2)">Valor (R$)</label>
-            <input type="number" id="hedit-val-${x.id}" value="${parseFloat(x.valor).toFixed(2)}" step="0.01" min="0" class="fc" style="text-align:right;width:150px"/>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:160px">
-            <label style="font-size:11px;font-weight:600;color:var(--ink2)">Observação</label>
-            <input type="text" id="hedit-obs-${x.id}" value="${x.obs||''}" class="fc" placeholder="Observação"/>
-          </div>
-          <div style="display:flex;gap:.4rem">
-            <button class="btn btn-success btn-sm" onclick="salvarEdicaoHist('${x.id}')">✔ Salvar</button>
-            <button class="btn btn-ghost btn-sm" onclick="cancelarEdicaoHist('${x.id}')">Cancelar</button>
-          </div>
         </div>
       </td>
     </tr>`).join('')}
   </tbody></table></div>`;
 }
 
-function editHistLanc(id){
-  document.querySelectorAll('[id^="hedit-"]').forEach(r=>{
-    if(r.id!=='hedit-'+id) r.style.display='none';
-  });
-  const row=document.getElementById('hedit-'+id);
-  const isOpen=row.style.display!=='none';
-  row.style.display=isOpen?'none':'table-row';
-  if(!isOpen) document.getElementById('hedit-val-'+id).focus();
+function abrirModalEdit(id){
+  const lanc=S.lancamentos.find(l=>l.id===id);
+  if(!lanc){toast('❌ Lançamento não encontrado');return;}
+  const cats=S.categorias.sort((a,b)=>a.nome.localeCompare(b.nome));
+  const anos=[2024,2025,2026,2027,2028,2029,2030];
+  document.getElementById('edit-modal-body').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem">
+      <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:3px">
+        <label class="fl">Categoria</label>
+        <select class="fc" id="em-cat">
+          ${cats.map(c=>`<option value="${c.id}" ${c.id===lanc.categoria_id?'selected':''}>${c.nome}</option>`).join('')}
+        </select>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <label class="fl">Ano</label>
+        <select class="fc" id="em-ano">
+          ${anos.map(y=>`<option value="${y}" ${y===lanc.ano?'selected':''}>${y}</option>`).join('')}
+        </select>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <label class="fl">Mês</label>
+        <select class="fc" id="em-mes">
+          ${MESES.map(m=>`<option value="${m}" ${m===lanc.mes?'selected':''}>${m.slice(0,1)+m.slice(1).toLowerCase()}</option>`).join('')}
+        </select>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <label class="fl">Valor (R$)</label>
+        <input type="number" class="fc" id="em-val" value="${parseFloat(lanc.valor).toFixed(2)}" step="0.01" min="0" style="text-align:right"/>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <label class="fl">Observação</label>
+        <input type="text" class="fc" id="em-obs" value="${lanc.obs||''}" placeholder="Opcional"/>
+      </div>
+    </div>
+    <div style="display:flex;gap:.5rem;justify-content:flex-end;padding-top:.75rem;border-top:1px solid var(--border)">
+      <button class="btn btn-ghost" onclick="fecharModalEdit()">Cancelar</button>
+      <button class="btn btn-success" id="em-save-btn" onclick="salvarModalEdit('${id}')">✔ Salvar alterações</button>
+    </div>`;
+  document.getElementById('edit-modal').style.display='flex';
+  setTimeout(()=>document.getElementById('em-val').focus(),100);
 }
 
-function cancelarEdicaoHist(id){
-  document.getElementById('hedit-'+id).style.display='none';
+function fecharModalEdit(){
+  document.getElementById('edit-modal').style.display='none';
 }
 
-async function salvarEdicaoHist(id){
-  const novoVal=parseFloat(document.getElementById('hedit-val-'+id).value)||0;
-  const novaObs=document.getElementById('hedit-obs-'+id).value;
-  const catId=document.getElementById('hedit-cat-'+id).value;
-  const novoAno=parseInt(document.getElementById('hedit-ano-'+id).value);
-  const novoMes=document.getElementById('hedit-mes-'+id).value;
+async function salvarModalEdit(id){
+  const novoVal=parseFloat(document.getElementById('em-val').value)||0;
+  const novaObs=document.getElementById('em-obs').value;
+  const catId=document.getElementById('em-cat').value;
+  const novoAno=parseInt(document.getElementById('em-ano').value);
+  const novoMes=document.getElementById('em-mes').value;
   const novoMesNum=MESES.indexOf(novoMes)+1;
   if(novoVal<=0){toast('⚠️ Informe um valor maior que zero');return;}
-  const btn=document.querySelector(`#hedit-${id} .btn-success`);
-  btn.disabled=true;btn.innerHTML='<div class="spinner"></div>';
+  const btn=document.getElementById('em-save-btn');
+  btn.disabled=true;btn.innerHTML='<div class="spinner"></div> Salvando...';
   try{
     await db(`lancamentos?id=eq.${id}`,{
       method:'PATCH',
@@ -728,12 +838,15 @@ async function salvarEdicaoHist(id){
     const catNome=S.categorias.find(c=>c.id===catId)?.nome||'';
     const lanc=S.lancamentos.find(l=>l.id===id);
     if(lanc){lanc.valor=novoVal;lanc.obs=novaObs;lanc.categoria_id=catId;lanc.cat_nome=catNome;lanc.ano=novoAno;lanc.mes=novoMes;lanc.mes_num=novoMesNum;}
-    document.getElementById('hval-'+id).textContent=fBR(novoVal);
-    document.getElementById('hobs-'+id).textContent=novaObs||'—';
-    document.getElementById('hedit-'+id).style.display='none';
+    // Update visible cells
+    const hval=document.getElementById('hval-'+id);
+    const hobs=document.getElementById('hobs-'+id);
+    if(hval)hval.textContent=fBR(novoVal);
+    if(hobs)hobs.textContent=novaObs||'—';
+    fecharModalEdit();
     toast('✅ Lançamento atualizado!');
   }catch(ex){toast('❌ '+ex.message);}
-  finally{btn.disabled=false;btn.innerHTML='✔ Salvar';}
+  finally{btn.disabled=false;btn.innerHTML='✔ Salvar alterações';}
 }
 
 async function delLH(id){
@@ -741,8 +854,7 @@ async function delLH(id){
   try{
     await db(`lancamentos?id=eq.${id}`,{method:'DELETE'});
     S.lancamentos=S.lancamentos.filter(l=>l.id!==id);
-    toast('🗑️ Removido');
-    renderHist();
+    toast('🗑️ Removido');renderHist();
   }catch(ex){toast('❌ '+ex.message);}
 }
 
@@ -897,6 +1009,20 @@ async function delLoja(id){if(!confirm('Remover loja?'))return;try{await db(`loj
 async function addCat(){const v=document.getElementById('new-cat').value.trim().toUpperCase();if(!v){toast('⚠️ Informe o nome');return;}try{await db('categorias',{method:'POST',body:JSON.stringify({nome:v})});document.getElementById('new-cat').value='';toast('✅ Categoria adicionada!');await loadData();renderCads();}catch(ex){toast('❌ '+ex.message);}}
 async function delCat2(id){if(!confirm('Remover categoria?'))return;try{await db(`categorias?id=eq.${id}`,{method:'DELETE'});toast('🗑️ Removida');await loadData();renderCads();}catch(ex){toast('❌ '+ex.message);}}
 
+
+let countdownTimer=null;
+function startCountdown(){
+  if(countdownTimer)clearInterval(countdownTimer);
+  let secs=120;
+  const el=document.getElementById('s-countdown');
+  if(!el)return;
+  el.textContent='↺ 2:00';
+  countdownTimer=setInterval(()=>{
+    secs--;
+    if(secs<=0){secs=120;el.textContent='↺ Atualizando...';}
+    else{const m=Math.floor(secs/60),s=secs%60;el.textContent=`↺ ${m}:${String(s).padStart(2,'0')}`;}
+  },1000);
+}
 function fBR(v){return'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fS(v){return'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 
@@ -998,6 +1124,73 @@ document.addEventListener('click',e=>{
     dd.style.display='none';
   }
 });
+
+
+// ── USUÁRIOS ─────────────────────────────────────
+async function renderUsuarios(){
+  try{
+    const users=await db('usuarios?select=*&order=nome');
+    const el=document.getElementById('list-usr');
+    if(!users||!users.length){el.innerHTML='<div class="empty"><div>Nenhum usuário</div></div>';return;}
+    el.innerHTML=`<table><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Último acesso</th><th>Status</th><th></th></tr></thead>
+    <tbody>${users.map(u=>`<tr>
+      <td style="font-weight:600">${u.nome}</td>
+      <td style="font-size:12px;color:var(--ink2)">${u.email}</td>
+      <td><span class="badge ${u.perfil==='admin'?'bb':'bg2'}">${u.perfil==='admin'?'Admin':'Usuário'}</span></td>
+      <td style="font-size:11px;color:var(--ink3)">${u.ultimo_acesso?new Date(u.ultimo_acesso).toLocaleString('pt-BR'):'Nunca'}</td>
+      <td><span class="badge ${u.ativo?'bg2':'ba'}">${u.ativo?'Ativo':'Inativo'}</span></td>
+      <td><div style="display:flex;gap:4px">
+        <button class="btn btn-ghost btn-sm" onclick="toggleUsuario('${u.id}',${u.ativo})">${u.ativo?'Desativar':'Ativar'}</button>
+        <button class="btn btn-ghost btn-sm" onclick="resetSenha('${u.id}')">🔑 Senha</button>
+        ${u.id!==currentUser?.id?`<button class="btn btn-danger" onclick="delUsuario('${u.id}')">✕</button>`:''}
+      </div></td>
+    </tr>`).join('')}</tbody></table>`;
+  }catch(ex){toast('❌ '+ex.message);}
+}
+
+async function addUsuario(){
+  const nome=document.getElementById('nu-nome').value.trim();
+  const email=document.getElementById('nu-email').value.trim().toLowerCase();
+  const senha=document.getElementById('nu-senha').value;
+  const perfil=document.getElementById('nu-perfil').value;
+  if(!nome||!email||!senha){toast('⚠️ Preencha todos os campos');return;}
+  if(senha.length<6){toast('⚠️ Senha precisa ter ao menos 6 caracteres');return;}
+  try{
+    const hash=await sha256(senha);
+    await db('usuarios',{method:'POST',body:JSON.stringify({nome,email,senha_hash:hash,perfil})});
+    document.getElementById('nu-nome').value='';
+    document.getElementById('nu-email').value='';
+    document.getElementById('nu-senha').value='';
+    toast('✅ Usuário criado!');
+    renderUsuarios();
+  }catch(ex){toast('❌ '+(ex.message.includes('unique')?'E-mail já cadastrado':ex.message));}
+}
+
+async function toggleUsuario(id,ativo){
+  try{
+    await db(`usuarios?id=eq.${id}`,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({ativo:!ativo})});
+    toast(ativo?'Usuário desativado':'Usuário ativado');
+    renderUsuarios();
+  }catch(ex){toast('❌ '+ex.message);}
+}
+
+async function delUsuario(id){
+  if(!confirm('Remover este usuário?'))return;
+  try{
+    await db(`usuarios?id=eq.${id}`,{method:'DELETE'});
+    toast('🗑️ Usuário removido');renderUsuarios();
+  }catch(ex){toast('❌ '+ex.message);}
+}
+
+async function resetSenha(id){
+  const nova=prompt('Digite a nova senha (mínimo 6 caracteres):');
+  if(!nova||nova.length<6){if(nova!==null)toast('⚠️ Senha muito curta');return;}
+  try{
+    const hash=await sha256(nova);
+    await db(`usuarios?id=eq.${id}`,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({senha_hash:hash})});
+    toast('✅ Senha redefinida!');
+  }catch(ex){toast('❌ '+ex.message);}
+}
 
 let tt;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),3000);}
 
