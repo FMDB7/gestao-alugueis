@@ -1268,42 +1268,127 @@ function exportDetalhadoPDF(){
       const anoCat={};cats.forEach(c=>{anoCat[c]=0;});
       const anoTot=dA.reduce((s,x)=>s+parseFloat(x.valor),0);
       MESES.forEach(mes=>{
-        const dM=dA.filter(x=>x.mes===mes);if(!dM.length)return;
+        const dM=dA.filter(x=>x.mes===mes);if(!dM.length)return; // só meses com dados
         const rTot=dM.reduce((s,x)=>s+parseFloat(x.valor),0);
-        const bg=rc%2===0?'#fff':'#f8f9ff';
+        const bg=rc%2===0?'#ffffff':'#f8f9ff';
         const rC={};
         cats.forEach(c=>{const v=dM.filter(x=>x.cat_nome===c).reduce((s,x)=>s+parseFloat(x.valor),0);rC[c]=v;anoCat[c]=(anoCat[c]||0)+v;lojaCat[c]=(lojaCat[c]||0)+v;grandCat[c]=(grandCat[c]||0)+v;});
-        rows+=`<tr style="background:${bg}"><td>${loja}</td><td>${ano}</td><td>${mes.slice(0,1)+mes.slice(1).toLowerCase()}</td>
-          ${cats.map(c=>{const v=rC[c];return`<td style="text-align:right">${v>0?fBR(v):'—'}</td><td style="text-align:center">${v>0&&rTot>0?(v/rTot*100).toFixed(1)+'%':'—'}</td>`;}).join('')}
-          <td style="text-align:right;font-weight:700">${fBR(rTot)}</td><td style="text-align:center">${totalGeral>0?(rTot/totalGeral*100).toFixed(1):'0'}%</td></tr>`;
+        rows+=`<tr style="background-color:${bg}">
+          <td style="font-weight:700;font-size:8px;color:#1a3db8;border-right:3px solid #2d5be3">${loja}</td>
+          <td style="font-weight:600;color:#2d5be3;font-size:8px">${ano}</td>
+          <td style="font-size:8px">${mes.slice(0,1)+mes.slice(1).toLowerCase()}</td>
+          ${cats.map(c=>{const v=rC[c];const p=rTot>0?(v/rTot*100):0;return`<td style="text-align:right;font-size:8px">${v>0?fBR(v):'—'}</td><td style="text-align:center;font-size:8px;color:${v>0?'#2d5be3':'#ccc'}">${v>0?p.toFixed(1)+'%':'—'}</td>`;}).join('')}
+          <td style="text-align:right;font-weight:700;color:#0d9e6e;font-size:8px">${fBR(rTot)}</td>
+          <td style="text-align:center;font-size:8px;color:#0d9e6e;font-weight:600">${totalGeral>0?(rTot/totalGeral*100).toFixed(1):'0'}%</td>
+        </tr>`;
         rc++;
       });
-      rows+=`<tr style="background:#e8f0ff"><td></td><td style="font-weight:700;color:#1a3db8">Sub ${ano}</td><td></td>
-        ${cats.map(c=>{const v=anoCat[c];return`<td style="text-align:right;color:#1a3db8;font-weight:700">${fBR(v)}</td><td style="text-align:center;color:#1a3db8">${anoTot>0?(v/anoTot*100).toFixed(1):'0'}%</td>`;}).join('')}
-        <td style="text-align:right;font-weight:700;color:#1a3db8">${fBR(anoTot)}</td><td style="text-align:center;color:#1a3db8">${totalGeral>0?(anoTot/totalGeral*100).toFixed(1):'0'}%</td></tr>`;
+      // Subtotal ano
+      rows+=`<tr style="background-color:#e8f0ff">
+        <td style="border-right:3px solid #2d5be3"></td>
+        <td colspan="2" style="font-weight:700;color:#1a3db8;font-size:8px;padding:3px 5px">Subtotal ${ano}</td>
+        ${cats.map(c=>{const v=anoCat[c];const p=anoTot>0?(v/anoTot*100):0;return`<td style="text-align:right;color:#1a3db8;font-weight:700;font-size:8px">${fBR(v)}</td><td style="text-align:center;color:#1a3db8;font-size:8px">${p.toFixed(1)}%</td>`;}).join('')}
+        <td style="text-align:right;font-weight:700;color:#1a3db8;font-size:8px">${fBR(anoTot)}</td>
+        <td style="text-align:center;color:#1a3db8;font-weight:700;font-size:8px">${totalGeral>0?(anoTot/totalGeral*100).toFixed(1):'0'}%</td>
+      </tr>`;
     });
-    rows+=`<tr style="background:#1a3db8"><td colspan="3" style="color:#fff;font-weight:700">TOTAL — ${loja}</td>
-      ${cats.map(c=>{const v=lojaCat[c];return`<td style="text-align:right;color:#fff;font-weight:700">${fBR(v)}</td><td style="text-align:center;color:#aac4ff">${lojaTot>0?(v/lojaTot*100).toFixed(1):'0'}%</td>`;}).join('')}
-      <td style="text-align:right;color:#fff;font-weight:700">${fBR(lojaTot)}</td><td style="text-align:center;color:#aac4ff">${totalGeral>0?(lojaTot/totalGeral*100).toFixed(1):'0'}%</td></tr>
-    <tr><td colspan="${3+cats.length*2+2}" style="height:4px;background:#f0f2f9"></td></tr>`;
+    // Total loja
+    rows+=`<tr style="background-color:#1a3db8">
+      <td colspan="3" style="color:#ffffff;font-weight:700;font-size:9px;padding:4px 6px">TOTAL — ${loja}</td>
+      ${cats.map(c=>{const v=lojaCat[c];const p=lojaTot>0?(v/lojaTot*100):0;return`<td style="text-align:right;color:#ffffff;font-weight:700;font-size:8px">${fBR(v)}</td><td style="text-align:center;color:#aac4ff;font-size:8px">${p.toFixed(1)}%</td>`;}).join('')}
+      <td style="text-align:right;color:#ffffff;font-weight:700;font-size:9px">${fBR(lojaTot)}</td>
+      <td style="text-align:center;color:#aac4ff;font-weight:700;font-size:8px">${totalGeral>0?(lojaTot/totalGeral*100).toFixed(1):'0'}%</td>
+    </tr>
+    <tr><td colspan="${3+cats.length*2+2}" style="height:5px;background-color:#f0f2f9;border:none"></td></tr>`;
   });
 
-  const html='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/><title>Relatório Detalhado por Loja</title><style>*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:9px;color:#1a1a2e;padding:1cm}.header{margin-bottom:.6rem;padding-bottom:.4rem;border-bottom:2px solid #2d5be3;display:flex;justify-content:space-between}.logo{font-size:14px;font-weight:700;color:#2d5be3}.sub{font-size:9px;color:#666}.meta{font-size:8px;color:#888;text-align:right}.filtros{font-size:9px;color:#555;margin-bottom:.4rem}.tip{background:#fffbe6;border:1px solid #f0c000;padding:.3rem .6rem;font-size:9px;color:#7a5c00;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center}.tip button{background:#2d5be3;color:#fff;border:none;padding:2px 8px;border-radius:3px;font-size:9px;cursor:pointer}table{width:100%;border-collapse:collapse}th{padding:3px 5px;font-weight:700;font-size:8px}td{padding:3px 5px;border-bottom:1px solid #e4e7f4;font-size:8px}.footer{margin-top:.75rem;font-size:7px;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:.3rem}@page{margin:.7cm;size:A3 landscape}@media print{.tip{display:none!important}}</style></head><body>'
-  +'<div class="tip">Para manter as cores: em Mais configurações marque Graficos de plano de fundo<button onclick="window.print()">Salvar PDF</button></div>'
-  +'<div class="header"><div><div class="logo">Gestao de Alugueis — TOP Internacional</div><div class="sub">Relatorio Detalhado por Loja - Mes a Mes</div></div><div class="meta">Gerado em: '+new Date().toLocaleString('pt-BR')+'</div></div>'
-  +'<div class="filtros">Filtros: '+filtros.join(' - ')+'</div>'
-  +'<table><thead><tr><th rowspan="2" style="background:#1a3db8;color:#fff">Loja</th><th rowspan="2" style="background:#1a3db8;color:#fff">Ano</th><th rowspan="2" style="background:#1a3db8;color:#fff">Mes</th>'
-  +cats.map(c=>`<th colspan="2" style="background:#2d5be3;color:#fff;text-align:center">${c}</th>`).join('')
-  +'<th colspan="2" style="background:#0d9e6e;color:#fff;text-align:center">TOTAL</th></tr><tr>'
-  +cats.map(()=>'<th style="background:#3d6cf0;color:#fff;text-align:right">Valor</th><th style="background:#3d6cf0;color:#fff;text-align:center">%</th>').join('')
-  +'<th style="background:#0b8a60;color:#fff;text-align:right">Valor</th><th style="background:#0b8a60;color:#fff;text-align:center">%</th></tr></thead><tbody>'
-  +rows
-  +'<tr style="background:#0d9e6e"><td colspan="3" style="color:#fff;font-weight:700">TOTAL GERAL</td>'
-  +cats.map(c=>{const v=grandCat[c];return`<td style="text-align:right;color:#fff;font-weight:700">${fBR(v)}</td><td style="text-align:center;color:#a0f0d0">${totalGeral>0?(v/totalGeral*100).toFixed(1):'0'}%</td>`;}).join('')
-  +`<td style="text-align:right;color:#fff;font-weight:700">${fBR(totalGeral)}</td><td style="text-align:center;color:#fff;font-weight:700">100%</td></tr>`
-  +'</tbody></table><div class="footer">Gestao de Alugueis - TOP Internacional - gestao-alugueis-pi.vercel.app</div></body></html>';
-  const win=window.open('','_blank');win.document.write(html);win.document.close();
+  // Cabeçalho duplo
+  const thead=`<thead>
+    <tr>
+      <th rowspan="2" style="background-color:#1a3db8;color:#ffffff;min-width:130px;text-align:left;padding:5px 7px;font-size:9px">LOJA</th>
+      <th rowspan="2" style="background-color:#1a3db8;color:#ffffff;min-width:40px;padding:5px 7px;font-size:9px">ANO</th>
+      <th rowspan="2" style="background-color:#1a3db8;color:#ffffff;min-width:60px;padding:5px 7px;font-size:9px">MÊS</th>
+      ${cats.map(c=>`<th colspan="2" style="background-color:#2d5be3;color:#ffffff;text-align:center;padding:5px 7px;font-size:9px">${c}</th>`).join('')}
+      <th colspan="2" style="background-color:#0d9e6e;color:#ffffff;text-align:center;padding:5px 7px;font-size:9px">TOTAL</th>
+    </tr>
+    <tr>
+      ${cats.map(()=>'<th style="background-color:#3d6cf0;color:#ffffff;text-align:right;padding:4px 5px;font-size:8px">VALOR</th><th style="background-color:#3d6cf0;color:#ffffff;text-align:center;padding:4px 5px;font-size:8px">%</th>').join('')}
+      <th style="background-color:#0b8a60;color:#ffffff;text-align:right;padding:4px 5px;font-size:8px">VALOR</th>
+      <th style="background-color:#0b8a60;color:#ffffff;text-align:center;padding:4px 5px;font-size:8px">% TOTAL</th>
+    </tr>
+  </thead>`;
+
+  const totalRow=`<tr style="background-color:#0d9e6e">
+    <td colspan="3" style="color:#ffffff;font-weight:700;font-size:10px;padding:5px 7px">TOTAL GERAL</td>
+    ${cats.map(c=>{const v=grandCat[c];const p=totalGeral>0?(v/totalGeral*100):0;return`<td style="text-align:right;color:#ffffff;font-weight:700;font-size:9px">${fBR(v)}</td><td style="text-align:center;color:#a0f0d0;font-size:8px">${p.toFixed(1)}%</td>`;}).join('')}
+    <td style="text-align:right;color:#ffffff;font-weight:700;font-size:11px">${fBR(totalGeral)}</td>
+    <td style="text-align:center;color:#ffffff;font-weight:700;font-size:9px">100%</td>
+  </tr>`;
+
+  const html=`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<title>Relatório Detalhado por Loja — TOP Internacional</title>
+<style>
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Arial,Helvetica,sans-serif;font-size:9px;color:#1a1a2e;background:#fff;padding:1cm}
+  .tip{background:#fffbe6;border:1px solid #f0c000;border-radius:4px;padding:.4rem .75rem;font-size:10px;color:#7a5c00;margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center}
+  .tip button{background:#2d5be3;color:#fff;border:none;padding:4px 12px;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer}
+  .header{padding-bottom:.6rem;border-bottom:2px solid #2d5be3;display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.6rem}
+  .logo{font-size:15px;font-weight:700;color:#2d5be3}
+  .sub{font-size:9px;color:#555;margin-top:2px}
+  .meta{font-size:8px;color:#888;text-align:right}
+  .filtros{font-size:9px;color:#444;margin-bottom:.5rem;padding:.3rem .5rem;background:#f5f7ff;border-radius:4px;border-left:3px solid #2d5be3}
+  .badges{display:flex;gap:.4rem;margin-bottom:.6rem;flex-wrap:wrap}
+  .badge{padding:2px 8px;border-radius:20px;font-size:8px;font-weight:700}
+  .bb{background:#eef2fd;color:#2d5be3}
+  .bg{background:#e8f8f3;color:#0d9e6e}
+  .ba{background:#fdf5e6;color:#c97d0a}
+  .bp{background:#f2eeff;color:#6d3fd4}
+  table{width:100%;border-collapse:collapse;font-size:8px}
+  th{padding:4px 6px;text-align:left;font-size:8px;font-weight:700;white-space:nowrap}
+  td{padding:3px 6px;border-bottom:1px solid #e4e7f4;vertical-align:middle;white-space:nowrap}
+  .footer{margin-top:1rem;padding-top:.4rem;border-top:1px solid #e4e7f4;font-size:7px;color:#aaa;text-align:center}
+  @page{margin:.7cm;size:A3 landscape}
+  @media print{.tip{display:none!important}body{padding:.3cm}}
+</style>
+</head>
+<body>
+  <div class="tip">
+    ⚠️ Para manter as cores: clique em <strong>Mais configurações</strong> → marque <strong>"Gráficos de plano de fundo"</strong> → Salvar
+    <button onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+  </div>
+  <div class="header">
+    <div>
+      <div class="logo">🏢 Gestão de Aluguéis — TOP Internacional</div>
+      <div class="sub">Relatório Detalhado por Loja • Análise Mês a Mês com Percentuais</div>
+    </div>
+    <div class="meta">Gerado em:<br>${new Date().toLocaleString('pt-BR')}</div>
+  </div>
+  <div class="filtros">📌 Filtros: ${filtros.join(' · ')}</div>
+  <div class="badges">
+    <span class="badge bb">Total: ${fBR(totalGeral)}</span>
+    <span class="badge bg">${lojasU.length} lojas</span>
+    <span class="badge ba">${d.length} lançamentos</span>
+    <span class="badge bp">${cats.length} categorias</span>
+  </div>
+  <table>
+    ${thead}
+    <tbody>
+      ${rows}
+      ${totalRow}
+    </tbody>
+  </table>
+  <div class="footer">Gestão de Aluguéis — TOP Internacional · gestao-alugueis-pi.vercel.app · ${new Date().toLocaleDateString('pt-BR')}</div>
+</body>
+</html>`;
+
+  const win=window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
 }
+
 
 
 // ── MULTI-SELECT LOJA ─────────────────────────────
