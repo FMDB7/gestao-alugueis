@@ -301,6 +301,11 @@ tbody tr:hover td{background:var(--bg)}
       <div id="page-relatorio" class="page">
         <div class="topbar"><div class="page-title">Relatório</div></div>
         <div class="content">
+          <div class="tabs">
+            <button class="tab active" onclick="showTab('rel-agrupado',this)">Agrupado</button>
+            <button class="tab" onclick="showTab('rel-detalhado',this)">Detalhado por Mês</button>
+          </div>
+          <div id="rel-agrupado">
           <div class="card"><div class="card-body">
             <div class="filters">
               <div class="fg"><label class="fl">Empresa</label><select class="fc" id="r-emp" onchange="buildLojaDD();renderRel()" ><option value="">Todas</option></select></div>
@@ -340,6 +345,45 @@ tbody tr:hover td{background:var(--bg)}
             </div>
           </div></div>
           <div class="card"><div id="rel-wrap"><div class="empty"><div class="empty-icon">📄</div><div>Configure e clique em Gerar</div></div></div></div>
+          </div><!-- end rel-agrupado -->
+
+          <!-- RELATÓRIO DETALHADO -->
+          <div id="rel-detalhado" style="display:none">
+            <div class="card" style="margin-bottom:1rem">
+              <div class="card-body">
+                <div class="filters">
+                  <div class="fg"><label class="fl">Empresa</label><select class="fc" id="rd-emp"><option value="">Todas</option></select></div>
+                  <div class="fg"><label class="fl">Loja</label>
+                    <div style="position:relative">
+                      <div id="rd-loja-trigger" onclick="toggleRdLojaDD()" style="border:1px solid var(--border2);border-radius:6px;padding:.45rem .7rem;font-size:13px;cursor:pointer;background:var(--surface);display:flex;justify-content:space-between;align-items:center">
+                        <span id="rd-loja-label" style="color:#9399b8">Todas as lojas</span>
+                        <span style="color:#9399b8;font-size:10px">▼</span>
+                      </div>
+                      <div id="rd-loja-dd" style="display:none;position:absolute;top:calc(100% + 4px);left:0;background:var(--surface);border:1px solid var(--border2);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:200;max-height:280px;overflow-y:auto;min-width:240px">
+                        <div style="padding:.4rem .6rem;border-bottom:1px solid var(--border)">
+                          <input type="text" class="fc" id="rd-loja-search" placeholder="Buscar loja..." oninput="filterRdLojaDD()" style="font-size:12px;padding:.3rem .5rem"/>
+                        </div>
+                        <div id="rd-loja-list"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="fg"><label class="fl">Ano inicial</label><select class="fc" id="rd-ano-ini">
+                    <option value="2024">2024</option><option value="2025" selected>2025</option><option value="2026">2026</option><option value="2027">2027</option>
+                  </select></div>
+                  <div class="fg"><label class="fl">Ano final</label><select class="fc" id="rd-ano-fim">
+                    <option value="2024">2024</option><option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
+                  </select></div>
+                  <div class="fg"><label class="fl">Categoria</label><select class="fc" id="rd-cat"><option value="">Todas</option></select></div>
+                  <div style="display:flex;align-items:flex-end;gap:.5rem">
+                    <button class="btn btn-primary" onclick="renderDetalhado()">Gerar</button>
+                    <button class="btn btn-ghost" id="btn-det-pdf" onclick="exportDetalhadoPDF()" style="display:none">⬇ PDF</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card"><div id="det-wrap"><div class="empty"><div class="empty-icon">📊</div><div>Configure os filtros e clique em Gerar</div></div></div></div>
+          </div><!-- end rel-detalhado -->
+
         </div>
       </div>
 
@@ -550,6 +594,8 @@ function populateSels(){
   fs('d-emp',en,'Todas as empresas');
   updateDashLojas();
   fs('r-emp',en,'Todas');fs('r-cat',cn,'Todas');buildLojaDD();
+  fs('rd-emp',en,'Todas');fs('rd-cat',cn,'Todas');buildRdLojaDD();
+  document.getElementById('rd-emp')?.addEventListener('change',()=>buildRdLojaDD());
   fs('nl-emp',en,'Selecione...');
 }
 function fs(id,arr,e0){const el=document.getElementById(id);if(!el)return;const cv=el.value;el.innerHTML=`<option value="">${e0}</option>`+arr.map(v=>`<option value="${v}">${v}</option>`).join('');if(cv)el.value=cv;}
@@ -1034,6 +1080,302 @@ function startCountdown(){
 }
 function fBR(v){return'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fS(v){return'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+
+// ── RELATÓRIO DETALHADO ───────────────────────────────────
+let rdSelectedLojas=new Set();
+
+function buildRdLojaDD(){
+  const emp=document.getElementById('rd-emp')?.value||'';
+  const lojas=S.lojas.filter(l=>!emp||l.empresa_nome===emp).sort((a,b)=>(a.uf||'').localeCompare(b.uf||'')||a.nome.localeCompare(b.nome));
+  rdSelectedLojas=new Set();
+  updateRdLojaTrigger();
+  renderRdLojaList(lojas,'');
+}
+
+function renderRdLojaList(lojas,search){
+  const list=document.getElementById('rd-loja-list');if(!list)return;
+  const filtered=search?lojas.filter(l=>l.nome.toLowerCase().includes(search.toLowerCase())||(l.uf||'').toLowerCase().includes(search.toLowerCase())):lojas;
+  const ufs=[...new Set(filtered.map(l=>l.uf||''))].filter(Boolean).sort();
+  let html='';
+  ufs.forEach(uf=>{
+    const ul=filtered.filter(l=>l.uf===uf);
+    const all=ul.every(l=>rdSelectedLojas.has(l.nome));
+    html+=`<div style="padding:.35rem .6rem;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:11px;font-weight:700;color:#2d5be3" onclick="toggleRdUF('${uf}')">
+      <input type="checkbox" ${all?'checked':''} onclick="event.stopPropagation();toggleRdUF('${uf}')" style="accent-color:#2d5be3"/> ${uf} — ${estadoNomeR(uf)}
+    </div>`;
+    ul.forEach(l=>{html+=`<div style="padding:.3rem .6rem .3rem 1.25rem;display:flex;align-items:center;gap:.4rem;cursor:pointer;border-bottom:1px solid var(--border);font-size:12px" onclick="toggleRdLoja('${l.nome.replace(/'/g,"\'")}')">
+      <input type="checkbox" ${rdSelectedLojas.has(l.nome)?'checked':''} onclick="event.stopPropagation()" style="accent-color:#2d5be3"/> ${l.nome}
+    </div>`;});
+  });
+  if(!html)html='<div style="padding:1rem;text-align:center;font-size:12px;color:var(--ink3)">Nenhuma loja</div>';
+  list.innerHTML=html;
+}
+
+function toggleRdLojaDD(){
+  const dd=document.getElementById('rd-loja-dd');
+  dd.style.display=dd.style.display==='none'?'block':'none';
+  if(dd.style.display==='block')document.getElementById('rd-loja-search').focus();
+}
+function filterRdLojaDD(){
+  const emp=document.getElementById('rd-emp')?.value||'';
+  const search=document.getElementById('rd-loja-search').value;
+  const lojas=S.lojas.filter(l=>!emp||l.empresa_nome===emp).sort((a,b)=>(a.uf||'').localeCompare(b.uf||'')||a.nome.localeCompare(b.nome));
+  renderRdLojaList(lojas,search);
+}
+function toggleRdLoja(nome){rdSelectedLojas.has(nome)?rdSelectedLojas.delete(nome):rdSelectedLojas.add(nome);updateRdLojaTrigger();filterRdLojaDD();}
+function toggleRdUF(uf){
+  const emp=document.getElementById('rd-emp')?.value||'';
+  const lojas=S.lojas.filter(l=>(!emp||l.empresa_nome===emp)&&l.uf===uf).map(l=>l.nome);
+  const all=lojas.every(n=>rdSelectedLojas.has(n));
+  if(all)lojas.forEach(n=>rdSelectedLojas.delete(n));else lojas.forEach(n=>rdSelectedLojas.add(n));
+  updateRdLojaTrigger();filterRdLojaDD();
+}
+function updateRdLojaTrigger(){
+  const n=rdSelectedLojas.size;
+  const lbl=document.getElementById('rd-loja-label');if(!lbl)return;
+  lbl.textContent=n===0?'Todas as lojas':n===1?[...rdSelectedLojas][0]:`${n} lojas selecionadas`;
+  lbl.style.color=n===0?'#9399b8':'#0f1117';
+}
+
+document.addEventListener('click',e=>{
+  const dd=document.getElementById('rd-loja-dd');
+  const tr=document.getElementById('rd-loja-trigger');
+  if(dd&&tr&&!dd.contains(e.target)&&!tr.contains(e.target))dd.style.display='none';
+});
+
+let detState={};
+
+function renderDetalhado(){
+  const emp=document.getElementById('rd-emp').value;
+  const lojas=[...rdSelectedLojas];
+  const anoIni=parseInt(document.getElementById('rd-ano-ini').value);
+  const anoFim=parseInt(document.getElementById('rd-ano-fim').value);
+  const cat=document.getElementById('rd-cat').value;
+
+  if(anoFim<anoIni){toast('⚠️ Ano final deve ser maior ou igual ao inicial');return;}
+
+  // Filter data
+  const d=S.lancamentos.filter(l=>
+    (!emp||l.empresa_nome===emp)&&
+    (!lojas.length||lojas.includes(l.loja_nome))&&
+    (l.ano>=anoIni&&l.ano<=anoFim)&&
+    (!cat||l.cat_nome===cat)
+  );
+
+  const wrap=document.getElementById('det-wrap');
+  if(!d.length){wrap.innerHTML='<div class="empty"><div class="empty-icon">📊</div><div>Nenhum dado para os filtros selecionados</div></div>';document.getElementById('btn-det-pdf').style.display='none';return;}
+
+  // Build period list (year+month combos)
+  const periods=[];
+  for(let a=anoIni;a<=anoFim;a++){
+    MESES.forEach((m,i)=>{
+      if(d.some(l=>l.ano===a&&l.mes===m)) periods.push({ano:a,mes:m,mes_num:i+1});
+    });
+  }
+
+  // Get unique categories in filtered data
+  const cats=[...new Set(d.map(l=>l.cat_nome))].sort();
+  const totalGeral=d.reduce((s,l)=>s+parseFloat(l.valor),0);
+
+  detState={d,periods,cats,totalGeral,emp,lojas,anoIni,anoFim,cat};
+  document.getElementById('btn-det-pdf').style.display='inline-flex';
+
+  // Build table HTML
+  let html=`<div style="padding:.75rem 1.25rem;border-bottom:1px solid var(--border);display:flex;gap:.75rem;flex-wrap:wrap;align-items:center">
+    <span class="badge bb">Total: ${fBR(totalGeral)}</span>
+    <span class="badge bg2">${periods.length} períodos</span>
+    <span class="badge ba">${d.length} lançamentos</span>
+    <span class="badge" style="background:var(--purple-bg);color:var(--purple)">${cats.length} categorias</span>
+  </div>
+  <div style="overflow-x:auto"><table>
+    <thead>
+      <tr>
+        <th rowspan="2" style="background:#1a3db8;color:#fff;min-width:80px">Ano</th>
+        <th rowspan="2" style="background:#1a3db8;color:#fff;min-width:90px">Mês</th>
+        ${cats.map(c=>`<th colspan="2" style="background:#2d5be3;color:#fff;text-align:center;min-width:180px">${c}</th>`).join('')}
+        <th colspan="2" style="background:#0d9e6e;color:#fff;text-align:center;min-width:180px">TOTAL</th>
+      </tr>
+      <tr>
+        ${cats.map(()=>'<th style="background:#3d6cf0;color:#fff;text-align:right;font-size:10px">Valor</th><th style="background:#3d6cf0;color:#fff;text-align:center;font-size:10px">%</th>').join('')}
+        <th style="background:#0b8a60;color:#fff;text-align:right;font-size:10px">Valor</th>
+        <th style="background:#0b8a60;color:#fff;text-align:center;font-size:10px">% do Total</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  // Group by year for subtotals
+  let currentYear=null;
+  let yearAccum={};
+  cats.forEach(c=>{yearAccum[c]=0;});
+  let yearTotal=0;
+  let rowCount=0;
+
+  periods.forEach((p,pi)=>{
+    // Year break — insert subtotal row
+    if(currentYear!==null&&p.ano!==currentYear){
+      html+=buildYearRow(currentYear,cats,yearAccum,yearTotal,totalGeral);
+      cats.forEach(c=>{yearAccum[c]=0;});yearTotal=0;
+    }
+    currentYear=p.ano;
+
+    const rowData={};
+    let rowTotal=0;
+    cats.forEach(c=>{
+      const v=d.filter(l=>l.ano===p.ano&&l.mes===p.mes&&l.cat_nome===c).reduce((s,l)=>s+parseFloat(l.valor),0);
+      rowData[c]=v;
+      yearAccum[c]=(yearAccum[c]||0)+v;
+      rowTotal+=v;
+    });
+    yearTotal+=rowTotal;
+
+    const rowPct=totalGeral>0?(rowTotal/totalGeral*100):0;
+    const bg=rowCount%2===0?'':'background:#f8f9ff';
+    html+=`<tr style="${bg}">
+      <td style="font-weight:600;color:#2d5be3">${p.ano}</td>
+      <td style="font-weight:500">${p.mes.slice(0,1)+p.mes.slice(1).toLowerCase()}</td>
+      ${cats.map(c=>{
+        const v=rowData[c];
+        const pct=rowTotal>0?(v/rowTotal*100):0;
+        return `<td class="tn" style="font-size:12px">${v>0?fBR(v):'—'}</td><td style="text-align:center;font-size:11px;color:${v>0?'#2d5be3':'#ccc'}">${v>0?pct.toFixed(1)+'%':'—'}</td>`;
+      }).join('')}
+      <td class="tn" style="font-weight:700;color:#0d9e6e">${fBR(rowTotal)}</td>
+      <td style="text-align:center;font-size:11px;font-weight:600;color:#0d9e6e">${rowPct.toFixed(1)}%</td>
+    </tr>`;
+    rowCount++;
+
+    // Last row — add final year subtotal
+    if(pi===periods.length-1){
+      html+=buildYearRow(currentYear,cats,yearAccum,yearTotal,totalGeral);
+    }
+  });
+
+  // Grand total row
+  const catTotals={};
+  cats.forEach(c=>{catTotals[c]=d.filter(l=>l.cat_nome===c).reduce((s,l)=>s+parseFloat(l.valor),0);});
+  html+=`<tr style="background:#0d9e6e;color:#fff;font-weight:700">
+    <td colspan="2" style="color:#fff">TOTAL GERAL</td>
+    ${cats.map(c=>{
+      const v=catTotals[c];
+      const pct=totalGeral>0?(v/totalGeral*100):0;
+      return `<td class="tn" style="color:#fff;font-size:12px">${fBR(v)}</td><td style="text-align:center;font-size:11px;color:#fff">${pct.toFixed(1)}%</td>`;
+    }).join('')}
+    <td class="tn" style="color:#fff;font-size:15px">${fBR(totalGeral)}</td>
+    <td style="text-align:center;color:#fff;font-weight:700">100%</td>
+  </tr>`;
+
+  html+='</tbody></table></div>';
+  wrap.innerHTML=html;
+}
+
+function buildYearRow(ano,cats,yearAccum,yearTotal,totalGeral){
+  const pct=totalGeral>0?(yearTotal/totalGeral*100):0;
+  return `<tr style="background:#1a3db8;color:#fff;font-weight:700">
+    <td colspan="2" style="color:#fff;font-size:12px">Subtotal ${ano}</td>
+    ${cats.map(c=>{
+      const v=yearAccum[c]||0;
+      const p2=yearTotal>0?(v/yearTotal*100):0;
+      return `<td class="tn" style="color:#fff;font-size:12px">${fBR(v)}</td><td style="text-align:center;font-size:11px;color:#aac4ff">${p2.toFixed(1)}%</td>`;
+    }).join('')}
+    <td class="tn" style="color:#fff">${fBR(yearTotal)}</td>
+    <td style="text-align:center;color:#fff">${pct.toFixed(1)}%</td>
+  </tr>`;
+}
+
+function exportDetalhadoPDF(){
+  const {d,periods,cats,totalGeral,emp,lojas,anoIni,anoFim}=detState;
+  if(!periods.length){toast('⚠️ Gere o relatório primeiro');return;}
+  const filtros=[];
+  if(emp)filtros.push('Empresa: '+emp);
+  if(lojas.length)filtros.push('Lojas: '+lojas.join(', '));
+  filtros.push(`Período: ${anoIni} a ${anoFim}`);
+
+  const catTotals={};
+  cats.forEach(c=>{catTotals[c]=d.filter(l=>l.cat_nome===c).reduce((s,l)=>s+parseFloat(l.valor),0);});
+  let currentYear=null;
+  let yearAccum={};cats.forEach(c=>{yearAccum[c]=0;});
+  let yearTotal=0;
+
+  let rows='';
+  periods.forEach((p,pi)=>{
+    if(currentYear!==null&&p.ano!==currentYear){
+      rows+=`<tr style="background:#1a3db8;color:#fff;font-weight:700"><td colspan="2">Subtotal ${currentYear}</td>
+        ${cats.map(c=>`<td style="text-align:right">${fBR(yearAccum[c]||0)}</td><td style="text-align:center">${yearTotal>0?((yearAccum[c]||0)/yearTotal*100).toFixed(1):'0'}%</td>`).join('')}
+        <td style="text-align:right">${fBR(yearTotal)}</td><td style="text-align:center">${totalGeral>0?(yearTotal/totalGeral*100).toFixed(1):0}%</td></tr>`;
+      cats.forEach(c=>{yearAccum[c]=0;});yearTotal=0;
+    }
+    currentYear=p.ano;
+    const rowData={};let rowTotal=0;
+    cats.forEach(c=>{
+      const v=d.filter(l=>l.ano===p.ano&&l.mes===p.mes&&l.cat_nome===c).reduce((s,l)=>s+parseFloat(l.valor),0);
+      rowData[c]=v;yearAccum[c]=(yearAccum[c]||0)+v;rowTotal+=v;
+    });
+    yearTotal+=rowTotal;
+    rows+=`<tr style="${pi%2===0?'':'background:#f8f9ff'}">
+      <td>${p.ano}</td><td>${p.mes.slice(0,1)+p.mes.slice(1).toLowerCase()}</td>
+      ${cats.map(c=>`<td style="text-align:right">${rowData[c]>0?fBR(rowData[c]):'—'}</td><td style="text-align:center">${rowData[c]>0&&rowTotal>0?(rowData[c]/rowTotal*100).toFixed(1)+'%':'—'}</td>`).join('')}
+      <td style="text-align:right;font-weight:700">${fBR(rowTotal)}</td>
+      <td style="text-align:center">${totalGeral>0?(rowTotal/totalGeral*100).toFixed(1):0}%</td>
+    </tr>`;
+    if(pi===periods.length-1){
+      rows+=`<tr style="background:#1a3db8;color:#fff;font-weight:700"><td colspan="2">Subtotal ${currentYear}</td>
+        ${cats.map(c=>`<td style="text-align:right">${fBR(yearAccum[c]||0)}</td><td style="text-align:center">${yearTotal>0?((yearAccum[c]||0)/yearTotal*100).toFixed(1):0}%</td>`).join('')}
+        <td style="text-align:right">${fBR(yearTotal)}</td><td style="text-align:center">${totalGeral>0?(yearTotal/totalGeral*100).toFixed(1):0}%</td></tr>`;
+    }
+  });
+
+  const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/>
+  <title>Relatório Detalhado — Gestão de Aluguéis</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Arial,sans-serif;font-size:10px;color:#1a1a2e;padding:1.5cm}
+    .header{margin-bottom:1rem;padding-bottom:.75rem;border-bottom:2px solid #2d5be3;display:flex;justify-content:space-between;align-items:flex-start}
+    .logo{font-size:16px;font-weight:700;color:#2d5be3}.sub{font-size:10px;color:#666}
+    .meta{font-size:9px;color:#888;text-align:right}
+    h2{font-size:13px;font-weight:700;margin:.75rem 0 .25rem}
+    .filtros{font-size:10px;color:#666;margin-bottom:.75rem}
+    .badges{display:flex;gap:.4rem;margin-bottom:.75rem;flex-wrap:wrap}
+    .badge{padding:2px 8px;border-radius:20px;font-size:9px;font-weight:600;background:#eef2fd;color:#2d5be3}
+    table{width:100%;border-collapse:collapse;font-size:9px}
+    th{padding:4px 6px;text-align:left;font-weight:700}
+    td{padding:4px 6px;border-bottom:1px solid #e4e7f4}
+    .footer{margin-top:1.5rem;padding-top:.5rem;border-top:1px solid #e4e7f4;font-size:8px;color:#aaa;text-align:center}
+    @page{margin:1cm;size:A3 landscape}
+    @media print{body{padding:.5cm}}
+  </style></head><body>
+  <div class="header">
+    <div><div class="logo">🏢 Gestão de Aluguéis — TOP Internacional</div><div class="sub">Relatório Detalhado por Mês e Categoria</div></div>
+    <div class="meta">Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
+  </div>
+  <div class="filtros">Filtros: ${filtros.join(' · ')}</div>
+  <table>
+    <thead>
+      <tr>
+        <th rowspan="2" style="background:#1a3db8;color:#fff">Ano</th>
+        <th rowspan="2" style="background:#1a3db8;color:#fff">Mês</th>
+        ${cats.map(c=>`<th colspan="2" style="background:#2d5be3;color:#fff;text-align:center">${c}</th>`).join('')}
+        <th colspan="2" style="background:#0d9e6e;color:#fff;text-align:center">TOTAL</th>
+      </tr>
+      <tr>
+        ${cats.map(()=>'<th style="background:#3d6cf0;color:#fff;text-align:right">Valor</th><th style="background:#3d6cf0;color:#fff;text-align:center">%</th>').join('')}
+        <th style="background:#0b8a60;color:#fff;text-align:right">Valor</th>
+        <th style="background:#0b8a60;color:#fff;text-align:center">%</th>
+      </tr>
+    </thead>
+    <tbody>
+    ${rows}
+    <tr style="background:#0d9e6e;color:#fff;font-weight:700">
+      <td colspan="2">TOTAL GERAL</td>
+      ${cats.map(c=>`<td style="text-align:right">${fBR(catTotals[c])}</td><td style="text-align:center">${totalGeral>0?(catTotals[c]/totalGeral*100).toFixed(1):0}%</td>`).join('')}
+      <td style="text-align:right;font-size:11px">${fBR(totalGeral)}</td><td style="text-align:center">100%</td>
+    </tr>
+    </tbody>
+  </table>
+  <div class="footer">Gestão de Aluguéis — TOP Internacional · gestao-alugueis-pi.vercel.app</div>
+  <script>window.onload=()=>window.print();<\/script>
+  </body></html>`;
+  const win=window.open('','_blank');win.document.write(html);win.document.close();
+}
 
 // ── MULTI-SELECT LOJA ─────────────────────────────
 let selectedLojas=new Set();
