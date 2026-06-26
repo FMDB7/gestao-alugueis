@@ -1041,7 +1041,12 @@ function exportPDF(){
     </tbody>
   </table>
   <div class="footer">Gestão de Aluguéis — TOP Internacional · gestao-alugueis-pi.vercel.app</div>
-  <script>window.onload=()=>window.print();<\/script>
+    <div style="background:#fffbe6;border:1px solid #f0c000;border-radius:6px;padding:.6rem 1rem;font-size:11px;color:#7a5c00;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between" class="no-print">
+    <span>⚠️ Para manter as cores ao salvar PDF: clique em <strong>Mais configurações</strong> e marque <strong>"Gráficos de plano de fundo"</strong></span>
+    <button onclick="window.print()" style="background:#2d5be3;color:#fff;border:none;padding:4px 12px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;margin-left:1rem;flex-shrink:0">🖨️ Salvar PDF</button>
+  </div>
+  <style>.no-print{} @media print{.no-print{display:none!important}}</style>
+  <script>window.onload=()=>{};<\/script>
   </body></html>`;
   const win=window.open('','_blank');
   win.document.write(html);
@@ -1327,21 +1332,36 @@ function exportDetalhadoPDF(){
   const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/>
   <title>Relatório Detalhado — Gestão de Aluguéis</title>
   <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:Arial,sans-serif;font-size:10px;color:#1a1a2e;padding:1.5cm}
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+    body{font-family:Arial,sans-serif;font-size:10px;color:#1a1a2e;padding:1.5cm;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
     .header{margin-bottom:1rem;padding-bottom:.75rem;border-bottom:2px solid #2d5be3;display:flex;justify-content:space-between;align-items:flex-start}
-    .logo{font-size:16px;font-weight:700;color:#2d5be3}.sub{font-size:10px;color:#666}
+    .logo{font-size:16px;font-weight:700;color:#2d5be3!important}
+    .sub{font-size:10px;color:#666}
     .meta{font-size:9px;color:#888;text-align:right}
-    h2{font-size:13px;font-weight:700;margin:.75rem 0 .25rem}
     .filtros{font-size:10px;color:#666;margin-bottom:.75rem}
-    .badges{display:flex;gap:.4rem;margin-bottom:.75rem;flex-wrap:wrap}
-    .badge{padding:2px 8px;border-radius:20px;font-size:9px;font-weight:600;background:#eef2fd;color:#2d5be3}
     table{width:100%;border-collapse:collapse;font-size:9px}
-    th{padding:4px 6px;text-align:left;font-weight:700}
-    td{padding:4px 6px;border-bottom:1px solid #e4e7f4}
+    th{padding:5px 7px;text-align:left;font-weight:700;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+    td{padding:5px 7px;border-bottom:1px solid #e4e7f4}
+    /* Forçar cores de fundo na impressão */
+    th[style*="background:#1a3db8"],
+    th[style*="background: #1a3db8"]{background-color:#1a3db8!important;color:#fff!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+    th[style*="background:#2d5be3"],
+    th[style*="background: #2d5be3"]{background-color:#2d5be3!important;color:#fff!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+    th[style*="background:#3d6cf0"],
+    th[style*="background: #3d6cf0"]{background-color:#3d6cf0!important;color:#fff!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+    th[style*="background:#0d9e6e"],
+    th[style*="background: #0d9e6e"]{background-color:#0d9e6e!important;color:#fff!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+    th[style*="background:#0b8a60"],
+    th[style*="background: #0b8a60"]{background-color:#0b8a60!important;color:#fff!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+    tr[style*="background:#1a3db8"] td{background-color:#1a3db8!important;color:#fff!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+    tr[style*="background:#0d9e6e"] td{background-color:#0d9e6e!important;color:#fff!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+    tr[style*="background:#f8f9ff"] td{background-color:#f8f9ff!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
     .footer{margin-top:1.5rem;padding-top:.5rem;border-top:1px solid #e4e7f4;font-size:8px;color:#aaa;text-align:center}
     @page{margin:1cm;size:A3 landscape}
-    @media print{body{padding:.5cm}}
+    @media print{
+      body{padding:.5cm;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+      *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+    }
   </style></head><body>
   <div class="header">
     <div><div class="logo">🏢 Gestão de Aluguéis — TOP Internacional</div><div class="sub">Relatório Detalhado por Mês e Categoria</div></div>
@@ -1372,7 +1392,12 @@ function exportDetalhadoPDF(){
     </tbody>
   </table>
   <div class="footer">Gestão de Aluguéis — TOP Internacional · gestao-alugueis-pi.vercel.app</div>
-  <script>window.onload=()=>window.print();<\/script>
+    <div style="background:#fffbe6;border:1px solid #f0c000;border-radius:6px;padding:.6rem 1rem;font-size:11px;color:#7a5c00;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between" class="no-print">
+    <span>⚠️ Para manter as cores ao salvar PDF: clique em <strong>Mais configurações</strong> e marque <strong>"Gráficos de plano de fundo"</strong></span>
+    <button onclick="window.print()" style="background:#2d5be3;color:#fff;border:none;padding:4px 12px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;margin-left:1rem;flex-shrink:0">🖨️ Salvar PDF</button>
+  </div>
+  <style>.no-print{} @media print{.no-print{display:none!important}}</style>
+  <script>window.onload=()=>{};<\/script>
   </body></html>`;
   const win=window.open('','_blank');win.document.write(html);win.document.close();
 }
