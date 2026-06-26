@@ -1157,250 +1157,154 @@ function renderDetalhado(){
   const anoIni=parseInt(document.getElementById('rd-ano-ini').value);
   const anoFim=parseInt(document.getElementById('rd-ano-fim').value);
   const cat=document.getElementById('rd-cat').value;
-
-  if(anoFim<anoIni){toast('⚠️ Ano final deve ser maior ou igual ao inicial');return;}
-
-  // Filter data
-  const d=S.lancamentos.filter(l=>
-    (!emp||l.empresa_nome===emp)&&
-    (!lojas.length||lojas.includes(l.loja_nome))&&
-    (l.ano>=anoIni&&l.ano<=anoFim)&&
-    (!cat||l.cat_nome===cat)
-  );
-
+  if(anoFim<anoIni){toast('Ano final deve ser >= inicial');return;}
+  const d=S.lancamentos.filter(l=>(!emp||l.empresa_nome===emp)&&(!lojas.length||lojas.includes(l.loja_nome))&&(l.ano>=anoIni&&l.ano<=anoFim)&&(!cat||l.cat_nome===cat));
   const wrap=document.getElementById('det-wrap');
-  if(!d.length){wrap.innerHTML='<div class="empty"><div class="empty-icon">📊</div><div>Nenhum dado para os filtros selecionados</div></div>';document.getElementById('btn-det-pdf').style.display='none';return;}
-
-  // Build period list (year+month combos)
-  const periods=[];
-  for(let a=anoIni;a<=anoFim;a++){
-    MESES.forEach((m,i)=>{
-      if(d.some(l=>l.ano===a&&l.mes===m)) periods.push({ano:a,mes:m,mes_num:i+1});
-    });
-  }
-
-  // Get unique categories in filtered data
+  if(!d.length){wrap.innerHTML='<div class="empty"><div class="empty-icon">📊</div><div>Nenhum dado</div></div>';document.getElementById('btn-det-pdf').style.display='none';return;}
   const cats=[...new Set(d.map(l=>l.cat_nome))].sort();
+  const lojasU=[...new Set(d.map(l=>l.loja_nome))].sort();
   const totalGeral=d.reduce((s,l)=>s+parseFloat(l.valor),0);
-
-  detState={d,periods,cats,totalGeral,emp,lojas,anoIni,anoFim,cat};
+  const anos=[];for(let a=anoIni;a<=anoFim;a++)anos.push(a);
+  detState={d,cats,lojasU,anos,totalGeral,emp,lojas,anoIni,anoFim,cat};
   document.getElementById('btn-det-pdf').style.display='inline-flex';
 
-  // Build table HTML
   let html=`<div style="padding:.75rem 1.25rem;border-bottom:1px solid var(--border);display:flex;gap:.75rem;flex-wrap:wrap;align-items:center">
     <span class="badge bb">Total: ${fBR(totalGeral)}</span>
-    <span class="badge bg2">${periods.length} períodos</span>
+    <span class="badge bg2">${lojasU.length} lojas</span>
     <span class="badge ba">${d.length} lançamentos</span>
     <span class="badge" style="background:var(--purple-bg);color:var(--purple)">${cats.length} categorias</span>
-  </div>
-  <div style="overflow-x:auto"><table>
-    <thead>
-      <tr>
-        <th rowspan="2" style="background:#1a3db8;color:#fff;min-width:80px">Ano</th>
-        <th rowspan="2" style="background:#1a3db8;color:#fff;min-width:90px">Mês</th>
-        ${cats.map(c=>`<th colspan="2" style="background:#2d5be3;color:#fff;text-align:center;min-width:180px">${c}</th>`).join('')}
-        <th colspan="2" style="background:#0d9e6e;color:#fff;text-align:center;min-width:180px">TOTAL</th>
-      </tr>
-      <tr>
-        ${cats.map(()=>'<th style="background:#3d6cf0;color:#fff;text-align:right;font-size:10px">Valor</th><th style="background:#3d6cf0;color:#fff;text-align:center;font-size:10px">%</th>').join('')}
-        <th style="background:#0b8a60;color:#fff;text-align:right;font-size:10px">Valor</th>
-        <th style="background:#0b8a60;color:#fff;text-align:center;font-size:10px">% do Total</th>
-      </tr>
-    </thead>
-    <tbody>`;
+  </div><div style="overflow-x:auto"><table>
+  <thead>
+    <tr>
+      <th rowspan="2" style="background:#1a3db8;color:#fff;min-width:160px">Loja</th>
+      <th rowspan="2" style="background:#1a3db8;color:#fff;min-width:55px">Ano</th>
+      <th rowspan="2" style="background:#1a3db8;color:#fff;min-width:80px">Mês</th>
+      ${cats.map(c=>`<th colspan="2" style="background:#2d5be3;color:#fff;text-align:center;min-width:160px">${c}</th>`).join('')}
+      <th colspan="2" style="background:#0d9e6e;color:#fff;text-align:center;min-width:160px">TOTAL</th>
+    </tr>
+    <tr>
+      ${cats.map(()=>'<th style="background:#3d6cf0;color:#fff;text-align:right;font-size:10px">Valor</th><th style="background:#3d6cf0;color:#fff;text-align:center;font-size:10px">%</th>').join('')}
+      <th style="background:#0b8a60;color:#fff;text-align:right;font-size:10px">Valor</th>
+      <th style="background:#0b8a60;color:#fff;text-align:center;font-size:10px">% Total</th>
+    </tr>
+  </thead><tbody>`;
 
-  // Group by year for subtotals
-  let currentYear=null;
-  let yearAccum={};
-  cats.forEach(c=>{yearAccum[c]=0;});
-  let yearTotal=0;
-  let rowCount=0;
+  let rc=0;
+  const grandCat={};cats.forEach(c=>{grandCat[c]=0;});
 
-  periods.forEach((p,pi)=>{
-    // Year break — insert subtotal row
-    if(currentYear!==null&&p.ano!==currentYear){
-      html+=buildYearRow(currentYear,cats,yearAccum,yearTotal,totalGeral);
-      cats.forEach(c=>{yearAccum[c]=0;});yearTotal=0;
-    }
-    currentYear=p.ano;
+  lojasU.forEach(loja=>{
+    const dL=d.filter(x=>x.loja_nome===loja);
+    const lojaTot=dL.reduce((s,x)=>s+parseFloat(x.valor),0);
+    const lojaCat={};cats.forEach(c=>{lojaCat[c]=0;});
+    let lojaLabel=true;
 
-    const rowData={};
-    let rowTotal=0;
-    cats.forEach(c=>{
-      const v=d.filter(l=>l.ano===p.ano&&l.mes===p.mes&&l.cat_nome===c).reduce((s,l)=>s+parseFloat(l.valor),0);
-      rowData[c]=v;
-      yearAccum[c]=(yearAccum[c]||0)+v;
-      rowTotal+=v;
+    anos.forEach(ano=>{
+      const dA=dL.filter(x=>x.ano===ano);if(!dA.length)return;
+      const anoCat={};cats.forEach(c=>{anoCat[c]=0;});
+      const anoTot=dA.reduce((s,x)=>s+parseFloat(x.valor),0);
+      let anoLabel=true;
+
+      MESES.forEach(mes=>{
+        const dM=dA.filter(x=>x.mes===mes);if(!dM.length)return;
+        const rTot=dM.reduce((s,x)=>s+parseFloat(x.valor),0);
+        const bg=rc%2===0?'#fff':'#f8f9ff';
+        const rC={};
+        cats.forEach(c=>{const v=dM.filter(x=>x.cat_nome===c).reduce((s,x)=>s+parseFloat(x.valor),0);rC[c]=v;anoCat[c]=(anoCat[c]||0)+v;lojaCat[c]=(lojaCat[c]||0)+v;grandCat[c]=(grandCat[c]||0)+v;});
+
+        html+=`<tr style="background:${bg}">
+          ${lojaLabel?`<td style="font-weight:700;font-size:11px;color:#1a3db8;border-right:3px solid #2d5be3">${loja}</td>`:'<td style="border-right:3px solid #2d5be3"></td>'}
+          ${anoLabel?`<td style="font-weight:600;color:#2d5be3;font-size:12px">${ano}</td>`:'<td></td>'}
+          <td style="font-size:12px">${mes.slice(0,1)+mes.slice(1).toLowerCase()}</td>
+          ${cats.map(c=>{const v=rC[c];const p=rTot>0?(v/rTot*100):0;return`<td class="tn" style="font-size:11px">${v>0?fBR(v):'—'}</td><td style="text-align:center;font-size:10px;color:${v>0?'#2d5be3':'#ccc'}">${v>0?p.toFixed(1)+'%':'—'}</td>`;}).join('')}
+          <td class="tn" style="font-weight:700;color:#0d9e6e;font-size:11px">${fBR(rTot)}</td>
+          <td style="text-align:center;font-size:10px;color:#0d9e6e;font-weight:600">${totalGeral>0?(rTot/totalGeral*100).toFixed(1)+'%':'—'}</td>
+        </tr>`;
+        lojaLabel=false;anoLabel=false;rc++;
+      });
+
+      html+=`<tr style="background:#e8f0ff">
+        <td style="border-right:3px solid #2d5be3"></td>
+        <td colspan="2" style="font-size:10px;font-weight:700;color:#1a3db8;padding:.3rem .75rem">Subtotal ${ano}</td>
+        ${cats.map(c=>{const v=anoCat[c];const p=anoTot>0?(v/anoTot*100):0;return`<td class="tn" style="font-size:11px;font-weight:600;color:#1a3db8">${fBR(v)}</td><td style="text-align:center;font-size:10px;color:#1a3db8">${p.toFixed(1)}%</td>`;}).join('')}
+        <td class="tn" style="font-weight:700;color:#1a3db8">${fBR(anoTot)}</td>
+        <td style="text-align:center;font-size:10px;font-weight:700;color:#1a3db8">${totalGeral>0?(anoTot/totalGeral*100).toFixed(1)+'%':'—'}</td>
+      </tr>`;
     });
-    yearTotal+=rowTotal;
 
-    const rowPct=totalGeral>0?(rowTotal/totalGeral*100):0;
-    const bg=rowCount%2===0?'':'background:#f8f9ff';
-    html+=`<tr style="${bg}">
-      <td style="font-weight:600;color:#2d5be3">${p.ano}</td>
-      <td style="font-weight:500">${p.mes.slice(0,1)+p.mes.slice(1).toLowerCase()}</td>
-      ${cats.map(c=>{
-        const v=rowData[c];
-        const pct=rowTotal>0?(v/rowTotal*100):0;
-        return `<td class="tn" style="font-size:12px">${v>0?fBR(v):'—'}</td><td style="text-align:center;font-size:11px;color:${v>0?'#2d5be3':'#ccc'}">${v>0?pct.toFixed(1)+'%':'—'}</td>`;
-      }).join('')}
-      <td class="tn" style="font-weight:700;color:#0d9e6e">${fBR(rowTotal)}</td>
-      <td style="text-align:center;font-size:11px;font-weight:600;color:#0d9e6e">${rowPct.toFixed(1)}%</td>
-    </tr>`;
-    rowCount++;
-
-    // Last row — add final year subtotal
-    if(pi===periods.length-1){
-      html+=buildYearRow(currentYear,cats,yearAccum,yearTotal,totalGeral);
-    }
+    html+=`<tr style="background:#1a3db8">
+      <td colspan="3" style="color:#fff;font-weight:700;font-size:11px;padding:.5rem .75rem">TOTAL — ${loja}</td>
+      ${cats.map(c=>{const v=lojaCat[c];const p=lojaTot>0?(v/lojaTot*100):0;return`<td class="tn" style="color:#fff;font-weight:700;font-size:11px">${fBR(v)}</td><td style="text-align:center;font-size:10px;color:#aac4ff">${p.toFixed(1)}%</td>`;}).join('')}
+      <td class="tn" style="color:#fff;font-weight:700">${fBR(lojaTot)}</td>
+      <td style="text-align:center;color:#aac4ff;font-weight:700">${totalGeral>0?(lojaTot/totalGeral*100).toFixed(1)+'%':'—'}</td>
+    </tr>
+    <tr><td colspan="${3+cats.length*2+2}" style="height:6px;background:#f0f2f9;border:none"></td></tr>`;
   });
 
-  // Grand total row
-  const catTotals={};
-  cats.forEach(c=>{catTotals[c]=d.filter(l=>l.cat_nome===c).reduce((s,l)=>s+parseFloat(l.valor),0);});
-  html+=`<tr style="background:#0d9e6e;color:#fff;font-weight:700">
-    <td colspan="2" style="color:#fff">TOTAL GERAL</td>
-    ${cats.map(c=>{
-      const v=catTotals[c];
-      const pct=totalGeral>0?(v/totalGeral*100):0;
-      return `<td class="tn" style="color:#fff;font-size:12px">${fBR(v)}</td><td style="text-align:center;font-size:11px;color:#fff">${pct.toFixed(1)}%</td>`;
-    }).join('')}
-    <td class="tn" style="color:#fff;font-size:15px">${fBR(totalGeral)}</td>
+  html+=`<tr style="background:#0d9e6e">
+    <td colspan="3" style="color:#fff;font-weight:700;font-size:12px;padding:.6rem .75rem">TOTAL GERAL</td>
+    ${cats.map(c=>{const v=grandCat[c];const p=totalGeral>0?(v/totalGeral*100):0;return`<td class="tn" style="color:#fff;font-weight:700">${fBR(v)}</td><td style="text-align:center;font-size:10px;color:#a0f0d0;font-weight:600">${p.toFixed(1)}%</td>`;}).join('')}
+    <td class="tn" style="color:#fff;font-weight:700;font-size:13px">${fBR(totalGeral)}</td>
     <td style="text-align:center;color:#fff;font-weight:700">100%</td>
-  </tr>`;
-
-  html+='</tbody></table></div>';
+  </tr></tbody></table></div>`;
   wrap.innerHTML=html;
 }
 
-function buildYearRow(ano,cats,yearAccum,yearTotal,totalGeral){
-  const pct=totalGeral>0?(yearTotal/totalGeral*100):0;
-  return `<tr style="background:#1a3db8;color:#fff;font-weight:700">
-    <td colspan="2" style="color:#fff;font-size:12px">Subtotal ${ano}</td>
-    ${cats.map(c=>{
-      const v=yearAccum[c]||0;
-      const p2=yearTotal>0?(v/yearTotal*100):0;
-      return `<td class="tn" style="color:#fff;font-size:12px">${fBR(v)}</td><td style="text-align:center;font-size:11px;color:#aac4ff">${p2.toFixed(1)}%</td>`;
-    }).join('')}
-    <td class="tn" style="color:#fff">${fBR(yearTotal)}</td>
-    <td style="text-align:center;color:#fff">${pct.toFixed(1)}%</td>
-  </tr>`;
-}
-
 function exportDetalhadoPDF(){
-  const {d,periods,cats,totalGeral,emp,lojas,anoIni,anoFim}=detState;
-  if(!periods.length){toast('⚠️ Gere o relatório primeiro');return;}
+  const {d,cats,lojasU,anos,totalGeral,emp,lojas,anoIni,anoFim}=detState;
+  if(!lojasU||!lojasU.length){toast('Gere o relatório primeiro');return;}
   const filtros=[];
   if(emp)filtros.push('Empresa: '+emp);
-  if(lojas.length)filtros.push('Lojas: '+lojas.join(', '));
-  filtros.push(`Período: ${anoIni} a ${anoFim}`);
+  if(lojas&&lojas.length)filtros.push('Lojas: '+lojas.join(', '));
+  filtros.push('Período: '+anoIni+' a '+anoFim);
+  const grandCat={};cats.forEach(c=>{grandCat[c]=0;});
+  let rows='';let rc=0;
 
-  const catTotals={};
-  cats.forEach(c=>{catTotals[c]=d.filter(l=>l.cat_nome===c).reduce((s,l)=>s+parseFloat(l.valor),0);});
-  let currentYear=null;
-  let yearAccum={};cats.forEach(c=>{yearAccum[c]=0;});
-  let yearTotal=0;
-
-  let rows='';
-  periods.forEach((p,pi)=>{
-    if(currentYear!==null&&p.ano!==currentYear){
-      rows+=`<tr style="background:#1a3db8;color:#fff;font-weight:700"><td colspan="2">Subtotal ${currentYear}</td>
-        ${cats.map(c=>`<td style="text-align:right">${fBR(yearAccum[c]||0)}</td><td style="text-align:center">${yearTotal>0?((yearAccum[c]||0)/yearTotal*100).toFixed(1):'0'}%</td>`).join('')}
-        <td style="text-align:right">${fBR(yearTotal)}</td><td style="text-align:center">${totalGeral>0?(yearTotal/totalGeral*100).toFixed(1):0}%</td></tr>`;
-      cats.forEach(c=>{yearAccum[c]=0;});yearTotal=0;
-    }
-    currentYear=p.ano;
-    const rowData={};let rowTotal=0;
-    cats.forEach(c=>{
-      const v=d.filter(l=>l.ano===p.ano&&l.mes===p.mes&&l.cat_nome===c).reduce((s,l)=>s+parseFloat(l.valor),0);
-      rowData[c]=v;yearAccum[c]=(yearAccum[c]||0)+v;rowTotal+=v;
+  lojasU.forEach(loja=>{
+    const dL=d.filter(x=>x.loja_nome===loja);
+    const lojaTot=dL.reduce((s,x)=>s+parseFloat(x.valor),0);
+    const lojaCat={};cats.forEach(c=>{lojaCat[c]=0;});
+    anos.forEach(ano=>{
+      const dA=dL.filter(x=>x.ano===ano);if(!dA.length)return;
+      const anoCat={};cats.forEach(c=>{anoCat[c]=0;});
+      const anoTot=dA.reduce((s,x)=>s+parseFloat(x.valor),0);
+      MESES.forEach(mes=>{
+        const dM=dA.filter(x=>x.mes===mes);if(!dM.length)return;
+        const rTot=dM.reduce((s,x)=>s+parseFloat(x.valor),0);
+        const bg=rc%2===0?'#fff':'#f8f9ff';
+        const rC={};
+        cats.forEach(c=>{const v=dM.filter(x=>x.cat_nome===c).reduce((s,x)=>s+parseFloat(x.valor),0);rC[c]=v;anoCat[c]=(anoCat[c]||0)+v;lojaCat[c]=(lojaCat[c]||0)+v;grandCat[c]=(grandCat[c]||0)+v;});
+        rows+=`<tr style="background:${bg}"><td>${loja}</td><td>${ano}</td><td>${mes.slice(0,1)+mes.slice(1).toLowerCase()}</td>
+          ${cats.map(c=>{const v=rC[c];return`<td style="text-align:right">${v>0?fBR(v):'—'}</td><td style="text-align:center">${v>0&&rTot>0?(v/rTot*100).toFixed(1)+'%':'—'}</td>`;}).join('')}
+          <td style="text-align:right;font-weight:700">${fBR(rTot)}</td><td style="text-align:center">${totalGeral>0?(rTot/totalGeral*100).toFixed(1):'0'}%</td></tr>`;
+        rc++;
+      });
+      rows+=`<tr style="background:#e8f0ff"><td></td><td style="font-weight:700;color:#1a3db8">Sub ${ano}</td><td></td>
+        ${cats.map(c=>{const v=anoCat[c];return`<td style="text-align:right;color:#1a3db8;font-weight:700">${fBR(v)}</td><td style="text-align:center;color:#1a3db8">${anoTot>0?(v/anoTot*100).toFixed(1):'0'}%</td>`;}).join('')}
+        <td style="text-align:right;font-weight:700;color:#1a3db8">${fBR(anoTot)}</td><td style="text-align:center;color:#1a3db8">${totalGeral>0?(anoTot/totalGeral*100).toFixed(1):'0'}%</td></tr>`;
     });
-    yearTotal+=rowTotal;
-    rows+=`<tr style="${pi%2===0?'':'background:#f8f9ff'}">
-      <td>${p.ano}</td><td>${p.mes.slice(0,1)+p.mes.slice(1).toLowerCase()}</td>
-      ${cats.map(c=>`<td style="text-align:right">${rowData[c]>0?fBR(rowData[c]):'—'}</td><td style="text-align:center">${rowData[c]>0&&rowTotal>0?(rowData[c]/rowTotal*100).toFixed(1)+'%':'—'}</td>`).join('')}
-      <td style="text-align:right;font-weight:700">${fBR(rowTotal)}</td>
-      <td style="text-align:center">${totalGeral>0?(rowTotal/totalGeral*100).toFixed(1):0}%</td>
-    </tr>`;
-    if(pi===periods.length-1){
-      rows+=`<tr style="background:#1a3db8;color:#fff;font-weight:700"><td colspan="2">Subtotal ${currentYear}</td>
-        ${cats.map(c=>`<td style="text-align:right">${fBR(yearAccum[c]||0)}</td><td style="text-align:center">${yearTotal>0?((yearAccum[c]||0)/yearTotal*100).toFixed(1):0}%</td>`).join('')}
-        <td style="text-align:right">${fBR(yearTotal)}</td><td style="text-align:center">${totalGeral>0?(yearTotal/totalGeral*100).toFixed(1):0}%</td></tr>`;
-    }
+    rows+=`<tr style="background:#1a3db8"><td colspan="3" style="color:#fff;font-weight:700">TOTAL — ${loja}</td>
+      ${cats.map(c=>{const v=lojaCat[c];return`<td style="text-align:right;color:#fff;font-weight:700">${fBR(v)}</td><td style="text-align:center;color:#aac4ff">${lojaTot>0?(v/lojaTot*100).toFixed(1):'0'}%</td>`;}).join('')}
+      <td style="text-align:right;color:#fff;font-weight:700">${fBR(lojaTot)}</td><td style="text-align:center;color:#aac4ff">${totalGeral>0?(lojaTot/totalGeral*100).toFixed(1):'0'}%</td></tr>
+    <tr><td colspan="${3+cats.length*2+2}" style="height:4px;background:#f0f2f9"></td></tr>`;
   });
 
-  const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/>
-  <title>Relatório Detalhado — Gestão de Aluguéis</title>
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
-    body{font-family:Arial,sans-serif;font-size:10px;color:#1a1a2e;padding:1.5cm;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-    .header{margin-bottom:1rem;padding-bottom:.75rem;border-bottom:2px solid #2d5be3;display:flex;justify-content:space-between;align-items:flex-start}
-    .logo{font-size:16px;font-weight:700;color:#2d5be3!important}
-    .sub{font-size:10px;color:#666}
-    .meta{font-size:9px;color:#888;text-align:right}
-    .filtros{font-size:10px;color:#666;margin-bottom:.75rem}
-    table{width:100%;border-collapse:collapse;font-size:9px}
-    th{padding:5px 7px;text-align:left;font-weight:700;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-    td{padding:5px 7px;border-bottom:1px solid #e4e7f4}
-    /* Forçar cores de fundo na impressão */
-    th[style*="background:#1a3db8"],
-    th[style*="background: #1a3db8"]{background-color:#1a3db8!important;color:#fff!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-    th[style*="background:#2d5be3"],
-    th[style*="background: #2d5be3"]{background-color:#2d5be3!important;color:#fff!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-    th[style*="background:#3d6cf0"],
-    th[style*="background: #3d6cf0"]{background-color:#3d6cf0!important;color:#fff!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-    th[style*="background:#0d9e6e"],
-    th[style*="background: #0d9e6e"]{background-color:#0d9e6e!important;color:#fff!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-    th[style*="background:#0b8a60"],
-    th[style*="background: #0b8a60"]{background-color:#0b8a60!important;color:#fff!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-    tr[style*="background:#1a3db8"] td{background-color:#1a3db8!important;color:#fff!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-    tr[style*="background:#0d9e6e"] td{background-color:#0d9e6e!important;color:#fff!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-    tr[style*="background:#f8f9ff"] td{background-color:#f8f9ff!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-    .footer{margin-top:1.5rem;padding-top:.5rem;border-top:1px solid #e4e7f4;font-size:8px;color:#aaa;text-align:center}
-    @page{margin:1cm;size:A3 landscape}
-    @media print{
-      body{padding:.5cm;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-      *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-    }
-  </style></head><body>
-  <div class="header">
-    <div><div class="logo">🏢 Gestão de Aluguéis — TOP Internacional</div><div class="sub">Relatório Detalhado por Mês e Categoria</div></div>
-    <div class="meta">Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
-  </div>
-  <div class="filtros">Filtros: ${filtros.join(' · ')}</div>
-  <table>
-    <thead>
-      <tr>
-        <th rowspan="2" style="background:#1a3db8;color:#fff">Ano</th>
-        <th rowspan="2" style="background:#1a3db8;color:#fff">Mês</th>
-        ${cats.map(c=>`<th colspan="2" style="background:#2d5be3;color:#fff;text-align:center">${c}</th>`).join('')}
-        <th colspan="2" style="background:#0d9e6e;color:#fff;text-align:center">TOTAL</th>
-      </tr>
-      <tr>
-        ${cats.map(()=>'<th style="background:#3d6cf0;color:#fff;text-align:right">Valor</th><th style="background:#3d6cf0;color:#fff;text-align:center">%</th>').join('')}
-        <th style="background:#0b8a60;color:#fff;text-align:right">Valor</th>
-        <th style="background:#0b8a60;color:#fff;text-align:center">%</th>
-      </tr>
-    </thead>
-    <tbody>
-    ${rows}
-    <tr style="background:#0d9e6e;color:#fff;font-weight:700">
-      <td colspan="2">TOTAL GERAL</td>
-      ${cats.map(c=>`<td style="text-align:right">${fBR(catTotals[c])}</td><td style="text-align:center">${totalGeral>0?(catTotals[c]/totalGeral*100).toFixed(1):0}%</td>`).join('')}
-      <td style="text-align:right;font-size:11px">${fBR(totalGeral)}</td><td style="text-align:center">100%</td>
-    </tr>
-    </tbody>
-  </table>
-  <div class="footer">Gestão de Aluguéis — TOP Internacional · gestao-alugueis-pi.vercel.app</div>
-    <div style="background:#fffbe6;border:1px solid #f0c000;border-radius:6px;padding:.6rem 1rem;font-size:11px;color:#7a5c00;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between" class="no-print">
-    <span>⚠️ Para manter as cores ao salvar PDF: clique em <strong>Mais configurações</strong> e marque <strong>"Gráficos de plano de fundo"</strong></span>
-    <button onclick="window.print()" style="background:#2d5be3;color:#fff;border:none;padding:4px 12px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;margin-left:1rem;flex-shrink:0">🖨️ Salvar PDF</button>
-  </div>
-  <style>.no-print{} @media print{.no-print{display:none!important}}</style>
-  <script>window.onload=()=>{};<\/script>
-  </body></html>`;
+  const html='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/><title>Relatório Detalhado por Loja</title><style>*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:9px;color:#1a1a2e;padding:1cm}.header{margin-bottom:.6rem;padding-bottom:.4rem;border-bottom:2px solid #2d5be3;display:flex;justify-content:space-between}.logo{font-size:14px;font-weight:700;color:#2d5be3}.sub{font-size:9px;color:#666}.meta{font-size:8px;color:#888;text-align:right}.filtros{font-size:9px;color:#555;margin-bottom:.4rem}.tip{background:#fffbe6;border:1px solid #f0c000;padding:.3rem .6rem;font-size:9px;color:#7a5c00;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center}.tip button{background:#2d5be3;color:#fff;border:none;padding:2px 8px;border-radius:3px;font-size:9px;cursor:pointer}table{width:100%;border-collapse:collapse}th{padding:3px 5px;font-weight:700;font-size:8px}td{padding:3px 5px;border-bottom:1px solid #e4e7f4;font-size:8px}.footer{margin-top:.75rem;font-size:7px;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:.3rem}@page{margin:.7cm;size:A3 landscape}@media print{.tip{display:none!important}}</style></head><body>'
+  +'<div class="tip">Para manter as cores: em Mais configurações marque Graficos de plano de fundo<button onclick="window.print()">Salvar PDF</button></div>'
+  +'<div class="header"><div><div class="logo">Gestao de Alugueis — TOP Internacional</div><div class="sub">Relatorio Detalhado por Loja - Mes a Mes</div></div><div class="meta">Gerado em: '+new Date().toLocaleString('pt-BR')+'</div></div>'
+  +'<div class="filtros">Filtros: '+filtros.join(' - ')+'</div>'
+  +'<table><thead><tr><th rowspan="2" style="background:#1a3db8;color:#fff">Loja</th><th rowspan="2" style="background:#1a3db8;color:#fff">Ano</th><th rowspan="2" style="background:#1a3db8;color:#fff">Mes</th>'
+  +cats.map(c=>`<th colspan="2" style="background:#2d5be3;color:#fff;text-align:center">${c}</th>`).join('')
+  +'<th colspan="2" style="background:#0d9e6e;color:#fff;text-align:center">TOTAL</th></tr><tr>'
+  +cats.map(()=>'<th style="background:#3d6cf0;color:#fff;text-align:right">Valor</th><th style="background:#3d6cf0;color:#fff;text-align:center">%</th>').join('')
+  +'<th style="background:#0b8a60;color:#fff;text-align:right">Valor</th><th style="background:#0b8a60;color:#fff;text-align:center">%</th></tr></thead><tbody>'
+  +rows
+  +'<tr style="background:#0d9e6e"><td colspan="3" style="color:#fff;font-weight:700">TOTAL GERAL</td>'
+  +cats.map(c=>{const v=grandCat[c];return`<td style="text-align:right;color:#fff;font-weight:700">${fBR(v)}</td><td style="text-align:center;color:#a0f0d0">${totalGeral>0?(v/totalGeral*100).toFixed(1):'0'}%</td>`;}).join('')
+  +`<td style="text-align:right;color:#fff;font-weight:700">${fBR(totalGeral)}</td><td style="text-align:center;color:#fff;font-weight:700">100%</td></tr>`
+  +'</tbody></table><div class="footer">Gestao de Alugueis - TOP Internacional - gestao-alugueis-pi.vercel.app</div></body></html>';
   const win=window.open('','_blank');win.document.write(html);win.document.close();
 }
+
 
 // ── MULTI-SELECT LOJA ─────────────────────────────
 let selectedLojas=new Set();
