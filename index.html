@@ -421,11 +421,20 @@ tbody tr:hover td{background:var(--bg)}
 const SB='https://xgzhvsovzxtcdhfkesgd.supabase.co';
 const SK='sb_publishable_ta2o6ZR043COAwmbnGOfnQ_NFm6nyeU';
 async function db(path,opts={}){
-  const r=await fetch(`${SB}/rest/v1/${path}`,{
-    headers:{'apikey':SK,'Authorization':`Bearer ${SK}`,'Content-Type':'application/json','Prefer':opts.prefer||(opts.method==='POST'?'return=representation':''),...(opts.headers||{})},
-    ...opts
-  });
-  if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.message||`HTTP ${r.status}`);}
+  const headers={
+    'apikey':SK,
+    'Authorization':`Bearer ${SK}`,
+    'Content-Type':'application/json',
+    'Accept':'application/json',
+    'Prefer':opts.prefer||(opts.method==='POST'?'return=representation':'count=none'),
+    ...(opts.headers||{})
+  };
+  const r=await fetch(`${SB}/rest/v1/${path}`,{...opts,headers});
+  if(!r.ok){
+    const e=await r.json().catch(()=>({}));
+    const msg=e.message||e.hint||e.details||`HTTP ${r.status}`;
+    throw new Error(msg);
+  }
   if(r.status===204)return null;
   return r.json();
 }
