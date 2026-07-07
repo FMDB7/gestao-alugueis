@@ -113,24 +113,41 @@ tbody tr:hover td{background:var(--bg)}
     <div class="login-logo">🏢</div>
     <div class="login-title">Gestão de Aluguéis</div>
     <div class="login-sub">TOP Internacional<br>Faça login para acessar o sistema</div>
-    <div style="margin-bottom:1rem;text-align:left">
-      <div style="margin-bottom:.75rem">
-        <label style="font-size:12px;font-weight:600;color:rgba(255,255,255,.5);display:block;margin-bottom:.3rem">E-mail</label>
-        <input type="email" id="login-email" class="fc" placeholder="seu@email.com.br" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1);color:#fff" onkeydown="if(event.key==='Enter')document.getElementById('login-senha').focus()"/>
+
+    <!-- MODO: detectado automaticamente -->
+    <div id="login-modo-admin" style="display:none">
+      <!-- Botão Microsoft para admin -->
+      <button onclick="loginMicrosoft()" id="btn-ms-login" style="width:100%;padding:12px;border-radius:10px;background:#fff;color:#1a1a2e;border:none;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:.75rem;transition:all .2s">
+        <svg width="20" height="20" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
+        Entrar com conta Microsoft
+      </button>
+      <div style="text-align:center;margin:.5rem 0">
+        <button onclick="voltarLoginNormal()" style="background:none;border:none;color:rgba(255,255,255,.35);font-size:12px;cursor:pointer;text-decoration:underline">← Voltar ao login normal</button>
       </div>
-      <div style="margin-bottom:.25rem">
-        <label style="font-size:12px;font-weight:600;color:rgba(255,255,255,.5);display:block;margin-bottom:.3rem">Senha</label>
-        <div style="position:relative">
-          <input type="password" id="login-senha" class="fc" placeholder="••••••••" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1);color:#fff;padding-right:2.5rem" onkeydown="if(event.key==='Enter')fazerLogin()"/>
-          <button onclick="toggleSenha()" style="position:absolute;right:.6rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,.4);font-size:14px" id="btn-eye">👁</button>
-        </div>
-      </div>
-      <div id="login-erro" style="color:#ff6b6b;font-size:12px;min-height:18px;margin-top:.4rem"></div>
     </div>
-    <button class="btn-demo" id="btn-login" onclick="fazerLogin()" style="background:#2d5be3;color:#fff;border:none;font-weight:600">Entrar</button>
+
+    <div id="login-modo-normal">
+      <div style="margin-bottom:1rem;text-align:left">
+        <div style="margin-bottom:.75rem">
+          <label style="font-size:12px;font-weight:600;color:rgba(255,255,255,.5);display:block;margin-bottom:.3rem">E-mail</label>
+          <input type="email" id="login-email" class="fc" placeholder="seu@email.com.br" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1);color:#fff" onkeydown="if(event.key==='Enter')document.getElementById('login-senha').focus()" oninput="detectarTipoLogin()"/>
+        </div>
+        <div style="margin-bottom:.25rem" id="campo-senha">
+          <label style="font-size:12px;font-weight:600;color:rgba(255,255,255,.5);display:block;margin-bottom:.3rem">Senha</label>
+          <div style="position:relative">
+            <input type="password" id="login-senha" class="fc" placeholder="••••••••" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1);color:#fff;padding-right:2.5rem" onkeydown="if(event.key==='Enter')fazerLogin()"/>
+            <button onclick="toggleSenha()" style="position:absolute;right:.6rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,.4);font-size:14px" id="btn-eye">👁</button>
+          </div>
+        </div>
+        <div id="login-erro" style="color:#ff6b6b;font-size:12px;min-height:18px;margin-top:.4rem"></div>
+      </div>
+      <button class="btn-demo" id="btn-login" onclick="fazerLogin()" style="background:#2d5be3;color:#fff;border:none;font-weight:600">Entrar</button>
+    </div>
+
     <div class="login-footer" style="margin-top:1.25rem">Dados protegidos • TOP Internacional © 2026</div>
   </div>
 </div>
+
 
 <div id="app">
   <div class="layout">
@@ -513,6 +530,105 @@ function toggleSenha(){
   if(inp.type==='password'){inp.type='text';btn.textContent='🙈';}
   else{inp.type='password';btn.textContent='👁';}
 }
+
+// ── MSAL CONFIG (Microsoft Login para Admin) ──────────
+const MSAL_CONFIG = {
+  auth: {
+    clientId: 'b270c0cd-fc9a-4551-84f5-2fe3c6be60fa',
+    authority: 'https://login.microsoftonline.com/8003b84e-097a-420a-afa4-ca9eab1bc74d',
+    redirectUri: window.location.origin
+  },
+  cache: {cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
+};
+// Email corporativo do admin — detecta automaticamente
+const ADMIN_EMAIL_DOMAIN = 'topinternacional.com.br';
+const ADMIN_EMAILS = ['adm.financeiro@topinternacional.com.br'];
+
+let msalInstance = null;
+
+async function initMSAL(){
+  if(msalInstance)return;
+  if(typeof msal === 'undefined'){
+    // Carregar MSAL dinamicamente
+    await new Promise((res,rej)=>{
+      const s=document.createElement('script');
+      s.src='https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js';
+      s.onload=res;s.onerror=rej;
+      document.head.appendChild(s);
+    });
+  }
+  msalInstance = new msal.PublicClientApplication(MSAL_CONFIG);
+  await msalInstance.initialize();
+}
+
+function detectarTipoLogin(){
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  const isAdmin = ADMIN_EMAILS.includes(email) || email.endsWith('@'+ADMIN_EMAIL_DOMAIN);
+  if(isAdmin && email.length > 5){
+    // Mostrar opção Microsoft
+    document.getElementById('login-modo-admin').style.display='block';
+    document.getElementById('campo-senha').style.display='none';
+    document.getElementById('btn-login').style.display='none';
+  } else {
+    document.getElementById('login-modo-admin').style.display='none';
+    document.getElementById('campo-senha').style.display='block';
+    document.getElementById('btn-login').style.display='block';
+  }
+}
+
+function voltarLoginNormal(){
+  document.getElementById('login-modo-admin').style.display='none';
+  document.getElementById('campo-senha').style.display='block';
+  document.getElementById('btn-login').style.display='block';
+}
+
+async function loginMicrosoft(){
+  const btn = document.getElementById('btn-ms-login');
+  const erro = document.getElementById('login-erro');
+  btn.disabled=true;
+  btn.innerHTML='<div class="spinner" style="border-color:rgba(0,0,0,.2);border-top-color:#2d5be3;display:inline-block;width:14px;height:14px;border-width:2px;border-radius:50%;animation:spin .6s linear infinite"></div> Aguarde...';
+  erro.textContent='';
+  try{
+    await initMSAL();
+    const resp = await msalInstance.loginPopup({
+      scopes: ['User.Read'],
+      prompt: 'select_account'
+    });
+    const msEmail = resp.account.username.toLowerCase();
+    // Verificar se é admin no banco
+    const res = await db(`usuarios?email=eq.${encodeURIComponent(msEmail)}&ativo=eq.true&select=*`);
+    if(!res||!res.length){
+      erro.textContent='Conta Microsoft não autorizada no sistema.';
+      return;
+    }
+    const u = res[0];
+    if(u.perfil !== 'admin'){
+      erro.textContent='Apenas administradores podem usar login Microsoft.';
+      return;
+    }
+    // Login bem-sucedido via Microsoft
+    currentUser = u;
+    saveSession(u);
+    resetInactivityTimer();
+    registrarLog('LOGIN_MICROSOFT','usuarios',{email:u.email,perfil:u.perfil});
+    db(`usuarios?id=eq.${u.id}`,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({ultimo_acesso:new Date().toISOString()})});
+    document.getElementById('uav').textContent=u.nome.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+    document.getElementById('uname').innerHTML=u.nome+'<br><span style="font-size:9px;background:#2d5be3;color:#fff;padding:1px 5px;border-radius:8px;font-weight:600">ADMIN</span>';
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    await loadData();
+    startAutoRefresh();
+    toggleAdminFeatures(true);
+    toast('✅ Bem-vindo, '+u.nome+'!');
+  }catch(ex){
+    if(ex.errorCode==='user_cancelled'){erro.textContent='Login cancelado.';}
+    else{erro.textContent='Erro no login Microsoft. Tente novamente.';}
+  }finally{
+    btn.disabled=false;
+    btn.innerHTML='<svg width="20" height="20" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg> Entrar com conta Microsoft';
+  }
+}
+
 
 // ── PROTEÇÃO BRUTE FORCE ──────────────────────────────
 function checkBruteForce(email){
