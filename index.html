@@ -114,39 +114,53 @@ tbody tr:hover td{background:var(--bg)}
     <div class="login-title">Gestão de Aluguéis</div>
     <div class="login-sub">TOP Internacional<br>Faça login para acessar o sistema</div>
 
-    <!-- MODO: detectado automaticamente -->
-    <div id="login-modo-admin" style="display:none">
-      <!-- Botão Microsoft para admin -->
-      <button onclick="loginMicrosoft()" id="btn-ms-login" style="width:100%;padding:12px;border-radius:10px;background:#fff;color:#1a1a2e;border:none;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:.75rem;transition:all .2s">
-        <svg width="20" height="20" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
-        Entrar com conta Microsoft
-      </button>
-      <div style="text-align:center;margin:.5rem 0">
-        <button onclick="voltarLoginNormal()" style="background:none;border:none;color:rgba(255,255,255,.35);font-size:12px;cursor:pointer;text-decoration:underline">← Voltar ao login normal</button>
+    <div style="margin-bottom:1rem;text-align:left">
+      <!-- E-mail sempre visível -->
+      <div style="margin-bottom:.75rem">
+        <label style="font-size:12px;font-weight:600;color:rgba(255,255,255,.5);display:block;margin-bottom:.3rem">E-mail</label>
+        <input type="email" id="login-email" class="fc" placeholder="seu@email.com.br"
+          style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1);color:#fff"
+          oninput="detectarTipoLogin()"
+          onkeydown="if(event.key==='Enter'&&!isAdminEmail())document.getElementById('login-senha').focus()"/>
       </div>
+
+      <!-- Botão Microsoft — só para admin -->
+      <div id="bloco-ms" style="display:none;margin-bottom:.75rem">
+        <button onclick="loginMicrosoft()" id="btn-ms-login"
+          style="width:100%;padding:12px;border-radius:10px;background:#fff;color:#1a1a2e;border:none;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s">
+          <svg width="20" height="20" viewBox="0 0 21 21">
+            <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
+            <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
+            <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
+            <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
+          </svg>
+          Entrar com conta Microsoft
+        </button>
+        <div style="text-align:center;margin-top:.4rem">
+          <span style="color:rgba(255,255,255,.25);font-size:11px">ou</span>
+        </div>
+      </div>
+
+      <!-- Senha — visível para não-admin e como alternativa para admin -->
+      <div id="bloco-senha" style="margin-bottom:.25rem">
+        <label style="font-size:12px;font-weight:600;color:rgba(255,255,255,.5);display:block;margin-bottom:.3rem">Senha</label>
+        <div style="position:relative">
+          <input type="password" id="login-senha" class="fc" placeholder="••••••••"
+            style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1);color:#fff;padding-right:2.5rem"
+            onkeydown="if(event.key==='Enter')fazerLogin()"/>
+          <button onclick="toggleSenha()" id="btn-eye"
+            style="position:absolute;right:.6rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,.4);font-size:14px">👁</button>
+        </div>
+      </div>
+
+      <div id="login-erro" style="color:#ff6b6b;font-size:12px;min-height:18px;margin-top:.4rem"></div>
     </div>
 
-    <div id="login-modo-normal">
-      <div style="margin-bottom:1rem;text-align:left">
-        <div style="margin-bottom:.75rem">
-          <label style="font-size:12px;font-weight:600;color:rgba(255,255,255,.5);display:block;margin-bottom:.3rem">E-mail</label>
-          <input type="email" id="login-email" class="fc" placeholder="seu@email.com.br" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1);color:#fff" onkeydown="if(event.key==='Enter')document.getElementById('login-senha').focus()" oninput="detectarTipoLogin()"/>
-        </div>
-        <div style="margin-bottom:.25rem" id="campo-senha">
-          <label style="font-size:12px;font-weight:600;color:rgba(255,255,255,.5);display:block;margin-bottom:.3rem">Senha</label>
-          <div style="position:relative">
-            <input type="password" id="login-senha" class="fc" placeholder="••••••••" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1);color:#fff;padding-right:2.5rem" onkeydown="if(event.key==='Enter')fazerLogin()"/>
-            <button onclick="toggleSenha()" style="position:absolute;right:.6rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,.4);font-size:14px" id="btn-eye">👁</button>
-          </div>
-        </div>
-        <div id="login-erro" style="color:#ff6b6b;font-size:12px;min-height:18px;margin-top:.4rem"></div>
-      </div>
-      <button class="btn-demo" id="btn-login" onclick="fazerLogin()" style="background:#2d5be3;color:#fff;border:none;font-weight:600">Entrar</button>
-    </div>
-
+    <button class="btn-demo" id="btn-login" onclick="fazerLogin()" style="background:#2d5be3;color:#fff;border:none;font-weight:600">Entrar</button>
     <div class="login-footer" style="margin-top:1.25rem">Dados protegidos • TOP Internacional © 2026</div>
   </div>
 </div>
+
 
 
 <div id="app">
@@ -561,26 +575,25 @@ async function initMSAL(){
   await msalInstance.initialize();
 }
 
+function isAdminEmail(){
+  const email=document.getElementById('login-email').value.trim().toLowerCase();
+  return ADMIN_EMAILS.includes(email)||email.endsWith('@'+ADMIN_EMAIL_DOMAIN);
+}
+
 function detectarTipoLogin(){
-  const email = document.getElementById('login-email').value.trim().toLowerCase();
-  const isAdmin = ADMIN_EMAILS.includes(email) || email.endsWith('@'+ADMIN_EMAIL_DOMAIN);
-  if(isAdmin && email.length > 5){
-    // Mostrar opção Microsoft
-    document.getElementById('login-modo-admin').style.display='block';
-    document.getElementById('campo-senha').style.display='none';
-    document.getElementById('btn-login').style.display='none';
-  } else {
-    document.getElementById('login-modo-admin').style.display='none';
-    document.getElementById('campo-senha').style.display='block';
-    document.getElementById('btn-login').style.display='block';
+  const admin=isAdminEmail();
+  const email=document.getElementById('login-email').value.trim();
+  // Mostrar botão Microsoft se for admin e tiver digitado o e-mail completo
+  const blocoMs=document.getElementById('bloco-ms');
+  if(blocoMs){
+    blocoMs.style.display=(admin&&email.length>8)?'block':'none';
   }
 }
 
 function voltarLoginNormal(){
-  document.getElementById('login-modo-admin').style.display='none';
-  document.getElementById('campo-senha').style.display='block';
-  document.getElementById('btn-login').style.display='block';
+  // já não é mais necessário pois senha sempre aparece
 }
+
 
 async function loginMicrosoft(){
   const btn = document.getElementById('btn-ms-login');
