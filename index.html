@@ -488,7 +488,6 @@ tbody tr:hover td{background:var(--bg)}
     <div style="padding:1.25rem" id="edit-modal-body"></div>
   </div>
 </div>
-</div>
 <div id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -849,9 +848,6 @@ async function logout(forced=false){
     startAutoRefresh();
   }
 })();
-
-
-}
 
 async function loadData(){
   ss('sync','Carregando...');
