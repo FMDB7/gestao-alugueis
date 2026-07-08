@@ -561,8 +561,7 @@ let msalInstance = null;
 
 async function initMSAL(){
   if(msalInstance)return;
-  if(typeof msal === 'undefined'){
-    // Carregar MSAL dinamicamente
+  if(typeof msal==='undefined'){
     await new Promise((res,rej)=>{
       const s=document.createElement('script');
       s.src='https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js';
@@ -570,74 +569,116 @@ async function initMSAL(){
       document.head.appendChild(s);
     });
   }
-  msalInstance = new msal.PublicClientApplication(MSAL_CONFIG);
+  msalInstance=new msal.PublicClientApplication(MSAL_CONFIG);
   await msalInstance.initialize();
 }
 
-function isAdminEmail(){
-  const email=document.getElementById('login-email').value.trim().toLowerCase();
-  return ADMIN_EMAILS.includes(email)||email.endsWith('@'+ADMIN_EMAIL_DOMAIN);
-}
-
-function detectarTipoLogin(){
-  const admin=isAdminEmail();
-  const email=document.getElementById('login-email').value.trim();
-  // Mostrar botão Microsoft se for admin e tiver digitado o e-mail completo
-  const blocoMs=document.getElementById('bloco-ms');
-  if(blocoMs){
-    blocoMs.style.display=(admin&&email.length>8)?'block':'none';
+// Tentativa de SSO silencioso ao carregar a página
+async function tentarSSOSilencioso(){
+  const checking=document.getElementById('login-checking');
+  try{
+    await initMSAL();
+    await msalInstance.handleRedirectPromise();
+    // Verificar se já tem conta logada no navegador
+    const accounts=msalInstance.getAllAccounts();
+    if(accounts.length>0){
+      // Tentar obter token silenciosamente (SSO)
+      if(checking)checking.textContent='Conta Microsoft detectada, entrando...';
+      try{
+        const resp=await msalInstance.acquireTokenSilent({
+          scopes:['User.Read'],
+          account:accounts[0]
+        });
+        await processarLoginMicrosoft(resp.account.username,resp.account.name);
+        return;
+      }catch(e){
+        // Token expirado, precisa login interativo
+      }
+    }
+    // Nenhuma conta ativa — mostrar botão
+    if(checking)checking.textContent='';
+  }catch(e){
+    if(checking)checking.textContent='';
   }
 }
 
-function voltarLoginNormal(){
-  // já não é mais necessário pois senha sempre aparece
-}
-
-
 async function loginMicrosoft(){
-  const btn = document.getElementById('btn-ms-login');
-  const erro = document.getElementById('login-erro');
+  const btn=document.getElementById('btn-ms-login');
+  const erro=document.getElementById('login-erro');
   btn.disabled=true;
-  btn.innerHTML='<div class="spinner" style="border-color:rgba(0,0,0,.2);border-top-color:#2d5be3;display:inline-block;width:14px;height:14px;border-width:2px;border-radius:50%;animation:spin .6s linear infinite"></div> Aguarde...';
+  btn.innerHTML='<div class="spinner" style="border-color:rgba(0,0,0,.15);border-top-color:#2d5be3;display:inline-block;width:16px;height:16px;border-width:2px;border-radius:50%;animation:spin .6s linear infinite"></div> Entrando...';
   erro.textContent='';
   try{
     await initMSAL();
-    const resp = await msalInstance.loginPopup({
-      scopes: ['User.Read'],
-      prompt: 'select_account'
+    // Login interativo via popup
+    const resp=await msalInstance.loginPopup({
+      scopes:['User.Read'],
+      prompt:'select_account'
     });
-    const msEmail = resp.account.username.toLowerCase();
-    // Verificar se é admin no banco
-    const res = await db(`usuarios?email=eq.${encodeURIComponent(msEmail)}&ativo=eq.true&select=*`);
+    await processarLoginMicrosoft(resp.account.username,resp.account.name);
+  }catch(ex){
+    if(ex.errorCode==='user_cancelled'){erro.textContent='Login cancelado.';}
+    else if(ex.errorCode==='popup_window_error'){erro.textContent='Popup bloqueado. Permita popups para este site.';}
+    else{erro.textContent='Erro no login. Tente novamente.';}
+    btn.disabled=false;
+    btn.innerHTML='<svg width="20" height="20" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg> Entrar com conta Microsoft';
+  }
+}
+
+async function processarLoginMicrosoft(msEmail,msNome){
+  const erro=document.getElementById('login-erro');
+  try{
+    const emailLower=msEmail.toLowerCase();
+    // Buscar usuário no banco
+    let res=await db(`usuarios?email=eq.${encodeURIComponent(emailLower)}&ativo=eq.true&select=*`);
+    // Se não existe, criar automaticamente como usuário
     if(!res||!res.length){
-      erro.textContent='Conta Microsoft não autorizada no sistema.';
+      const nomeFormatado=msNome||msEmail.split('@')[0];
+      const novoUser=await db('usuarios',{
+        method:'POST',
+        body:JSON.stringify({
+          nome:nomeFormatado,
+          email:emailLower,
+          senha_hash:'microsoft_sso_no_password',
+          perfil: ADMIN_EMAILS.includes(emailLower)?'admin':'usuario',
+          ativo:true
+        })
+      });
+      res=novoUser;
+    }
+    const u=Array.isArray(res)?res[0]:res;
+    if(!u){throw new Error('Usuário não encontrado');}
+    if(!u.ativo){
+      document.getElementById('login-erro').textContent='Conta desativada. Contate o administrador.';
       return;
     }
-    const u = res[0];
-    if(u.perfil !== 'admin'){
-      erro.textContent='Apenas administradores podem usar login Microsoft.';
-      return;
-    }
-    // Login bem-sucedido via Microsoft
-    currentUser = u;
+    // Login bem-sucedido
+    currentUser=u;
     saveSession(u);
     resetInactivityTimer();
-    registrarLog('LOGIN_MICROSOFT','usuarios',{email:u.email,perfil:u.perfil});
+    registrarLog('LOGIN_SSO','usuarios',{email:u.email,perfil:u.perfil});
     db(`usuarios?id=eq.${u.id}`,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({ultimo_acesso:new Date().toISOString()})});
-    document.getElementById('uav').textContent=u.nome.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
-    document.getElementById('uname').innerHTML=u.nome+'<br><span style="font-size:9px;background:#2d5be3;color:#fff;padding:1px 5px;border-radius:8px;font-weight:600">ADMIN</span>';
+    // Atualizar UI
+    const initials=u.nome.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+    document.getElementById('uav').textContent=initials;
+    if(u.perfil==='admin'){
+      document.getElementById('uname').innerHTML=u.nome+'<br><span style="font-size:9px;background:#2d5be3;color:#fff;padding:1px 5px;border-radius:8px;font-weight:600">ADMIN</span>';
+    }else{
+      document.getElementById('uname').textContent=u.nome;
+    }
     document.getElementById('login-screen').style.display='none';
     document.getElementById('app').style.display='block';
     await loadData();
     startAutoRefresh();
-    toggleAdminFeatures(true);
+    toggleAdminFeatures(u.perfil==='admin');
     toast('✅ Bem-vindo, '+u.nome+'!');
   }catch(ex){
-    if(ex.errorCode==='user_cancelled'){erro.textContent='Login cancelado.';}
-    else{erro.textContent='Erro no login Microsoft. Tente novamente.';}
-  }finally{
-    btn.disabled=false;
-    btn.innerHTML='<svg width="20" height="20" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg> Entrar com conta Microsoft';
+    document.getElementById('login-erro').textContent='Erro ao verificar conta: '+ex.message;
+    const btn=document.getElementById('btn-ms-login');
+    if(btn){
+      btn.disabled=false;
+      btn.innerHTML='<svg width="20" height="20" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg> Entrar com conta Microsoft';
+    }
   }
 }
 
@@ -836,6 +877,7 @@ async function logout(forced=false){
 
 // Verificar sessão ao carregar a página
 (async()=>{
+  // 1. Tentar restaurar sessão local
   const restored=await restoreSession();
   if(restored&&currentUser){
     document.getElementById('login-screen').style.display='none';
@@ -846,7 +888,10 @@ async function logout(forced=false){
     resetInactivityTimer();
     await loadData();
     startAutoRefresh();
+    return;
   }
+  // 2. Tentar SSO silencioso Microsoft
+  await tentarSSOSilencioso();
 })();
 
 async function loadData(){
