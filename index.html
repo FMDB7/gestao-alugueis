@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Gestão de Aluguéis — TOP Internacional</title>
+<title>ALUGUÉIS — TOP Internacional</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
@@ -111,53 +111,35 @@ tbody tr:hover td{background:var(--bg)}
 <div id="login-screen">
   <div class="login-card">
     <div class="login-logo">🏢</div>
-    <div class="login-title">Gestão de Aluguéis</div>
-    <div class="login-sub">TOP Internacional<br>Faça login para acessar o sistema</div>
+    <div class="login-title">ALUGUÉIS</div>
+    <div class="login-sub">TOP Internacional<br>Sistema de Controle de Aluguéis</div>
 
-    <div style="margin-bottom:1rem;text-align:left">
-      <!-- E-mail sempre visível -->
-      <div style="margin-bottom:.75rem">
-        <label style="font-size:12px;font-weight:600;color:rgba(255,255,255,.5);display:block;margin-bottom:.3rem">E-mail</label>
-        <input type="email" id="login-email" class="fc" placeholder="seu@email.com.br"
-          style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1);color:#fff"
-          oninput="detectarTipoLogin()"
-          onkeydown="if(event.key==='Enter'&&!isAdminEmail())document.getElementById('login-senha').focus()"/>
+    <!-- Status de verificação -->
+    <div id="login-status" style="margin:1.25rem 0;min-height:40px;display:flex;align-items:center;justify-content:center">
+      <div id="login-checking" style="display:flex;align-items:center;gap:.5rem;font-size:13px;color:rgba(255,255,255,.4)">
+        <div style="width:14px;height:14px;border:2px solid rgba(255,255,255,.2);border-top-color:rgba(255,255,255,.5);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div>
+        Verificando sessão...
       </div>
-
-      <!-- Botão Microsoft — só para admin -->
-      <div id="bloco-ms" style="display:none;margin-bottom:.75rem">
-        <button onclick="loginMicrosoft()" id="btn-ms-login"
-          style="width:100%;padding:12px;border-radius:10px;background:#fff;color:#1a1a2e;border:none;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s">
-          <svg width="20" height="20" viewBox="0 0 21 21">
-            <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
-            <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
-            <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
-            <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
-          </svg>
-          Entrar com conta Microsoft
-        </button>
-        <div style="text-align:center;margin-top:.4rem">
-          <span style="color:rgba(255,255,255,.25);font-size:11px">ou</span>
-        </div>
-      </div>
-
-      <!-- Senha — visível para não-admin e como alternativa para admin -->
-      <div id="bloco-senha" style="margin-bottom:.25rem">
-        <label style="font-size:12px;font-weight:600;color:rgba(255,255,255,.5);display:block;margin-bottom:.3rem">Senha</label>
-        <div style="position:relative">
-          <input type="password" id="login-senha" class="fc" placeholder="••••••••"
-            style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1);color:#fff;padding-right:2.5rem"
-            onkeydown="if(event.key==='Enter')fazerLogin()"/>
-          <button onclick="toggleSenha()" id="btn-eye"
-            style="position:absolute;right:.6rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,.4);font-size:14px">👁</button>
-        </div>
-      </div>
-
-      <div id="login-erro" style="color:#ff6b6b;font-size:12px;min-height:18px;margin-top:.4rem"></div>
     </div>
 
-    <button class="btn-demo" id="btn-login" onclick="fazerLogin()" style="background:#2d5be3;color:#fff;border:none;font-weight:600">Entrar</button>
-    <div class="login-footer" style="margin-top:1.25rem">Dados protegidos • TOP Internacional © 2026</div>
+    <!-- Botão Microsoft — aparece só se não tiver sessão ativa -->
+    <div id="login-btn-wrap" style="display:none">
+      <button onclick="loginMicrosoft()" id="btn-ms-login"
+        style="width:100%;padding:13px;border-radius:10px;background:#fff;color:#1a1a2e;border:none;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s;box-shadow:0 2px 12px rgba(0,0,0,.2)">
+        <svg width="20" height="20" viewBox="0 0 21 21">
+          <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
+          <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
+          <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
+          <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
+        </svg>
+        Entrar com conta Microsoft
+      </button>
+      <div id="login-erro" style="color:#ff6b6b;font-size:12px;min-height:18px;text-align:center;margin-top:.75rem"></div>
+    </div>
+
+    <div class="login-footer" style="margin-top:1.5rem">
+      TOP Internacional © 2026 • Dados protegidos pela Microsoft
+    </div>
   </div>
 </div>
 
@@ -168,7 +150,7 @@ tbody tr:hover td{background:var(--bg)}
     <aside class="sidebar">
       <div class="sidebar-logo">
         <div class="sidebar-logo-mark">🏢</div>
-        <div class="sidebar-title">Gestão de Aluguéis</div>
+        <div class="sidebar-title">ALUGUÉIS</div>
         <div class="sidebar-sub">TOP Internacional</div>
       </div>
       <nav class="sidebar-nav">
@@ -575,53 +557,67 @@ async function initMSAL(){
 
 // Tentativa de SSO silencioso ao carregar a página
 async function tentarSSOSilencioso(){
-  const checking=document.getElementById('login-checking');
+  const checking = document.getElementById('login-checking');
+  const btnWrap = document.getElementById('login-btn-wrap');
   try{
     await initMSAL();
     await msalInstance.handleRedirectPromise();
-    // Verificar se já tem conta logada no navegador
-    const accounts=msalInstance.getAllAccounts();
-    if(accounts.length>0){
-      // Tentar obter token silenciosamente (SSO)
-      if(checking)checking.textContent='Conta Microsoft detectada, entrando...';
+
+    // Passo 1: verificar contas já logadas no navegador
+    const accounts = msalInstance.getAllAccounts();
+    if(accounts.length > 0){
+      if(checking) checking.innerHTML = '<div style="width:14px;height:14px;border:2px solid rgba(255,255,255,.2);border-top-color:#2d5be3;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div> Conta Microsoft detectada, entrando...';
       try{
-        const resp=await msalInstance.acquireTokenSilent({
-          scopes:['User.Read'],
-          account:accounts[0]
+        // Passo 2: obter token silenciosamente (sem interação do usuário)
+        const resp = await msalInstance.acquireTokenSilent({
+          scopes: ['User.Read'],
+          account: accounts[0]
         });
-        await processarLoginMicrosoft(resp.account.username,resp.account.name);
+        // SSO silencioso bem-sucedido — entra direto
+        await processarLoginMicrosoft(resp.account.username, resp.account.name);
         return;
-      }catch(e){
-        // Token expirado, precisa login interativo
+      }catch(silentErr){
+        // Token expirado ou não disponível — precisa login interativo
+        console.log('SSO silencioso falhou, mostrando botão:', silentErr.errorCode);
       }
     }
-    // Nenhuma conta ativa — mostrar botão
-    if(checking)checking.textContent='';
+
+    // Passo 3: Nenhuma conta ativa — mostrar botão Microsoft
+    if(checking) checking.style.display = 'none';
+    if(btnWrap) btnWrap.style.display = 'block';
+
   }catch(e){
-    if(checking)checking.textContent='';
+    console.log('Erro SSO:', e);
+    // Em caso de erro, mostrar botão
+    if(checking) checking.style.display = 'none';
+    if(btnWrap) btnWrap.style.display = 'block';
   }
 }
 
 async function loginMicrosoft(){
-  const btn=document.getElementById('btn-ms-login');
-  const erro=document.getElementById('login-erro');
-  btn.disabled=true;
-  btn.innerHTML='<div class="spinner" style="border-color:rgba(0,0,0,.15);border-top-color:#2d5be3;display:inline-block;width:16px;height:16px;border-width:2px;border-radius:50%;animation:spin .6s linear infinite"></div> Entrando...';
-  erro.textContent='';
+  const btn = document.getElementById('btn-ms-login');
+  const erro = document.getElementById('login-erro');
+  const checking = document.getElementById('login-checking');
+  btn.disabled = true;
+  btn.innerHTML = '<div style="width:16px;height:16px;border:2px solid rgba(0,0,0,.15);border-top-color:#2d5be3;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div> Aguarde...';
+  if(erro) erro.textContent = '';
   try{
     await initMSAL();
-    // Login interativo via popup
-    const resp=await msalInstance.loginPopup({
-      scopes:['User.Read'],
-      prompt:'select_account'
+    const resp = await msalInstance.loginPopup({
+      scopes: ['User.Read'],
+      prompt: 'select_account'
     });
-    await processarLoginMicrosoft(resp.account.username,resp.account.name);
+    await processarLoginMicrosoft(resp.account.username, resp.account.name);
   }catch(ex){
-    if(ex.errorCode==='user_cancelled'){erro.textContent='Login cancelado.';}
-    else if(ex.errorCode==='popup_window_error'){erro.textContent='Popup bloqueado. Permita popups para este site.';}
-    else{erro.textContent='Erro no login. Tente novamente.';}
-    btn.disabled=false;
-    btn.innerHTML='<svg width="20" height="20" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg> Entrar com conta Microsoft';
+    if(ex.errorCode === 'user_cancelled'){
+      if(erro) erro.textContent = 'Login cancelado.';
+    }else if(ex.errorCode === 'popup_window_error'){
+      if(erro) erro.textContent = 'Popup bloqueado. Permita popups neste site e tente novamente.';
+    }else{
+      if(erro) erro.textContent = 'Erro no login Microsoft. Tente novamente.';
+    }
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg> Entrar com conta Microsoft';
   }
 }
 
@@ -875,22 +871,27 @@ async function logout(forced=false){
   }
 }
 
-// Verificar sessão ao carregar a página
+// ── INICIALIZAÇÃO ────────────────────────────────────
 (async()=>{
-  // 1. Tentar restaurar sessão local
-  const restored=await restoreSession();
-  if(restored&&currentUser){
-    document.getElementById('login-screen').style.display='none';
-    document.getElementById('app').style.display='block';
-    document.getElementById('uav').textContent=currentUser.nome.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
-    document.getElementById('uname').textContent=currentUser.nome;
-    if(currentUser.perfil==='admin')toggleAdminFeatures(true);
+  // Passo 1: restaurar sessão local (volta ao app sem nenhuma tela)
+  const restored = await restoreSession();
+  if(restored && currentUser){
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    const initials = currentUser.nome.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+    document.getElementById('uav').textContent = initials;
+    if(currentUser.perfil === 'admin'){
+      document.getElementById('uname').innerHTML = currentUser.nome + '<br><span style="font-size:9px;background:#2d5be3;color:#fff;padding:1px 5px;border-radius:8px;font-weight:600">ADMIN</span>';
+    } else {
+      document.getElementById('uname').textContent = currentUser.nome;
+    }
+    toggleAdminFeatures(currentUser.perfil === 'admin');
     resetInactivityTimer();
     await loadData();
     startAutoRefresh();
     return;
   }
-  // 2. Tentar SSO silencioso Microsoft
+  // Passo 2: tentar SSO silencioso — detecta conta Microsoft ativa no navegador
   await tentarSSOSilencioso();
 })();
 
@@ -1353,7 +1354,7 @@ function exportPDF(){
   </style></head><body>
   <div class="header">
     <div class="header-top">
-      <div><div class="logo">🏢 Gestão de Aluguéis</div><div class="sub">TOP Internacional</div></div>
+      <div><div class="logo">🏢 ALUGUÉIS</div><div class="sub">TOP Internacional</div></div>
       <div class="meta">Gerado em: ${dataHora}</div>
     </div>
   </div>
@@ -1372,7 +1373,7 @@ function exportPDF(){
     <tr class="total-row"><td colspan="2"><strong>Total Geral</strong></td><td><strong>${fBR(tot)}</strong></td><td><strong>100%</strong></td></tr>
     </tbody>
   </table>
-  <div class="footer">Gestão de Aluguéis — TOP Internacional · gestao-alugueis-pi.vercel.app</div>
+  <div class="footer">ALUGUÉIS — TOP Internacional · gestao-alugueis-pi.vercel.app</div>
     <div style="background:#fffbe6;border:1px solid #f0c000;border-radius:6px;padding:.6rem 1rem;font-size:11px;color:#7a5c00;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between" class="no-print">
     <span>⚠️ Para manter as cores ao salvar PDF: clique em <strong>Mais configurações</strong> e marque <strong>"Gráficos de plano de fundo"</strong></span>
     <button onclick="window.print()" style="background:#2d5be3;color:#fff;border:none;padding:4px 12px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;margin-left:1rem;flex-shrink:0">🖨️ Salvar PDF</button>
@@ -1693,7 +1694,7 @@ function exportDetalhadoPDF(){
   </div>
   <div class="header">
     <div>
-      <div class="logo">🏢 Gestão de Aluguéis — TOP Internacional</div>
+      <div class="logo">🏢 ALUGUÉIS — TOP Internacional</div>
       <div class="sub">Relatório Detalhado por Loja • Análise Mês a Mês com Percentuais</div>
     </div>
     <div class="meta">Gerado em:<br>${new Date().toLocaleString('pt-BR')}</div>
@@ -1712,7 +1713,7 @@ function exportDetalhadoPDF(){
       ${totalRow}
     </tbody>
   </table>
-  <div class="footer">Gestão de Aluguéis — TOP Internacional · gestao-alugueis-pi.vercel.app · ${new Date().toLocaleDateString('pt-BR')}</div>
+  <div class="footer">ALUGUÉIS — TOP Internacional · gestao-alugueis-pi.vercel.app · ${new Date().toLocaleDateString('pt-BR')}</div>
 </body>
 </html>`;
 
