@@ -103,6 +103,12 @@ tbody tr:hover td{background:var(--bg)}
 @keyframes spin{to{transform:rotate(360deg)}}
 .grade-input{border:1px solid transparent;background:transparent;padding:.2rem .4rem;border-radius:4px;width:100%;min-width:82px;text-align:right;font-size:12px;font-family:var(--font);color:var(--ink)}
 .grade-input:focus{background:var(--blue-bg);border-color:#2d5be3;outline:none}
+
+/* Modal lançamento */
+#modal-lanc.active{display:flex!important}
+.modal-overlay-enter{animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+.fc-large{font-size:15px!important;padding:.6rem .75rem!important}
 .rbar{height:5px;background:#2d5be3;border-radius:3px;display:inline-block;vertical-align:middle;margin-right:5px}
 </style>
 </head>
@@ -234,107 +240,40 @@ tbody tr:hover td{background:var(--bg)}
         <div class="topbar">
           <div class="page-title">Lançamento</div>
           <div style="display:flex;gap:.5rem">
-            <button class="btn btn-ghost btn-sm" id="lt-tab-novo" onclick="switchLtTab('novo')" style="font-weight:700;color:var(--blue);border-color:var(--blue)">+ Novo Lançamento</button>
+            <button class="btn btn-primary" onclick="abrirModalLanc()">+ Novo Lançamento</button>
             <button class="btn btn-ghost btn-sm" id="lt-tab-grade" onclick="switchLtTab('grade')">Grade Mensal</button>
             <button class="btn btn-ghost btn-sm" id="lt-tab-hist" onclick="switchLtTab('hist')">Histórico</button>
           </div>
         </div>
 
-        <!-- ABA: NOVO LANÇAMENTO -->
-        <div id="lt-form" class="content">
-
-          <!-- STEP 1: Contexto (Empresa, Loja, Período) -->
-          <div class="card" style="margin-bottom:1rem">
+        <!-- CONTEÚDO PRINCIPAL -->
+        <div id="lt-main" class="content">
+          <!-- KPIs rápidos do mês atual -->
+          <div id="lt-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.875rem;margin-bottom:1.25rem"></div>
+          <!-- Lista de lançamentos recentes -->
+          <div class="card">
             <div class="card-hd">
-              <div class="card-title">📍 Contexto do lançamento</div>
-              <div id="ctx-resumo" style="font-size:12px;color:var(--ink2)"></div>
-            </div>
-            <div class="card-body">
-              <div class="fgrid">
-                <div class="fg">
-                  <label class="fl">Empresa *</label>
-                  <select class="fc" id="f-emp" onchange="updateLojas('f-loja','f-emp');renderFL();atualizarCtxResumo()">
-                    <option value="">Selecione...</option>
-                  </select>
-                </div>
-                <div class="fg">
-                  <label class="fl">Loja *</label>
-                  <select class="fc" id="f-loja" onchange="renderFL();atualizarCtxResumo()">
-                    <option value="">Selecione...</option>
-                  </select>
-                </div>
-                <div class="fg">
-                  <label class="fl">Ano *</label>
-                  <select class="fc" id="f-ano" onchange="renderFL();atualizarCtxResumo()">
-                    <option value="2024">2024</option><option value="2025">2025</option>
-                    <option value="2026" selected>2026</option><option value="2027">2027</option>
-                    <option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option>
-                  </select>
-                </div>
-                <div class="fg">
-                  <label class="fl">Mês *</label>
-                  <select class="fc" id="f-mes" onchange="renderFL();atualizarCtxResumo()">
-                    <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option>
-                    <option value="MARÇO">Março</option><option value="ABRIL">Abril</option>
-                    <option value="MAIO">Maio</option><option value="JUNHO">Junho</option>
-                    <option value="JULHO">Julho</option><option value="AGOSTO">Agosto</option>
-                    <option value="SETEMBRO">Setembro</option><option value="OUTUBRO">Outubro</option>
-                    <option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
-                  </select>
-                </div>
+              <div class="card-title">Lançamentos recentes</div>
+              <div style="display:flex;gap:.5rem;align-items:center">
+                <select class="fc" id="lt-filter-emp" onchange="renderLtRecentes()" style="font-size:12px;padding:4px 8px;width:160px"><option value="">Todas empresas</option></select>
+                <select class="fc" id="lt-filter-mes" onchange="renderLtRecentes()" style="font-size:12px;padding:4px 8px;width:120px">
+                  <option value="">Todos meses</option>
+                  <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option>
+                  <option value="MARÇO">Março</option><option value="ABRIL">Abril</option>
+                  <option value="MAIO">Maio</option><option value="JUNHO">Junho</option>
+                  <option value="JULHO">Julho</option><option value="AGOSTO">Agosto</option>
+                  <option value="SETEMBRO">Setembro</option><option value="OUTUBRO">Outubro</option>
+                  <option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
+                </select>
+                <select class="fc" id="lt-filter-ano" onchange="renderLtRecentes()" style="font-size:12px;padding:4px 8px;width:90px">
+                  <option value="2026" selected>2026</option><option value="2025">2025</option>
+                  <option value="2024">2024</option><option value="2027">2027</option>
+                </select>
               </div>
             </div>
-          </div>
-
-          <!-- STEP 2: Painel de entrada rápida (aparece ao selecionar loja) -->
-          <div id="lt-entrada-wrap" style="display:none">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
-
-              <!-- Formulário de entrada rápida -->
-              <div class="card">
-                <div class="card-hd"><div class="card-title">➕ Adicionar item</div></div>
-                <div class="card-body">
-                  <div class="fg" style="margin-bottom:.75rem">
-                    <label class="fl">Categoria *</label>
-                    <select class="fc" id="f-cat"><option value="">Selecione a categoria...</option></select>
-                  </div>
-                  <div class="fg" style="margin-bottom:.75rem">
-                    <label class="fl">Valor (R$) *</label>
-                    <input type="number" class="fc" id="f-val" placeholder="0,00" step="0.01" min="0"
-                      onkeydown="if(event.key==='Enter')salvar()"
-                      style="font-size:16px;padding:.6rem .75rem;text-align:right"/>
-                  </div>
-                  <div class="fg" style="margin-bottom:1rem">
-                    <label class="fl">Observação</label>
-                    <input type="text" class="fc" id="f-obs" placeholder="Opcional"
-                      onkeydown="if(event.key==='Enter')salvar()"/>
-                  </div>
-                  <button class="btn btn-primary" id="btn-salvar" onclick="salvar()"
-                    style="width:100%;padding:.65rem;font-size:14px;justify-content:center">
-                    + Salvar Lançamento
-                  </button>
-                </div>
-              </div>
-
-              <!-- Resumo do período selecionado -->
-              <div class="card">
-                <div class="card-hd">
-                  <div class="card-title">📋 Período selecionado</div>
-                  <div id="fl-total-badge" style="font-size:12px;font-weight:700;color:var(--blue)"></div>
-                </div>
-                <div id="form-lista" style="max-height:340px;overflow-y:auto">
-                  <div class="empty" style="padding:1.5rem"><div class="empty-icon">📋</div><div>Nenhum lançamento neste período</div></div>
-                </div>
-              </div>
-
+            <div id="lt-recentes-wrap">
+              <div class="empty"><div class="empty-icon">📋</div><div>Carregando lançamentos...</div></div>
             </div>
-          </div>
-
-          <!-- Estado inicial — antes de selecionar loja -->
-          <div id="lt-empty-state" style="text-align:center;padding:3rem 1rem;color:var(--ink3)">
-            <div style="font-size:3rem;margin-bottom:1rem;opacity:.3">📝</div>
-            <div style="font-size:15px;font-weight:600;color:var(--ink2);margin-bottom:.5rem">Selecione a empresa, loja e período</div>
-            <div style="font-size:13px">O formulário de lançamento aparecerá automaticamente</div>
           </div>
         </div>
 
@@ -386,6 +325,91 @@ tbody tr:hover td{background:var(--bg)}
             </div>
           </div>
           <div class="card"><div id="hist-wrap"><div class="empty"><div class="empty-icon">🔍</div><div>Clique em Filtrar</div></div></div></div>
+        </div>
+      </div>
+
+      <!-- ══ MODAL NOVO LANÇAMENTO ══ -->
+      <div id="modal-lanc" style="display:none;position:fixed;inset:0;background:rgba(15,17,23,.6);z-index:300;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(4px)">
+        <div style="background:var(--surface);border-radius:14px;box-shadow:0 24px 64px rgba(0,0,0,.22);width:100%;max-width:780px;max-height:90vh;overflow-y:auto">
+          <!-- Header -->
+          <div style="padding:1.1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:1;border-radius:14px 14px 0 0">
+            <div style="display:flex;align-items:center;gap:.5rem">
+              <span style="color:var(--blue);font-size:16px">+</span>
+              <span style="font-size:15px;font-weight:700;color:var(--ink)">Novo Lançamento</span>
+            </div>
+            <button onclick="fecharModalLanc()" style="background:none;border:1px solid var(--border2);border-radius:6px;padding:3px 10px;font-size:11px;color:var(--ink2);cursor:pointer;display:flex;align-items:center;gap:4px">
+              <span style="font-size:10px;opacity:.6">ESC</span> para fechar
+            </button>
+          </div>
+
+          <!-- Body -->
+          <div style="padding:1.5rem">
+            <!-- Linha 1: Empresa, Loja -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+              <div class="fg">
+                <label class="fl">EMPRESA ★</label>
+                <select class="fc" id="f-emp" onchange="updateLojas('f-loja','f-emp')"><option value="">Selecione...</option></select>
+              </div>
+              <div class="fg">
+                <label class="fl">LOJA ★</label>
+                <select class="fc" id="f-loja"><option value="">Selecione...</option></select>
+              </div>
+            </div>
+
+            <!-- Linha 2: Ano, Mês, Categoria -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 2fr;gap:1rem;margin-bottom:1rem">
+              <div class="fg">
+                <label class="fl">ANO ★</label>
+                <select class="fc" id="f-ano">
+                  <option value="2024">2024</option><option value="2025">2025</option>
+                  <option value="2026" selected>2026</option><option value="2027">2027</option>
+                  <option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option>
+                </select>
+              </div>
+              <div class="fg">
+                <label class="fl">MÊS ★</label>
+                <select class="fc" id="f-mes">
+                  <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option>
+                  <option value="MARÇO">Março</option><option value="ABRIL">Abril</option>
+                  <option value="MAIO">Maio</option><option value="JUNHO">Junho</option>
+                  <option value="JULHO">Julho</option><option value="AGOSTO">Agosto</option>
+                  <option value="SETEMBRO">Setembro</option><option value="OUTUBRO">Outubro</option>
+                  <option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
+                </select>
+              </div>
+              <div class="fg">
+                <label class="fl">CATEGORIA ★</label>
+                <select class="fc" id="f-cat"><option value="">Selecione...</option></select>
+              </div>
+            </div>
+
+            <!-- Linha 3: Valor, Obs -->
+            <div style="display:grid;grid-template-columns:1fr 2fr;gap:1rem;margin-bottom:1.5rem">
+              <div class="fg">
+                <label class="fl">VALOR (R$) ★</label>
+                <input type="number" class="fc" id="f-val" placeholder="0,00" step="0.01" min="0"
+                  style="text-align:right;font-size:16px;font-weight:600"
+                  onkeydown="if(event.key==='Enter')salvar()"/>
+              </div>
+              <div class="fg">
+                <label class="fl">OBSERVAÇÃO</label>
+                <input type="text" class="fc" id="f-obs" placeholder="Informações adicionais..."
+                  onkeydown="if(event.key==='Enter')salvar()"/>
+              </div>
+            </div>
+
+            <!-- Footer do modal -->
+            <div style="display:flex;gap:.75rem;align-items:center;padding-top:1rem;border-top:1px solid var(--border)">
+              <button class="btn btn-primary" id="btn-salvar" onclick="salvar()"
+                style="padding:.6rem 1.5rem;font-size:14px">
+                ✔ Salvar Lançamento
+              </button>
+              <button class="btn btn-ghost" onclick="fecharModalLanc()" style="padding:.6rem 1rem">
+                Cancelar
+              </button>
+              <span style="margin-left:auto;font-size:11px;color:var(--ink3)">★ campos obrigatórios</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1049,6 +1073,14 @@ function goPage(id,btn){
   btn.classList.add('active');
   if(id==='dashboard')renderDash();
   if(id==='cadastros')renderCads();
+  if(id==='lancamento'){
+    // Reset to main tab
+    switchLtTab('main');
+    renderLtKpis();
+    renderLtRecentes();
+    // Populate lt-filter-emp
+    fs('lt-filter-emp',S.empresas.map(e=>e.nome).sort(),'Todas empresas');
+  }
 }
 function showTab(id,btn){
   btn.parentElement.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
@@ -1069,7 +1101,8 @@ async function salvar(){
     const e=S.empresas.find(x=>x.nome===en),l=S.lojas.find(x=>x.nome===ln),c=S.categorias.find(x=>x.nome===cn);
     if(!e||!l||!c){toast('❌ Cadastro não encontrado');return;}
     await db('lancamentos',{method:'POST',body:JSON.stringify({empresa_id:e.id,loja_id:l.id,categoria_id:c.id,ano,mes,mes_num:MESES.indexOf(mes)+1,valor:val,obs})});
-    toast('✅ Salvo!');document.getElementById('f-val').value='';document.getElementById('f-obs').value='';
+    toast('✅ Lançamento salvo!');
+    fecharModalLanc();document.getElementById('f-val').value='';document.getElementById('f-obs').value='';
     await loadData();renderFL();
   }catch(ex){toast('❌ '+ex.message);}
   finally{btn.disabled=false;btn.innerHTML='+ Salvar';}
@@ -1574,6 +1607,138 @@ function startCountdown(){
     else{const m=Math.floor(secs/60),s=secs%60;el.textContent=`↺ ${m}:${String(s).padStart(2,'0')}`;}
   },1000);
 }
+// ── MODAL LANÇAMENTO ──────────────────────────────────
+function abrirModalLanc(){
+  const modal=document.getElementById('modal-lanc');
+  modal.style.display='flex';
+  // Set current month
+  const now=new Date();
+  const meses=['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+  const fMes=document.getElementById('f-mes');
+  const fAno=document.getElementById('f-ano');
+  if(fMes) fMes.value=meses[now.getMonth()];
+  if(fAno) fAno.value=now.getFullYear().toString();
+  // Focus empresa
+  setTimeout(()=>document.getElementById('f-emp')?.focus(),100);
+}
+
+function fecharModalLanc(){
+  document.getElementById('modal-lanc').style.display='none';
+  document.getElementById('f-val').value='';
+  document.getElementById('f-obs').value='';
+  document.getElementById('f-cat').value='';
+  document.getElementById('f-emp').value='';
+  document.getElementById('f-loja').innerHTML='<option value="">Selecione...</option>';
+}
+
+// ESC fecha modal
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    const modal=document.getElementById('modal-lanc');
+    if(modal&&modal.style.display==='flex') fecharModalLanc();
+    const editModal=document.getElementById('edit-modal');
+    if(editModal&&editModal.style.display==='flex') fecharModalEdit();
+  }
+});
+
+// Click fora fecha modal
+document.getElementById('modal-lanc')?.addEventListener('click',e=>{
+  if(e.target===document.getElementById('modal-lanc')) fecharModalLanc();
+});
+
+// ── LANÇAMENTO — ABAS ──────────────────────────────────
+function switchLtTab(tab){
+  const panels={main:'lt-main',grade:'lt-grade',hist:'lt-hist'};
+  Object.entries(panels).forEach(([t,id])=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display=t===tab?'block':'none';
+  });
+  const btns={grade:'lt-tab-grade',hist:'lt-tab-hist'};
+  Object.entries(btns).forEach(([t,id])=>{
+    const btn=document.getElementById(id);
+    if(!btn)return;
+    if(t===tab){btn.style.background='var(--blue-bg)';btn.style.color='var(--blue)';btn.style.borderColor='var(--blue)';}
+    else{btn.style.background='transparent';btn.style.color='var(--ink2)';btn.style.borderColor='var(--border2)';}
+  });
+  if(tab==='main') renderLtRecentes();
+}
+
+// ── TELA INICIAL DO LANÇAMENTO ──────────────────────────
+function renderLtKpis(){
+  const wrap=document.getElementById('lt-kpis');if(!wrap)return;
+  const now=new Date();
+  const mesAtual=MESES[now.getMonth()];
+  const anoAtual=now.getFullYear();
+  const dMes=S.lancamentos.filter(l=>l.mes===mesAtual&&l.ano===anoAtual);
+  const totalMes=dMes.reduce((s,l)=>s+parseFloat(l.valor),0);
+  const nLojas=new Set(dMes.map(l=>l.loja_id)).size;
+  const dAno=S.lancamentos.filter(l=>l.ano===anoAtual);
+  const totalAno=dAno.reduce((s,l)=>s+parseFloat(l.valor),0);
+  wrap.innerHTML=`
+    <div class="kpi blue"><div class="kpi-label">${mesAtual.slice(0,1)+mesAtual.slice(1).toLowerCase()} ${anoAtual}</div><div class="kpi-val">${fS(totalMes)}</div><div class="kpi-sub">${dMes.length} lançamentos</div></div>
+    <div class="kpi green"><div class="kpi-label">Acumulado ${anoAtual}</div><div class="kpi-val">${fS(totalAno)}</div><div class="kpi-sub">${dAno.length} registros</div></div>
+    <div class="kpi purple"><div class="kpi-label">Lojas no mês</div><div class="kpi-val">${nLojas}</div><div class="kpi-sub">de ${S.lojas.length} cadastradas</div></div>
+    <div class="kpi amber"><div class="kpi-label">Último lançamento</div><div class="kpi-val" style="font-size:14px">${S.lancamentos.length>0?S.lancamentos[0].loja_nome?.split(' ').slice(0,2).join(' ')||'—':'—'}</div><div class="kpi-sub">${S.lancamentos.length>0?S.lancamentos[0].mes?.slice(0,3)+'/'+S.lancamentos[0].ano:'—'}</div></div>`;
+}
+
+function renderLtRecentes(){
+  const wrap=document.getElementById('lt-recentes-wrap');if(!wrap)return;
+  const emp=document.getElementById('lt-filter-emp')?.value||'';
+  const mes=document.getElementById('lt-filter-mes')?.value||'';
+  const ano=document.getElementById('lt-filter-ano')?.value||'';
+  const d=S.lancamentos
+    .filter(l=>(!emp||l.empresa_nome===emp)&&(!mes||l.mes===mes)&&(!ano||String(l.ano)===ano))
+    .slice(0,50);
+  if(!d.length){
+    wrap.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div>Nenhum lançamento encontrado</div></div>';
+    return;
+  }
+  const tot=d.reduce((s,l)=>s+parseFloat(l.valor),0);
+  wrap.innerHTML=`<div style="padding:.6rem 1rem;background:var(--surface2);border-bottom:1px solid var(--border);font-size:12px;color:var(--ink2);display:flex;justify-content:space-between">
+    <span><strong>${d.length}</strong> registros exibidos</span>
+    <span>Total filtrado: <strong style="color:var(--blue)">${fBR(tot)}</strong></span>
+  </div>
+  <div style="overflow-x:auto"><table>
+    <thead><tr>
+      <th>Empresa</th><th>Loja</th><th>Mês/Ano</th><th>Categoria</th>
+      <th style="text-align:right">Valor</th><th>Obs</th><th style="text-align:center">Ações</th>
+    </tr></thead>
+    <tbody>${d.map(x=>`<tr>
+      <td style="font-size:11px">${x.empresa_nome}</td>
+      <td style="font-weight:600;font-size:12px">${x.loja_nome}</td>
+      <td style="font-size:12px;white-space:nowrap">${x.mes?.slice(0,3)}/${x.ano}</td>
+      <td><span class="badge bb" style="font-size:10px">${x.cat_nome}</span></td>
+      <td class="tn" style="font-size:12px">${fBR(x.valor)}</td>
+      <td style="font-size:11px;color:var(--ink2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${x.obs||'—'}</td>
+      <td style="text-align:center">
+        <div style="display:flex;gap:3px;justify-content:center">
+          <button class="btn btn-ghost btn-sm" onclick="abrirModalEditFromList('${x.id}')" title="Editar">✏️</button>
+          <button class="btn btn-danger" onclick="delLReload('${x.id}')" title="Remover">✕</button>
+        </div>
+      </td>
+    </tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+async function delLReload(id){
+  if(!confirm('Remover este lançamento?'))return;
+  try{
+    await db(`lancamentos?id=eq.${id}`,{method:'DELETE'});
+    S.lancamentos=S.lancamentos.filter(l=>l.id!==id);
+    toast('🗑️ Removido');
+    renderLtRecentes();
+    renderLtKpis();
+  }catch(ex){toast('❌ '+ex.message);}
+}
+
+function abrirModalEditFromList(id){
+  abrirModalEdit(id);
+}
+
+// Inicializar tela de lançamento ao navegar para ela
+const _origGoPage=goPage;
+
+
 function fBR(v){return'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fS(v){return'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 
