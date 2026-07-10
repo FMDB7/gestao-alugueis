@@ -497,7 +497,7 @@ tbody tr:hover td{background:var(--bg)}
                 </div>
               </div>
             </div>
-            <div class="card" style="overflow:hidden"><div id="det-wrap" style="max-height:70vh;overflow-y:auto"><div class="empty"><div class="empty-icon">📊</div><div>Configure os filtros e clique em Gerar</div></div></div></div>
+            <div class="card"><div id="det-wrap"><div class="empty"><div class="empty-icon">📊</div><div>Configure os filtros e clique em Gerar</div></div></div></div>
           </div><!-- end rel-detalhado -->
 
         </div>
@@ -1886,19 +1886,19 @@ function renderDetalhado(){
     <span class="badge bg2">${lojasU.length} lojas</span>
     <span class="badge ba">${d.length} lançamentos</span>
     <span class="badge" style="background:var(--purple-bg);color:var(--purple)">${cats.length} categorias</span>
-  </div><div style="overflow-x:auto"><table style="border-collapse:collapse;width:100%">
+  </div><div style="overflow:auto;max-height:65vh;position:relative"><table style="border-collapse:collapse;width:100%;min-width:max-content">
   <thead style="position:sticky;top:0;z-index:10">
     <tr>
-      <th rowspan="2" style="background:#1a3db8;color:#fff;min-width:160px;position:sticky;top:0;z-index:11">Loja</th>
-      <th rowspan="2" style="background:#1a3db8;color:#fff;min-width:55px;position:sticky;top:0;z-index:11">Ano</th>
-      <th rowspan="2" style="background:#1a3db8;color:#fff;min-width:80px;position:sticky;top:0;z-index:11">Mês</th>
-      ${cats.map(c=>`<th colspan="2" style="background:#2d5be3;color:#fff;text-align:center;min-width:160px;position:sticky;top:0;z-index:10">${c}</th>`).join('')}
-      <th colspan="2" style="background:#0d9e6e;color:#fff;text-align:center;min-width:160px;position:sticky;top:0;z-index:10">TOTAL</th>
+      <th rowspan="2" style="background:#1a3db8;color:#fff;min-width:160px;position:sticky;top:0;z-index:12;box-shadow:0 2px 0 #1a3db8">LOJA</th>
+      <th rowspan="2" style="background:#1a3db8;color:#fff;min-width:55px;position:sticky;top:0;z-index:12;box-shadow:0 2px 0 #1a3db8">ANO</th>
+      <th rowspan="2" style="background:#1a3db8;color:#fff;min-width:80px;position:sticky;top:0;z-index:12;box-shadow:0 2px 0 #1a3db8">MÊS</th>
+      ${cats.map(c=>`<th colspan="2" style="background:#2d5be3;color:#fff;text-align:center;min-width:160px;position:sticky;top:0;z-index:10;box-shadow:0 2px 0 #2d5be3">${c}</th>`).join('')}
+      <th colspan="2" style="background:#0d9e6e;color:#fff;text-align:center;min-width:160px;position:sticky;top:0;z-index:10;box-shadow:0 2px 0 #0d9e6e">TOTAL</th>
     </tr>
     <tr>
-      ${cats.map(()=>'<th style="background:#3d6cf0;color:#fff;text-align:right;font-size:10px;position:sticky;top:36px;z-index:10">Valor</th><th style="background:#3d6cf0;color:#fff;text-align:center;font-size:10px;position:sticky;top:36px;z-index:10">%</th>').join('')}
-      <th style="background:#0b8a60;color:#fff;text-align:right;font-size:10px;position:sticky;top:36px;z-index:10">Valor</th>
-      <th style="background:#0b8a60;color:#fff;text-align:center;font-size:10px;position:sticky;top:36px;z-index:10">% Total</th>
+      ${cats.map(()=>'<th style="background:#3d6cf0;color:#fff;text-align:right;font-size:10px;position:sticky;top:38px;z-index:10;box-shadow:0 2px 0 #3d6cf0">Valor</th><th style="background:#3d6cf0;color:#fff;text-align:center;font-size:10px;position:sticky;top:38px;z-index:10;box-shadow:0 2px 0 #3d6cf0">%</th>').join('')}
+      <th style="background:#0b8a60;color:#fff;text-align:right;font-size:10px;position:sticky;top:38px;z-index:10;box-shadow:0 2px 0 #0b8a60">Valor</th>
+      <th style="background:#0b8a60;color:#fff;text-align:center;font-size:10px;position:sticky;top:38px;z-index:10;box-shadow:0 2px 0 #0b8a60">% Total</th>
     </tr>
   </thead><tbody>`;
 
