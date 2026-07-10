@@ -2133,7 +2133,12 @@ function renderAnual(){
     return;
   }
 
-  const lojasU=[...new Set(d.map(l=>l.loja_nome))].sort();
+  // Calcular acumulado por loja para ordenar do maior para o menor
+  const lojaAcum={};
+  [...new Set(d.map(l=>l.loja_nome))].forEach(loja=>{
+    lojaAcum[loja]=d.filter(x=>x.loja_nome===loja).reduce((s,x)=>s+parseFloat(x.valor),0);
+  });
+  const lojasU=Object.keys(lojaAcum).sort((a,b)=>lojaAcum[b]-lojaAcum[a]);
   const totalGeral=d.reduce((s,l)=>s+parseFloat(l.valor),0);
 
   // Totais por mês (para coluna de total geral)
@@ -2358,7 +2363,12 @@ function renderDetalhado(){
     ...COLS_ORDER.filter(c=>allCats.includes(c)),
     ...allCats.filter(c=>!COLS_ORDER.includes(c)).sort()
   ];
-  const lojasU=[...new Set(d.map(l=>l.loja_nome))].sort();
+  // Calcular acumulado por loja para ordenar do maior para o menor
+  const lojaAcum={};
+  [...new Set(d.map(l=>l.loja_nome))].forEach(loja=>{
+    lojaAcum[loja]=d.filter(x=>x.loja_nome===loja).reduce((s,x)=>s+parseFloat(x.valor),0);
+  });
+  const lojasU=Object.keys(lojaAcum).sort((a,b)=>lojaAcum[b]-lojaAcum[a]);
   const totalGeral=d.reduce((s,l)=>s+parseFloat(l.valor),0);
   const anos=[];for(let a=anoIni;a<=anoFim;a++)anos.push(a);
   detState={d,cats,lojasU,anos,totalGeral,emp,lojas,anoIni,anoFim,cat};
