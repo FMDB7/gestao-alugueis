@@ -387,8 +387,9 @@ tbody tr:hover td{background:var(--bg)}
             <div style="display:grid;grid-template-columns:1fr 2fr;gap:1rem;margin-bottom:1.5rem">
               <div class="fg">
                 <label class="fl">VALOR (R$) ★</label>
-                <input type="number" class="fc" id="f-val" placeholder="0,00" step="0.01" min="0"
-                  style="text-align:right;font-size:16px;font-weight:600"
+                <input type="text" class="fc" id="f-val" placeholder="0,00"
+                  style="text-align:right;font-size:16px;font-weight:600;letter-spacing:.02em"
+                  oninput="mascaraValor(this)"
                   onkeydown="if(event.key==='Enter')salvar()"/>
               </div>
               <div class="fg">
@@ -1092,7 +1093,7 @@ function showTab(id,btn){
 async function salvar(){
   const en=document.getElementById('f-emp').value,ln=document.getElementById('f-loja').value;
   const ano=parseInt(document.getElementById('f-ano').value),mes=document.getElementById('f-mes').value;
-  const cn=document.getElementById('f-cat').value,val=parseFloat(document.getElementById('f-val').value)||0;
+  const cn=document.getElementById('f-cat').value,val=getValorNumerico('f-val');
   const obs=document.getElementById('f-obs').value;
   if(!en||!ln||!cn){toast('⚠️ Preencha empresa, loja e categoria');return;}
   if(val<=0){toast('⚠️ Informe um valor');return;}
@@ -1102,7 +1103,16 @@ async function salvar(){
     if(!e||!l||!c){toast('❌ Cadastro não encontrado');return;}
     await db('lancamentos',{method:'POST',body:JSON.stringify({empresa_id:e.id,loja_id:l.id,categoria_id:c.id,ano,mes,mes_num:MESES.indexOf(mes)+1,valor:val,obs})});
     toast('✅ Lançamento salvo!');
-    fecharModalLanc();document.getElementById('f-val').value='';document.getElementById('f-obs').value='';
+    // Manter modal aberto para próximo lançamento
+    // Limpar apenas valor e obs, manter empresa/loja/período/categoria
+    document.getElementById('f-val').value='';
+    document.getElementById('f-obs').value='';
+    document.getElementById('f-cat').value='';
+    // Atualizar lista de recentes em background
+    renderLtRecentes();
+    renderLtKpis();
+    // Focus na categoria para próximo lançamento
+    setTimeout(()=>document.getElementById('f-cat')?.focus(),100);document.getElementById('f-val').value='';document.getElementById('f-obs').value='';
     await loadData();renderFL();
   }catch(ex){toast('❌ '+ex.message);}
   finally{btn.disabled=false;btn.innerHTML='+ Salvar';}
@@ -1464,7 +1474,14 @@ function renderDash(){
   const empPairs=emps.map((e,i)=>({nome:e,val:d.filter(l=>l.empresa_nome===e).reduce((s,l)=>s+parseFloat(l.valor),0),clr:CLR[i%CLR.length]})).sort((a,b)=>b.val-a.val);
   const empTot=empPairs.reduce((s,x)=>s+x.val,0);
   dC('e');CH.e=new Chart(document.getElementById('c-empresa'),{type:'bar',data:{labels:empPairs.map(x=>x.nome.split(' ').slice(0,2).join(' ')),datasets:[{data:empPairs.map(x=>x.val),backgroundColor:empPairs.map(x=>x.clr),borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw||0;const pct=empTot>0?(v/empTot*100).toFixed(1):0;return ` ${fS(v)} — ${pct}% do total`;}}}},scales:{y:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false},ticks:{font:{size:10}}}}}});
-  const cats=[...new Set(d.map(l=>l.cat_nome))].sort();
+  // Ordem definida das colunas
+  const COLS_ORDER=['ALUGUEL MÍNIMO','ALUGUEL DEPOSITO','ENC ESPECIFICO','ENCARGOS COMUNS','FUNDO DE PROMOÇÃO','CONDOMÍNIO GERAL','ALUGUEL COMPLEMENTAR'];
+  const allCats=[...new Set(d.map(l=>l.cat_nome))];
+  // Sort: cols in defined order first, then remaining alphabetically
+  const cats=[
+    ...COLS_ORDER.filter(c=>allCats.includes(c)),
+    ...allCats.filter(c=>!COLS_ORDER.includes(c)).sort()
+  ];
   const catVals=cats.map(c=>d.filter(l=>l.cat_nome===c).reduce((s,l)=>s+parseFloat(l.valor),0));
   const catTot=catVals.reduce((s,v)=>s+v,0);
   dC('c');CH.c=new Chart(document.getElementById('c-cat'),{type:'doughnut',data:{labels:cats,datasets:[{data:catVals,backgroundColor:CLR,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:10},padding:5,generateLabels:chart=>{const ds=chart.data.datasets[0];return chart.data.labels.map((lbl,i)=>{const v=ds.data[i];const pct=catTot>0?(v/catTot*100).toFixed(1):0;return{text:`${lbl}: ${pct}%`,fillStyle:ds.backgroundColor[i],strokeStyle:'#fff',lineWidth:2,index:i};});}}},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw||0;const pct=catTot>0?(v/catTot*100).toFixed(1):0;return ` ${fS(v)} — ${pct}%`;}}}}}}); 
@@ -1739,6 +1756,27 @@ function abrirModalEditFromList(id){
 const _origGoPage=goPage;
 
 
+// ── MÁSCARA DE VALOR AUTOMÁTICA ──────────────────────
+function mascaraValor(el){
+  // Remove tudo exceto dígitos
+  let v=el.value.replace(/\D/g,'');
+  if(!v){el.value='';return;}
+  // Converter para centavos
+  v=parseInt(v,10);
+  // Formatar como moeda brasileira
+  const formatted=(v/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  el.value=formatted;
+}
+
+function getValorNumerico(id){
+  const el=document.getElementById(id);
+  if(!el)return 0;
+  // Remove pontos de milhar e troca vírgula por ponto
+  const v=el.value.replace(/\./g,'').replace(',','.');
+  return parseFloat(v)||0;
+}
+
+
 function fBR(v){return'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fS(v){return'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 
@@ -1817,7 +1855,14 @@ function renderDetalhado(){
   const d=S.lancamentos.filter(l=>(!emp||l.empresa_nome===emp)&&(!lojas.length||lojas.includes(l.loja_nome))&&(l.ano>=anoIni&&l.ano<=anoFim)&&(!cat||l.cat_nome===cat));
   const wrap=document.getElementById('det-wrap');
   if(!d.length){wrap.innerHTML='<div class="empty"><div class="empty-icon">📊</div><div>Nenhum dado</div></div>';document.getElementById('btn-det-pdf').style.display='none';return;}
-  const cats=[...new Set(d.map(l=>l.cat_nome))].sort();
+  // Ordem definida das colunas
+  const COLS_ORDER=['ALUGUEL MÍNIMO','ALUGUEL DEPOSITO','ENC ESPECIFICO','ENCARGOS COMUNS','FUNDO DE PROMOÇÃO','CONDOMÍNIO GERAL','ALUGUEL COMPLEMENTAR'];
+  const allCats=[...new Set(d.map(l=>l.cat_nome))];
+  // Sort: cols in defined order first, then remaining alphabetically
+  const cats=[
+    ...COLS_ORDER.filter(c=>allCats.includes(c)),
+    ...allCats.filter(c=>!COLS_ORDER.includes(c)).sort()
+  ];
   const lojasU=[...new Set(d.map(l=>l.loja_nome))].sort();
   const totalGeral=d.reduce((s,l)=>s+parseFloat(l.valor),0);
   const anos=[];for(let a=anoIni;a<=anoFim;a++)anos.push(a);
