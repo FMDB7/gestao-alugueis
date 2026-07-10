@@ -255,7 +255,8 @@ tbody tr:hover td{background:var(--bg)}
             <div class="card-hd">
               <div class="card-title">Lançamentos recentes</div>
               <div style="display:flex;gap:.5rem;align-items:center">
-                <select class="fc" id="lt-filter-emp" onchange="renderLtRecentes()" style="font-size:12px;padding:4px 8px;width:160px"><option value="">Todas empresas</option></select>
+                <select class="fc" id="lt-filter-emp" onchange="updateLtLojas();renderLtRecentes()" style="font-size:12px;padding:4px 8px;width:155px"><option value="">Todas empresas</option></select>
+                <select class="fc" id="lt-filter-loja" onchange="renderLtRecentes()" style="font-size:12px;padding:4px 8px;width:155px"><option value="">Todas as lojas</option></select>
                 <select class="fc" id="lt-filter-mes" onchange="renderLtRecentes()" style="font-size:12px;padding:4px 8px;width:120px">
                   <option value="">Todos meses</option>
                   <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option>
@@ -1140,6 +1141,7 @@ function goPage(id,btn){
     renderLtRecentes();
     // Populate lt-filter-emp
     fs('lt-filter-emp',S.empresas.map(e=>e.nome).sort(),'Todas empresas');
+    fs('lt-filter-loja',S.lojas.map(l=>l.nome).sort(),'Todas as lojas');
   }
 }
 function showTab(id,btn){
@@ -1955,6 +1957,13 @@ function switchLtTab(tab){
 }
 
 // ── TELA INICIAL DO LANÇAMENTO ──────────────────────────
+function updateLtLojas(){
+  const emp=document.getElementById('lt-filter-emp')?.value||'';
+  const lojas=S.lojas.filter(l=>!emp||l.empresa_nome===emp).map(l=>l.nome).sort();
+  fs('lt-filter-loja',lojas,'Todas as lojas');
+}
+
+
 function renderLtKpis(){
   const wrap=document.getElementById('lt-kpis');if(!wrap)return;
   const now=new Date();
@@ -1975,10 +1984,11 @@ function renderLtKpis(){
 function renderLtRecentes(){
   const wrap=document.getElementById('lt-recentes-wrap');if(!wrap)return;
   const emp=document.getElementById('lt-filter-emp')?.value||'';
+  const loja=document.getElementById('lt-filter-loja')?.value||'';
   const mes=document.getElementById('lt-filter-mes')?.value||'';
   const ano=document.getElementById('lt-filter-ano')?.value||'';
   const d=S.lancamentos
-    .filter(l=>(!emp||l.empresa_nome===emp)&&(!mes||l.mes===mes)&&(!ano||String(l.ano)===ano))
+    .filter(l=>(!emp||l.empresa_nome===emp)&&(!loja||l.loja_nome===loja)&&(!mes||l.mes===mes)&&(!ano||String(l.ano)===ano))
     .slice(0,200);
   if(!d.length){
     wrap.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div>Nenhum lançamento encontrado</div></div>';
