@@ -1,20 +1,21 @@
 {
-  "name": "ALUGUÉIS — TOP Internacional",
-  "short_name": "ALUGUÉIS",
-  "description": "Sistema de Controle de Aluguéis — TOP Internacional",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#1a3db8",
-  "theme_color": "#2d5be3",
-  "orientation": "portrait-primary",
-  "icons": [
-    {
-      "src": "/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
-  "categories": ["finance", "business", "productivity"],
-  "lang": "pt-BR"
+  "headers": [
+    {
+      "source": "/icon.svg",
+      "headers": [
+        { "key": "Content-Type", "value": "image/svg+xml" },
+        { "key": "Cache-Control", "value": "public, max-age=86400" }
+      ]
+    },
+    {
+      "source": "/manifest.json",
+      "headers": [
+        { "key": "Content-Type", "value": "application/manifest+json" },
+        { "key": "Cache-Control", "value": "public, max-age=86400" }
+      ]
+    }
+  ]
 }
