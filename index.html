@@ -463,6 +463,15 @@ tbody tr:hover td{background:var(--bg)}
                   <label style="display:flex;align-items:center;gap:.5rem;padding:.2rem 0;cursor:pointer;font-size:12px"><input type="checkbox" class="r-grp-chk" value="ano" style="accent-color:#2d5be3"/> Ano</label>
                 </div>
               </div>
+              <div class="fg" style="min-width:150px">
+                <label class="fl">Grupo</label>
+                <select class="fc" id="r-grupo">
+                  <option value="">Todos os grupos</option>
+                  <option value="ZONA FRANCA">ZONA FRANCA</option>
+                  <option value="MERCADO LOCAL">MERCADO LOCAL</option>
+                  <option value="OUTROS">OUTROS</option>
+                </select>
+              </div>
               <div style="display:flex;align-items:flex-end;gap:.5rem">
                 <button class="btn btn-primary" onclick="renderRel()">Gerar</button>
                 <button class="btn btn-ghost" onclick="exportPDF()" id="btn-pdf" style="display:none">⬇ PDF</button>
@@ -499,6 +508,15 @@ tbody tr:hover td{background:var(--bg)}
                     <option value="2024">2024</option><option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
                   </select></div>
                   <div class="fg"><label class="fl">Categoria</label><select class="fc" id="rd-cat"><option value="">Todas</option></select></div>
+                  <div class="fg" style="min-width:150px">
+                    <label class="fl">Grupo</label>
+                    <select class="fc" id="rd-grupo">
+                      <option value="">Todos os grupos</option>
+                      <option value="ZONA FRANCA">ZONA FRANCA</option>
+                      <option value="MERCADO LOCAL">MERCADO LOCAL</option>
+                      <option value="OUTROS">OUTROS</option>
+                    </select>
+                  </div>
                   <div style="display:flex;align-items:flex-end;gap:.5rem">
                     <button class="btn btn-primary" onclick="renderDetalhado()">Gerar</button>
                     <button class="btn btn-ghost" id="btn-det-pdf" onclick="exportDetalhadoPDF()" style="display:none">⬇ PDF</button>
@@ -536,6 +554,15 @@ tbody tr:hover td{background:var(--bg)}
                     <option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option>
                   </select></div>
                   <div class="fg"><label class="fl">Categoria</label><select class="fc" id="ra-cat"><option value="">Todas</option></select></div>
+                  <div class="fg" style="min-width:150px">
+                    <label class="fl">Grupo</label>
+                    <select class="fc" id="ra-grupo">
+                      <option value="">Todos os grupos</option>
+                      <option value="ZONA FRANCA">ZONA FRANCA</option>
+                      <option value="MERCADO LOCAL">MERCADO LOCAL</option>
+                      <option value="OUTROS">OUTROS</option>
+                    </select>
+                  </div>
                   <div style="display:flex;align-items:flex-end;gap:.5rem">
                     <button class="btn btn-primary" onclick="renderAnual()">Gerar</button>
                     <button class="btn btn-ghost" id="btn-anual-pdf" onclick="exportAnualPDF()" style="display:none">⬇ PDF</button>
@@ -625,6 +652,38 @@ tbody tr:hover td{background:var(--bg)}
 <script>
 const SB='https://xgzhvsovzxtcdhfkesgd.supabase.co';
 const SK='sb_publishable_ta2o6ZR043COAwmbnGOfnQ_NFm6nyeU';
+
+// ── GRUPOS DE LOJAS ──────────────────────────────────
+const GRUPOS_LOJAS = {
+  'ZONA FRANCA': [
+    'Amazonas Shopping-JMS','Manauara Tucuma','Manauara Castanheira',
+    'Adega Moinho_Deposito','Ponta Negra Shoping','Loja Centro','Sumauma',
+    'Select Z Leste','Quiosque Patio Roraima','Cond Salvador Dali',
+    'Adega Ferreira Pena','Quiosque Manauara','Quiosque Via Norte'
+  ],
+  'MERCADO LOCAL': [
+    'Shop Dom Pedro','Shop Joao Pessoa','Quiosque Center Norte',
+    'Extrema TFS Galaxia','Shopping Vila Olimpia',
+    'A L L S Salles Comercio e Serviços Eireli','Shopping Analia Franco',
+    'Quiosque Center Boulevard','Quiosque Plaza Sul','Quiosque Belem Pq Shopping',
+    'Quiosque Ligth','Quiosque Judiai','Extrema Royal Galaxia',
+    'Extrema Mic Galaxia','Catalao','GIL Mattos Euroluxo',
+    'Shop Recife','Tacaruna','Quiosque Rio Mar','Shoping Recife Deposito'
+  ]
+};
+
+function getGrupoLoja(nomeLoja){
+  for(const [grupo,lojas] of Object.entries(GRUPOS_LOJAS)){
+    if(lojas.some(l=>nomeLoja.toLowerCase().includes(l.toLowerCase())||l.toLowerCase().includes(nomeLoja.toLowerCase()))) return grupo;
+  }
+  return 'OUTROS';
+}
+
+function filtrarPorGrupo(lancamentos, grupo){
+  if(!grupo) return lancamentos;
+  return lancamentos.filter(l=>getGrupoLoja(l.loja_nome)===grupo);
+}
+
 async function db(path,opts={}){
   // Verificar sessão ativa antes de cada chamada
   if(currentSession&&path!=='usuarios'){
@@ -1569,9 +1628,11 @@ function renderRel(){
   const grupos=getGrupos();
   if(!grupos.length){toast('⚠️ Selecione ao menos um agrupamento');return;}
 
+  const grupo=document.getElementById('r-grupo')?.value||'';
   const d=S.lancamentos.filter(x=>
     (!e||x.empresa_nome===e)&&(!l.length||l.includes(x.loja_nome))&&
-    (!a||String(x.ano)===a)&&(!m||x.mes===m)&&(!c||x.cat_nome===c)
+    (!a||String(x.ano)===a)&&(!m||x.mes===m)&&(!c||x.cat_nome===c)&&
+    (!grupo||getGrupoLoja(x.loja_nome)===grupo)
   );
 
   const w=document.getElementById('rel-wrap');
@@ -1608,6 +1669,7 @@ function renderRel(){
     <span class="badge bg2">${rows.length} itens</span>
     <span class="badge ba">${d.length} lançamentos</span>
     <span class="badge" style="background:var(--purple-bg);color:var(--purple)">Agrupado por: ${lbs}</span>
+    ${grupo?`<span class="badge" style="background:#fef3c7;color:#92400e">Grupo: ${grupo}</span>`:''}
   </div>
 
   <!-- GRÁFICO DE COLUNAS -->
@@ -2203,10 +2265,12 @@ function renderAnual(){
   const ano=parseInt(document.getElementById('ra-ano').value);
   const cat=document.getElementById('ra-cat').value;
 
+  const grupo=document.getElementById('ra-grupo')?.value||'';
   const d=S.lancamentos.filter(l=>
     (!emp||l.empresa_nome===emp)&&
     (!lojas.length||lojas.includes(l.loja_nome))&&
-    l.ano===ano&&(!cat||l.cat_nome===cat)
+    l.ano===ano&&(!cat||l.cat_nome===cat)&&
+    (!grupo||getGrupoLoja(l.loja_nome)===grupo)
   );
 
   const wrap=document.getElementById('anual-wrap');
@@ -2435,7 +2499,8 @@ function renderDetalhado(){
   const anoFim=parseInt(document.getElementById('rd-ano-fim').value);
   const cat=document.getElementById('rd-cat').value;
   if(anoFim<anoIni){toast('Ano final deve ser >= inicial');return;}
-  const d=S.lancamentos.filter(l=>(!emp||l.empresa_nome===emp)&&(!lojas.length||lojas.includes(l.loja_nome))&&(l.ano>=anoIni&&l.ano<=anoFim)&&(!cat||l.cat_nome===cat));
+  const grupo=document.getElementById('rd-grupo')?.value||'';
+  const d=S.lancamentos.filter(l=>(!emp||l.empresa_nome===emp)&&(!lojas.length||lojas.includes(l.loja_nome))&&(l.ano>=anoIni&&l.ano<=anoFim)&&(!cat||l.cat_nome===cat)&&(!grupo||getGrupoLoja(l.loja_nome)===grupo));
   const wrap=document.getElementById('det-wrap');
   if(!d.length){wrap.innerHTML='<div class="empty"><div class="empty-icon">📊</div><div>Nenhum dado</div></div>';document.getElementById('btn-det-pdf').style.display='none';return;}
   // Ordem definida das colunas
