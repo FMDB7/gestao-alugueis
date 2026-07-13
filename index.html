@@ -4,6 +4,45 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>ALUGUÉIS — TOP Internacional</title>
+
+<!-- PWA Manifest inline -->
+<script>
+(function(){
+  const manifest={
+    name:"ALUGUÉIS — TOP Internacional",
+    short_name:"ALUGUÉIS",
+    description:"Sistema de Controle de Aluguéis — TOP Internacional",
+    start_url:"/",
+    display:"standalone",
+    background_color:"#1a3db8",
+    theme_color:"#2d5be3",
+    orientation:"portrait-primary",
+    icons:[
+      {src:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIgZmlsbD0iIzFhM2RiOCIvPjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiByeD0iMTEyIiBmaWxsPSIjMmQ1YmUzIiBvcGFjaXR5PSIwLjUiLz48cmVjdCB4PSIxMTAiIHk9IjM0MCIgd2lkdGg9IjU1IiBoZWlnaHQ9IjEwMCIgcng9IjgiIGZpbGw9IiNmZmZmZmYiIG9wYWNpdHk9IjAuMjUiLz48cmVjdCB4PSIxODUiIHk9IjI3NSIgd2lkdGg9IjU1IiBoZWlnaHQ9IjE2NSIgcng9IjgiIGZpbGw9IiNmZmZmZmYiIG9wYWNpdHk9IjAuNCIvPjxyZWN0IHg9IjI2MCIgeT0iMjA1IiB3aWR0aD0iNTUiIGhlaWdodD0iMjM1IiByeD0iOCIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC42NSIvPjxyZWN0IHg9IjMzNSIgeT0iMTQwIiB3aWR0aD0iNTUiIGhlaWdodD0iMzAwIiByeD0iOCIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC45Ii8+PHBvbHlsaW5lIHBvaW50cz0iMTM3LDMzNSAyMTIsMjcwIDI4NywyMDAgMzYyLDEzNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNjBhNWZhIiBzdHJva2Utd2lkdGg9IjciIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjEzNyIgY3k9IjMzNSIgcj0iOSIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjIxMiIgY3k9IjI3MCIgcj0iOSIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjI4NyIgY3k9IjIwMCIgcj0iOSIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjM2MiIgY3k9IjEzNSIgcj0iMTEiIGZpbGw9IiNmZmZmZmYiLz48cG9seWdvbiBwb2ludHM9IjI1Niw2MiAxOTYsMTE1IDIwNCwxMTUgMjA0LDE1MiAyMzIsMTUyIDIzMiwxMzAgMjgwLDEzMCAyODAsMTUyIDMwOCwxNTIgMzA4LDExNSAzMTYsMTE1IiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjk1Ii8+PGxpbmUgeDE9Ijk1IiB5MT0iNDQ4IiB4Mj0iNDIwIiB5Mj0iNDQ4IiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBvcGFjaXR5PSIwLjMiLz48L3N2Zz4=",sizes:"any",type:"image/svg+xml",purpose:"any maskable"}
+    ],
+    categories:["finance","business","productivity"],
+    lang:"pt-BR"
+  };
+  const blob=new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement('link');
+  link.rel='manifest';link.href=url;
+  document.head.appendChild(link);
+})();
+</script>
+
+<!-- PWA Meta Tags -->
+<meta name="theme-color" content="#2d5be3"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="ALUGUÉIS"/>
+<meta name="application-name" content="ALUGUÉIS"/>
+
+<!-- Ícone inline para todos os dispositivos -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIgZmlsbD0iIzFhM2RiOCIvPjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiByeD0iMTEyIiBmaWxsPSIjMmQ1YmUzIiBvcGFjaXR5PSIwLjUiLz48cmVjdCB4PSIxMTAiIHk9IjM0MCIgd2lkdGg9IjU1IiBoZWlnaHQ9IjEwMCIgcng9IjgiIGZpbGw9IiNmZmZmZmYiIG9wYWNpdHk9IjAuMjUiLz48cmVjdCB4PSIxODUiIHk9IjI3NSIgd2lkdGg9IjU1IiBoZWlnaHQ9IjE2NSIgcng9IjgiIGZpbGw9IiNmZmZmZmYiIG9wYWNpdHk9IjAuNCIvPjxyZWN0IHg9IjI2MCIgeT0iMjA1IiB3aWR0aD0iNTUiIGhlaWdodD0iMjM1IiByeD0iOCIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC42NSIvPjxyZWN0IHg9IjMzNSIgeT0iMTQwIiB3aWR0aD0iNTUiIGhlaWdodD0iMzAwIiByeD0iOCIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC45Ii8+PHBvbHlsaW5lIHBvaW50cz0iMTM3LDMzNSAyMTIsMjcwIDI4NywyMDAgMzYyLDEzNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNjBhNWZhIiBzdHJva2Utd2lkdGg9IjciIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjEzNyIgY3k9IjMzNSIgcj0iOSIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjIxMiIgY3k9IjI3MCIgcj0iOSIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjI4NyIgY3k9IjIwMCIgcj0iOSIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjM2MiIgY3k9IjEzNSIgcj0iMTEiIGZpbGw9IiNmZmZmZmYiLz48cG9seWdvbiBwb2ludHM9IjI1Niw2MiAxOTYsMTE1IDIwNCwxMTUgMjA0LDE1MiAyMzIsMTUyIDIzMiwxMzAgMjgwLDEzMCAyODAsMTUyIDMwOCwxNTIgMzA4LDExNSAzMTYsMTE1IiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjk1Ii8+PGxpbmUgeDE9Ijk1IiB5MT0iNDQ4IiB4Mj0iNDIwIiB5Mj0iNDQ4IiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBvcGFjaXR5PSIwLjMiLz48L3N2Zz4="/>
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIgZmlsbD0iIzFhM2RiOCIvPjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiByeD0iMTEyIiBmaWxsPSIjMmQ1YmUzIiBvcGFjaXR5PSIwLjUiLz48cmVjdCB4PSIxMTAiIHk9IjM0MCIgd2lkdGg9IjU1IiBoZWlnaHQ9IjEwMCIgcng9IjgiIGZpbGw9IiNmZmZmZmYiIG9wYWNpdHk9IjAuMjUiLz48cmVjdCB4PSIxODUiIHk9IjI3NSIgd2lkdGg9IjU1IiBoZWlnaHQ9IjE2NSIgcng9IjgiIGZpbGw9IiNmZmZmZmYiIG9wYWNpdHk9IjAuNCIvPjxyZWN0IHg9IjI2MCIgeT0iMjA1IiB3aWR0aD0iNTUiIGhlaWdodD0iMjM1IiByeD0iOCIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC42NSIvPjxyZWN0IHg9IjMzNSIgeT0iMTQwIiB3aWR0aD0iNTUiIGhlaWdodD0iMzAwIiByeD0iOCIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC45Ii8+PHBvbHlsaW5lIHBvaW50cz0iMTM3LDMzNSAyMTIsMjcwIDI4NywyMDAgMzYyLDEzNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNjBhNWZhIiBzdHJva2Utd2lkdGg9IjciIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjEzNyIgY3k9IjMzNSIgcj0iOSIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjIxMiIgY3k9IjI3MCIgcj0iOSIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjI4NyIgY3k9IjIwMCIgcj0iOSIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjM2MiIgY3k9IjEzNSIgcj0iMTEiIGZpbGw9IiNmZmZmZmYiLz48cG9seWdvbiBwb2ludHM9IjI1Niw2MiAxOTYsMTE1IDIwNCwxMTUgMjA0LDE1MiAyMzIsMTUyIDIzMiwxMzAgMjgwLDEzMCAyODAsMTUyIDMwOCwxNTIgMzA4LDExNSAzMTYsMTE1IiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjk1Ii8+PGxpbmUgeDE9Ijk1IiB5MT0iNDQ4IiB4Mj0iNDIwIiB5Mj0iNDQ4IiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBvcGFjaXR5PSIwLjMiLz48L3N2Zz4="/>
+<link rel="shortcut icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIgZmlsbD0iIzFhM2RiOCIvPjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiByeD0iMTEyIiBmaWxsPSIjMmQ1YmUzIiBvcGFjaXR5PSIwLjUiLz48cmVjdCB4PSIxMTAiIHk9IjM0MCIgd2lkdGg9IjU1IiBoZWlnaHQ9IjEwMCIgcng9IjgiIGZpbGw9IiNmZmZmZmYiIG9wYWNpdHk9IjAuMjUiLz48cmVjdCB4PSIxODUiIHk9IjI3NSIgd2lkdGg9IjU1IiBoZWlnaHQ9IjE2NSIgcng9IjgiIGZpbGw9IiNmZmZmZmYiIG9wYWNpdHk9IjAuNCIvPjxyZWN0IHg9IjI2MCIgeT0iMjA1IiB3aWR0aD0iNTUiIGhlaWdodD0iMjM1IiByeD0iOCIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC42NSIvPjxyZWN0IHg9IjMzNSIgeT0iMTQwIiB3aWR0aD0iNTUiIGhlaWdodD0iMzAwIiByeD0iOCIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC45Ii8+PHBvbHlsaW5lIHBvaW50cz0iMTM3LDMzNSAyMTIsMjcwIDI4NywyMDAgMzYyLDEzNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNjBhNWZhIiBzdHJva2Utd2lkdGg9IjciIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjEzNyIgY3k9IjMzNSIgcj0iOSIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjIxMiIgY3k9IjI3MCIgcj0iOSIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjI4NyIgY3k9IjIwMCIgcj0iOSIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjM2MiIgY3k9IjEzNSIgcj0iMTEiIGZpbGw9IiNmZmZmZmYiLz48cG9seWdvbiBwb2ludHM9IjI1Niw2MiAxOTYsMTE1IDIwNCwxMTUgMjA0LDE1MiAyMzIsMTUyIDIzMiwxMzAgMjgwLDEzMCAyODAsMTUyIDMwOCwxNTIgMzA4LDExNSAzMTYsMTE1IiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjk1Ii8+PGxpbmUgeDE9Ijk1IiB5MT0iNDQ4IiB4Mj0iNDIwIiB5Mj0iNDQ4IiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBvcGFjaXR5PSIwLjMiLz48L3N2Zz4="/>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
@@ -3024,6 +3063,22 @@ async function resetSenha(id){
     await db(`usuarios?id=eq.${id}`,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({senha_hash:hash})});
     toast('✅ Senha redefinida!');
   }catch(ex){toast('❌ '+ex.message);}
+}
+
+// ── SERVICE WORKER (PWA offline) ─────────────────────
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    // Inline SW via blob
+    const swCode=`
+self.addEventListener('fetch',e=>{
+  if(e.request.mode==='navigate'){
+    e.respondWith(fetch(e.request).catch(()=>new Response('<h2>Sem conexão</h2><p>Verifique sua internet.</p>',{headers:{'Content-Type':'text/html'}})));
+  }
+});
+`;
+    const blob=new Blob([swCode],{type:'application/javascript'});
+    navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
+  });
 }
 
 let tt;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),3000);}
