@@ -194,15 +194,15 @@ tbody tr:hover td{background:var(--bg)}
       </div>
 
       <div id="page-dashboard" class="page active">
-        <div class="topbar">
+        <div class="topbar" style="flex-wrap:wrap;gap:.5rem">
           <div class="page-title">Dashboard</div>
-          <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-            <select class="fc" id="d-ano" onchange="renderDash()" style="width:105px">
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;flex:1">
+            <select class="fc" id="d-ano" onchange="renderDash()" style="width:100px">
               <option value="">Todos anos</option><option value="2024">2024</option>
               <option value="2025">2025</option><option value="2026" selected>2026</option>
               <option value="2027">2027</option><option value="2028">2028</option>
             </select>
-            <select class="fc" id="d-mes" onchange="renderDash()" style="width:125px">
+            <select class="fc" id="d-mes" onchange="renderDash()" style="width:120px">
               <option value="">Todos meses</option>
               <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option>
               <option value="MARÇO">Março</option><option value="ABRIL">Abril</option>
@@ -211,9 +211,18 @@ tbody tr:hover td{background:var(--bg)}
               <option value="SETEMBRO">Setembro</option><option value="OUTUBRO">Outubro</option>
               <option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
             </select>
-            <select class="fc" id="d-emp" onchange="updateDashLojas();renderDash()" style="width:155px"><option value="">Todas empresas</option></select>
-            <select class="fc" id="d-loja" onchange="renderDash()" style="width:175px"><option value="">Todas as lojas</option></select>
-            <button class="btn btn-ghost btn-sm" onclick="loadData()">↺ Atualizar</button>
+            <select class="fc" id="d-emp" onchange="updateDashLojas();renderDash()" style="width:150px"><option value="">Todas empresas</option></select>
+            <select class="fc" id="d-loja" onchange="renderDash()" style="width:160px"><option value="">Todas as lojas</option></select>
+            <select class="fc" id="d-grupo" onchange="renderDash()" style="width:145px">
+              <option value="">Todos os grupos</option>
+              <option value="ZONA FRANCA">ZONA FRANCA</option>
+              <option value="MERCADO LOCAL">MERCADO LOCAL</option>
+            </select>
+            <div style="display:flex;gap:.4rem;margin-left:auto">
+              <button class="btn btn-ghost btn-sm" onclick="limparFiltrosDash()" title="Limpar filtros"
+                style="color:var(--red);border-color:var(--red)">✕ Limpar</button>
+              <button class="btn btn-ghost btn-sm" onclick="loadData()" title="Atualizar dados">↺ Atualizar</button>
+            </div>
           </div>
         </div>
         <div class="content">
@@ -254,9 +263,9 @@ tbody tr:hover td{background:var(--bg)}
           <div class="card">
             <div class="card-hd">
               <div class="card-title">Lançamentos recentes</div>
-              <div style="display:flex;gap:.5rem;align-items:center">
-                <select class="fc" id="lt-filter-emp" onchange="updateLtLojas();renderLtRecentes()" style="font-size:12px;padding:4px 8px;width:155px"><option value="">Todas empresas</option></select>
-                <select class="fc" id="lt-filter-loja" onchange="renderLtRecentes()" style="font-size:12px;padding:4px 8px;width:155px"><option value="">Todas as lojas</option></select>
+              <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+                <select class="fc" id="lt-filter-emp" onchange="updateLtLojas();renderLtRecentes()" style="font-size:12px;padding:4px 8px;width:145px"><option value="">Todas empresas</option></select>
+                <select class="fc" id="lt-filter-loja" onchange="renderLtRecentes()" style="font-size:12px;padding:4px 8px;width:145px"><option value="">Todas as lojas</option></select>
                 <select class="fc" id="lt-filter-mes" onchange="renderLtRecentes()" style="font-size:12px;padding:4px 8px;width:120px">
                   <option value="">Todos meses</option>
                   <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option>
@@ -266,10 +275,11 @@ tbody tr:hover td{background:var(--bg)}
                   <option value="SETEMBRO">Setembro</option><option value="OUTUBRO">Outubro</option>
                   <option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
                 </select>
-                <select class="fc" id="lt-filter-ano" onchange="renderLtRecentes()" style="font-size:12px;padding:4px 8px;width:90px">
+                <select class="fc" id="lt-filter-ano" onchange="renderLtRecentes()" style="font-size:12px;padding:4px 8px;width:85px">
                   <option value="2026" selected>2026</option><option value="2025">2025</option>
                   <option value="2024">2024</option><option value="2027">2027</option>
                 </select>
+                <button class="btn btn-ghost btn-sm" onclick="limparFiltrosLanc()" style="font-size:11px;color:var(--red);border-color:var(--red)" title="Limpar filtros">✕</button>
               </div>
             </div>
             <div id="lt-recentes-wrap">
@@ -471,9 +481,10 @@ tbody tr:hover td{background:var(--bg)}
                   <option value="MERCADO LOCAL">MERCADO LOCAL</option>
                                   </select>
               </div>
-              <div style="display:flex;align-items:flex-end;gap:.5rem">
+              <div style="display:flex;align-items:flex-end;gap:.5rem;flex-wrap:wrap">
                 <button class="btn btn-primary" onclick="renderRel()">Gerar</button>
                 <button class="btn btn-ghost" onclick="exportPDF()" id="btn-pdf" style="display:none">⬇ PDF</button>
+                <button class="btn btn-ghost btn-sm" onclick="limparFiltrosRel()" style="color:var(--red);border-color:var(--red)">✕ Limpar</button>
               </div>
             </div>
           </div></div>
@@ -515,9 +526,10 @@ tbody tr:hover td{background:var(--bg)}
                       <option value="MERCADO LOCAL">MERCADO LOCAL</option>
                                           </select>
                   </div>
-                  <div style="display:flex;align-items:flex-end;gap:.5rem">
+                  <div style="display:flex;align-items:flex-end;gap:.5rem;flex-wrap:wrap">
                     <button class="btn btn-primary" onclick="renderDetalhado()">Gerar</button>
                     <button class="btn btn-ghost" id="btn-det-pdf" onclick="exportDetalhadoPDF()" style="display:none">⬇ PDF</button>
+                    <button class="btn btn-ghost btn-sm" onclick="limparFiltrosDet()" style="color:var(--red);border-color:var(--red)">✕ Limpar</button>
                   </div>
                 </div>
               </div>
@@ -560,9 +572,10 @@ tbody tr:hover td{background:var(--bg)}
                       <option value="MERCADO LOCAL">MERCADO LOCAL</option>
                                           </select>
                   </div>
-                  <div style="display:flex;align-items:flex-end;gap:.5rem">
+                  <div style="display:flex;align-items:flex-end;gap:.5rem;flex-wrap:wrap">
                     <button class="btn btn-primary" onclick="renderAnual()">Gerar</button>
                     <button class="btn btn-ghost" id="btn-anual-pdf" onclick="exportAnualPDF()" style="display:none">⬇ PDF</button>
+                    <button class="btn btn-ghost btn-sm" onclick="limparFiltrosAnual()" style="color:var(--red);border-color:var(--red)">✕ Limpar</button>
                   </div>
                 </div>
               </div>
@@ -1596,7 +1609,8 @@ function dC(id){if(CH[id]){CH[id].destroy();delete CH[id];}}
 function renderDash(){
   const a=document.getElementById('d-ano').value,m=document.getElementById('d-mes').value,e=document.getElementById('d-emp').value;
   const lf=document.getElementById('d-loja').value;
-  const d=S.lancamentos.filter(l=>(!a||String(l.ano)===a)&&(!m||l.mes===m)&&(!e||l.empresa_nome===e)&&(!lf||l.loja_nome===lf));
+  const gf=document.getElementById('d-grupo')?.value||'';
+  const d=S.lancamentos.filter(l=>(!a||String(l.ano)===a)&&(!m||l.mes===m)&&(!e||l.empresa_nome===e)&&(!lf||l.loja_nome===lf)&&(!gf||getGrupoLoja(l.loja_nome)===gf));
   const tot=d.reduce((s,l)=>s+parseFloat(l.valor),0);
   const t25=d.filter(l=>l.ano===2025).reduce((s,l)=>s+parseFloat(l.valor),0);
   const t26=d.filter(l=>l.ano===2026).reduce((s,l)=>s+parseFloat(l.valor),0);
@@ -2445,6 +2459,83 @@ function exportAnualPDF(){
   <div class="footer">ALUGUÉIS — TOP Internacional · gestao-alugueis-pi.vercel.app · ${new Date().toLocaleDateString('pt-BR')}</div>
   </body></html>`;
   const win=window.open('','_blank');win.document.write(html);win.document.close();
+}
+
+
+// ── LIMPAR FILTROS ───────────────────────────────────
+function limparFiltrosDash(){
+  ['d-ano','d-mes','d-emp','d-loja','d-grupo'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.value='';
+  });
+  // Reset ano to 2026
+  const ano=document.getElementById('d-ano');
+  if(ano) ano.value='2026';
+  // Reset loja dropdown options
+  updateDashLojas();
+  renderDash();
+  toast('✅ Filtros limpos');
+}
+
+function limparFiltrosRel(){
+  ['r-emp','r-ano','r-mes','r-cat','r-grupo'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.value='';
+  });
+  // Uncheck all grupos
+  document.querySelectorAll('.r-grp-chk').forEach(c=>c.checked=false);
+  // Check empresa by default
+  const empChk=document.querySelector('.r-grp-chk[value="empresa"]');
+  if(empChk) empChk.checked=true;
+  // Reset loja multiselect
+  selectedLojas=new Set();
+  updateLojaTrigger();
+  // Clear result
+  document.getElementById('rel-wrap').innerHTML='<div class="empty"><div class="empty-icon">📄</div><div>Configure e clique em Gerar</div></div>';
+  const btnPdf=document.getElementById('btn-pdf');
+  if(btnPdf) btnPdf.style.display='none';
+  toast('✅ Filtros limpos');
+}
+
+function limparFiltrosDet(){
+  ['rd-emp','rd-ano-ini','rd-ano-fim','rd-cat','rd-grupo'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.value='';
+  });
+  const ini=document.getElementById('rd-ano-ini');if(ini)ini.value='2025';
+  const fim=document.getElementById('rd-ano-fim');if(fim)fim.value='2026';
+  rdSelectedLojas=new Set();
+  updateRdLojaTrigger();
+  buildRdLojaDD();
+  document.getElementById('det-wrap').innerHTML='<div class="empty"><div class="empty-icon">📊</div><div>Configure os filtros e clique em Gerar</div></div>';
+  const btnPdf=document.getElementById('btn-det-pdf');
+  if(btnPdf) btnPdf.style.display='none';
+  toast('✅ Filtros limpos');
+}
+
+function limparFiltrosAnual(){
+  ['ra-emp','ra-ano','ra-cat','ra-grupo'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.value='';
+  });
+  const ano=document.getElementById('ra-ano');if(ano)ano.value='2026';
+  raSelectedLojas=new Set();
+  updateRaLojaTrigger();
+  buildRaLojaDD();
+  document.getElementById('anual-wrap').innerHTML='<div class="empty"><div class="empty-icon">📅</div><div>Configure os filtros e clique em Gerar</div></div>';
+  const btnPdf=document.getElementById('btn-anual-pdf');
+  if(btnPdf) btnPdf.style.display='none';
+  toast('✅ Filtros limpos');
+}
+
+function limparFiltrosLanc(){
+  ['lt-filter-emp','lt-filter-loja','lt-filter-mes','lt-filter-ano'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.value='';
+  });
+  const ano=document.getElementById('lt-filter-ano');if(ano)ano.value='2026';
+  renderLtRecentes();
+  toast('✅ Filtros limpos');
 }
 
 
