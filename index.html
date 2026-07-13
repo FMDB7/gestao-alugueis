@@ -469,8 +469,7 @@ tbody tr:hover td{background:var(--bg)}
                   <option value="">Todos os grupos</option>
                   <option value="ZONA FRANCA">ZONA FRANCA</option>
                   <option value="MERCADO LOCAL">MERCADO LOCAL</option>
-                  <option value="OUTROS">OUTROS</option>
-                </select>
+                                  </select>
               </div>
               <div style="display:flex;align-items:flex-end;gap:.5rem">
                 <button class="btn btn-primary" onclick="renderRel()">Gerar</button>
@@ -514,8 +513,7 @@ tbody tr:hover td{background:var(--bg)}
                       <option value="">Todos os grupos</option>
                       <option value="ZONA FRANCA">ZONA FRANCA</option>
                       <option value="MERCADO LOCAL">MERCADO LOCAL</option>
-                      <option value="OUTROS">OUTROS</option>
-                    </select>
+                                          </select>
                   </div>
                   <div style="display:flex;align-items:flex-end;gap:.5rem">
                     <button class="btn btn-primary" onclick="renderDetalhado()">Gerar</button>
@@ -560,8 +558,7 @@ tbody tr:hover td{background:var(--bg)}
                       <option value="">Todos os grupos</option>
                       <option value="ZONA FRANCA">ZONA FRANCA</option>
                       <option value="MERCADO LOCAL">MERCADO LOCAL</option>
-                      <option value="OUTROS">OUTROS</option>
-                    </select>
+                                          </select>
                   </div>
                   <div style="display:flex;align-items:flex-end;gap:.5rem">
                     <button class="btn btn-primary" onclick="renderAnual()">Gerar</button>
@@ -690,17 +687,20 @@ const GRUPOS_LOJAS = {
     'Shop Recife',
     'Tacaruna',
     'Quiosque Rio Mar',
-    'Shoping Recife Deposito'
+    'Shoping Recife Deposito',
+    'Extrema Top Galaxia',
+    'GIL Mattos Top',
+    'Oscar Freire'
   ]
 };
 
 function getGrupoLoja(nomeLoja){
-  if(!nomeLoja) return 'OUTROS';
+  if(!nomeLoja) return 'MERCADO LOCAL';
   const nome = nomeLoja.trim();
   for(const [grupo,lojas] of Object.entries(GRUPOS_LOJAS)){
     if(lojas.some(l=>l.trim()===nome)) return grupo;
   }
-  return 'OUTROS';
+  return 'MERCADO LOCAL';
 }
 
 function filtrarPorGrupo(lancamentos, grupo){
