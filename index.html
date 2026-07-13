@@ -656,25 +656,49 @@ const SK='sb_publishable_ta2o6ZR043COAwmbnGOfnQ_NFm6nyeU';
 // ── GRUPOS DE LOJAS ──────────────────────────────────
 const GRUPOS_LOJAS = {
   'ZONA FRANCA': [
-    'Amazonas Shopping-JMS','Manauara Tucuma','Manauara Castanheira',
-    'Adega Moinho_Deposito','Ponta Negra Shoping','Loja Centro','Sumauma',
-    'Select Z Leste','Quiosque Patio Roraima','Cond Salvador Dali',
-    'Adega Ferreira Pena','Quiosque Manauara','Quiosque Via Norte'
+    'Amazonas Shopping-JMS',
+    'Manauara Tucumã',
+    'Manauara Castanheira',
+    'Adega Moinho_Deposito',
+    'Ponta Negra Shoping',
+    'Loja Centro',
+    'Sumauma',
+    'Select Z Leste',
+    'Quiosque Patio Roraima e Deposito',
+    'Quiosque Manauara',
+    'Quiosque  Via Norte',
+    'Cond Salvador Dali',
+    'Adega Ferreira Pena'
   ],
   'MERCADO LOCAL': [
-    'Shop Dom Pedro','Shop Joao Pessoa','Quiosque Center Norte',
-    'Extrema TFS Galaxia','Shopping Vila Olimpia',
-    'A L L S Salles Comercio e Serviços Eireli','Shopping Analia Franco',
-    'Quiosque Center Boulevard','Quiosque Plaza Sul','Quiosque Belem Pq Shopping',
-    'Quiosque Ligth','Quiosque Judiai','Extrema Royal Galaxia',
-    'Extrema Mic Galaxia','Catalao','GIL Mattos Euroluxo',
-    'Shop Recife','Tacaruna','Quiosque Rio Mar','Shoping Recife Deposito'
+    'Shop Dom Pedro',
+    'Shop Joao Pessoa',
+    'Quiosque Center Norte',
+    'Extrema TFS Galaxia',
+    'Shopping Vila Olimpia',
+    'A L L S Salles Comercio e Serviços Eireli',
+    'Shopping Analia Franco',
+    'Quiosque Center Boulevard',
+    'Quiosque Plaza Sul',
+    'Quiosque Belem Pq Shopping',
+    'Quiosque Ligth',
+    'Quiosque Judiai',
+    'Extrema Royal Galaxia',
+    'Extrema Mic Galaxia',
+    'Catalao',
+    'GIL Mattos Euroluxo',
+    'Shop Recife',
+    'Tacaruna',
+    'Quiosque Rio Mar',
+    'Shoping Recife Deposito'
   ]
 };
 
 function getGrupoLoja(nomeLoja){
+  if(!nomeLoja) return 'OUTROS';
+  const nome = nomeLoja.trim();
   for(const [grupo,lojas] of Object.entries(GRUPOS_LOJAS)){
-    if(lojas.some(l=>nomeLoja.toLowerCase().includes(l.toLowerCase())||l.toLowerCase().includes(nomeLoja.toLowerCase()))) return grupo;
+    if(lojas.some(l=>l.trim()===nome)) return grupo;
   }
   return 'OUTROS';
 }
