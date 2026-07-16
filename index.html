@@ -445,11 +445,11 @@ tbody tr:hover td{background:var(--bg)}
         <div class="topbar"><div class="page-title">Relatório</div></div>
         <div class="content">
           <div class="tabs">
-            <button class="tab active" onclick="showTab('rel-agrupado',this)">Agrupado</button>
-            <button class="tab" onclick="showTab('rel-detalhado',this)">Detalhado por Mês</button>
+            <button class="tab active" onclick="showTab('rel-detalhado',this)">Detalhado por Mês</button>
             <button class="tab" onclick="showTab('rel-anual',this)">Anual por Loja</button>
+            <button class="tab" onclick="showTab('rel-agrupado',this)">Agrupado</button>
           </div>
-          <div id="rel-agrupado">
+          <div id="rel-agrupado" style="display:none">
           <div class="card"><div class="card-body">
             <div class="filters">
               <div class="fg"><label class="fl">Empresa</label><select class="fc" id="r-emp" onchange="buildLojaDD();renderRel()" ><option value="">Todas</option></select></div>
@@ -508,7 +508,7 @@ tbody tr:hover td{background:var(--bg)}
           </div><!-- end rel-agrupado -->
 
           <!-- RELATÓRIO DETALHADO -->
-          <div id="rel-detalhado" style="display:none">
+          <div id="rel-detalhado">
             <div class="card" style="margin-bottom:1rem">
               <div class="card-body">
                 <div class="filters">
@@ -1670,7 +1670,7 @@ function renderDash(){
   const empTot=empPairs.reduce((s,x)=>s+x.val,0);
   dC('e');CH.e=new Chart(document.getElementById('c-empresa'),{type:'bar',data:{labels:empPairs.map(x=>x.nome.split(' ').slice(0,2).join(' ')),datasets:[{data:empPairs.map(x=>x.val),backgroundColor:empPairs.map(x=>x.clr),borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw||0;const pct=empTot>0?(v/empTot*100).toFixed(1):0;return ` ${fS(v)} — ${pct}% do total`;}}}},scales:{y:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false},ticks:{font:{size:10}}}}}});
   // Ordem definida das colunas
-  const COLS_ORDER=['ALUGUEL MÍNIMO','ALUGUEL DEPOSITO','ENCARGOS COMUNS','FUNDO DE PROMOÇÃO','CONDOMÍNIO GERAL','ENC ESPECIFICO','ALUGUEL COMPLEMENTAR'];
+  const COLS_ORDER=['ALUGUEL MÍNIMO','ENCARGOS COMUNS/COND GERAL','ENC ESPECÍFICO(AR COND, ENERGIA,OUTROS)','FUNDO DE PROMOÇÃO/MÍDIA','ALUGUEL COMPLEMENTAR'];
   const allCats=[...new Set(d.map(l=>l.cat_nome))];
   // Sort: cols in defined order first, then remaining alphabetically
   const cats=[
@@ -2656,7 +2656,7 @@ function renderDetalhado(){
   const wrap=document.getElementById('det-wrap');
   if(!d.length){wrap.innerHTML='<div class="empty"><div class="empty-icon">📊</div><div>Nenhum dado</div></div>';document.getElementById('btn-det-pdf').style.display='none';return;}
   // Ordem definida das colunas
-  const COLS_ORDER=['ALUGUEL MÍNIMO','ALUGUEL DEPOSITO','ENCARGOS COMUNS','FUNDO DE PROMOÇÃO','CONDOMÍNIO GERAL','ENC ESPECIFICO','ALUGUEL COMPLEMENTAR'];
+  const COLS_ORDER=['ALUGUEL MÍNIMO','ENCARGOS COMUNS/COND GERAL','ENC ESPECÍFICO(AR COND, ENERGIA,OUTROS)','FUNDO DE PROMOÇÃO/MÍDIA','ALUGUEL COMPLEMENTAR'];
   const allCats=[...new Set(d.map(l=>l.cat_nome))];
   // Sort: cols in defined order first, then remaining alphabetically
   const cats=[
