@@ -2918,11 +2918,10 @@ function renderPagamentos() {
   if (f.moeda) dados = dados.filter(i=>i.moeda===f.moeda);
   if (f.valorMin !== "" && f.valorMin !== undefined) dados = dados.filter(i=>(parseCurrency(i.valor_moeda)||0) >= parseFloat(f.valorMin));
   if (f.valorMax !== "" && f.valorMax !== undefined) dados = dados.filter(i=>(parseCurrency(i.valor_moeda)||0) <= parseFloat(f.valorMax));
-  const PAGOS_CAMBIO = ["Pago Câmbio Futuro","Pago Câmbio Futuro Parcial"];
-  if (f.dtIni) dados = dados.filter(i=>PAGOS_CAMBIO.includes(i.status_pgto) ? true : (i.dt_pgto&&i.dt_pgto>=f.dtIni));
-  if (f.dtFim) dados = dados.filter(i=>PAGOS_CAMBIO.includes(i.status_pgto) ? true : (i.dt_pgto&&i.dt_pgto<=f.dtFim));
-  if (f.ano)   dados = dados.filter(i=>PAGOS_CAMBIO.includes(i.status_pgto) ? true : (i.dt_pgto&&i.dt_pgto.substring(0,4)===f.ano));
-  if (f.mes)   dados = dados.filter(i=>PAGOS_CAMBIO.includes(i.status_pgto) ? true : (i.dt_pgto&&i.dt_pgto.substring(5,7)===f.mes));
+  if (f.dtIni) dados = dados.filter(i=>i.dt_pgto&&i.dt_pgto>=f.dtIni);
+  if (f.dtFim) dados = dados.filter(i=>i.dt_pgto&&i.dt_pgto<=f.dtFim);
+  if (f.ano)   dados = dados.filter(i=>i.dt_pgto&&i.dt_pgto.substring(0,4)===f.ano);
+  if (f.mes)   dados = dados.filter(i=>i.dt_pgto&&i.dt_pgto.substring(5,7)===f.mes);
   if (f.bancos&&f.bancos.length>0) dados = dados.filter(i=>f.bancos.includes(i.banco));
   dados = dados.slice().sort((a,b)=>{ const va=a.vencimento||"9999-12-31",vb=b.vencimento||"9999-12-31"; return va<vb?-1:va>vb?1:0; });
   const pgPgto = paginar(dados, "pgto");
