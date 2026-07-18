@@ -2949,9 +2949,9 @@ function renderPagamentos() {
       ${selBancos.length>0 ? `<div class="banco-chips">${selBancos.map(b=>`<span class="banco-chip">${b}<span class="banco-chip-x" onclick="removerBancoChip('${b.replace(/'/g,"\\'")}')">×</span></span>`).join("")}</div>` : ""}
     </div>`;
 
-  const totPorBanco = [...new Set(dados.filter(i=>i.banco&&["Pago Total","Pago Parcial","Pago Câmbio Futuro","Pago Câmbio Futuro Parcial"].includes(i.status_pgto)).map(i=>i.banco))].sort()
+  const totPorBanco = [...new Set(dadosPainel.filter(i=>i.banco).map(i=>i.banco))].sort()
     .map(b => {
-      const pagos = dados.filter(i=>i.banco===b&&["Pago Total","Pago Parcial","Pago Câmbio Futuro","Pago Câmbio Futuro Parcial"].includes(i.status_pgto));
+      const pagos = dadosPainel.filter(i=>i.banco===b);
       return { banco:b, total:pagos.reduce((s,i)=>s+(parseFloat(i.reais)||0),0), qtd:pagos.length };
     }).filter(b=>b.total>0);
 
@@ -2973,7 +2973,7 @@ function renderPagamentos() {
 
   // Cards por moeda — use filtered dados (respects ano/mes/fornecedor filters)
   const cardsMoeda = MOEDAS.map(m => {
-    const pago   = dados.filter(i => i.moeda === m);
+    const pago   = dadosPainel.filter(i => i.moeda === m);
     const vlPago = pago.reduce((s,i) => s + parseCurrency(i.valor_moeda), 0);
     const rlPago = pago.reduce((s,i) => s + (parseFloat(i.reais)||0), 0);
     if (!vlPago) return "";
@@ -3034,7 +3034,7 @@ function renderPagamentos() {
   // Resumo do mês selecionado — usa dados já filtrado
   let resumoPgtoHTML = "";
   if (mesAtivo) {
-    const invMes = dados; // dados is already filtered by ano+mes+fornecedor+etc
+    const invMes = dadosPainel; // fully filtered by all criteria
     const totR   = invMes.reduce((s,i)=>s+(parseFloat(i.reais)||0),0);
     const nomeMesLabel = MESES_NOMES[parseInt(mesAtivo)-1] + (anoAtivo?" / "+anoAtivo:"");
     const kpis = MOEDAS.map(m=>{
@@ -3094,7 +3094,7 @@ function renderPagamentos() {
   </div>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px">
     ${[["Em Aberto","#dc2626","#fee2e2"],["Pago Parcial","#d97706","#fef3c7"],["Pago Total","#16a34a","#dcfce7"],["Pago Câmbio Futuro","#7c3aed","#ede9fe"],["Pago Câmbio Futuro Parcial","#2563eb","#dbeafe"]].map(([s,c,bg])=>{
-      const invs = dados.filter(i=>i.status_pgto===s);
+      const invs = dadosPainel.filter(i=>i.status_pgto===s);
       return `<div class="stat" style="background:${bg};border-left:4px solid ${c}">
         <div style="color:${c};font-weight:700;font-size:12px">${s}</div>
         <div style="font-size:26px;font-weight:700;color:${c}">${invs.length}</div>
@@ -3102,7 +3102,7 @@ function renderPagamentos() {
       </div>`;
     }).join("")}
     ${MOEDAS.map(m=>{
-      const t = invoices.filter(i=>i.moeda===m).reduce((s,i)=>s+parseCurrency(i.valor_moeda),0);
+      const t = dadosPainel.filter(i=>i.moeda===m).reduce((s,i)=>s+parseCurrency(i.valor_moeda),0);
       if (!t) return "";
       return `<div class="stat" style="background:${MOEDA_BG[m]};border-left:4px solid ${MOEDA_COR[m]}">
         <div style="font-size:11px;color:#64748b;font-weight:700">${m} ${SIMBOLO[m]}</div>
