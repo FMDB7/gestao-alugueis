@@ -816,13 +816,25 @@ async function initMSAL(){
   await msalInstance.initialize();
 }
 
+// Detecta se é um dispositivo móvel (onde popup é pouco confiável)
+function isMobileDevice(){
+  return /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
+}
+
 // Tentativa de SSO silencioso ao carregar a página
 async function tentarSSOSilencioso(){
   const checking = document.getElementById('login-checking');
   const btnWrap = document.getElementById('login-btn-wrap');
   try{
     await initMSAL();
-    await msalInstance.handleRedirectPromise();
+    const redirectResp = await msalInstance.handleRedirectPromise();
+
+    // Se voltou de um loginRedirect (mobile), já processa o login direto
+    if(redirectResp && redirectResp.account){
+      if(checking) checking.innerHTML = '<div style="width:14px;height:14px;border:2px solid rgba(255,255,255,.2);border-top-color:#2d5be3;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div> Entrando...';
+      await processarLoginMicrosoft(redirectResp.account.username, redirectResp.account.name);
+      return;
+    }
 
     // Passo 1: verificar contas já logadas no navegador
     const accounts = msalInstance.getAllAccounts();
@@ -864,6 +876,15 @@ async function loginMicrosoft(){
   if(erro) erro.textContent = '';
   try{
     await initMSAL();
+    if(isMobileDevice()){
+      // Em mobile, popup é pouco confiável — usa redirecionamento de página inteira.
+      // A página recarrega e o login é concluído em tentarSSOSilencioso() via handleRedirectPromise().
+      await msalInstance.loginRedirect({
+        scopes: ['User.Read'],
+        prompt: 'select_account'
+      });
+      return; // navegação ocorre aqui, nada mais executa
+    }
     const resp = await msalInstance.loginPopup({
       scopes: ['User.Read'],
       prompt: 'select_account'
