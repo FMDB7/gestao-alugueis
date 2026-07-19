@@ -2972,21 +2972,7 @@ function renderPagamentos() {
   </div>` : "";
 
   // Cards por moeda — use filtered dados (respects ano/mes/fornecedor filters)
-  const cardsMoeda = MOEDAS.map(m => {
-    const pago   = dadosPainel.filter(i => i.moeda === m);
-    const vlPago = pago.reduce((s,i) => s + parseCurrency(i.valor_moeda), 0);
-    const rlPago = pago.reduce((s,i) => s + (parseFloat(i.reais)||0), 0);
-    if (!vlPago) return "";
-    return `<div class="kpi-moeda" style="background:${MOEDA_BG[m]};border-color:${MOEDA_COR[m]}">
-      <div style="font-size:13px;font-weight:800;color:${MOEDA_COR[m]};margin-bottom:10px">${SIMBOLO[m]} ${m}</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-        <span style="font-size:11px;color:#16a34a;font-weight:600">✅ Total Pago</span>
-        <span style="font-size:10px;color:#64748b">${pago.length} título(s)</span>
-      </div>
-      <div style="font-size:22px;font-weight:800;color:${MOEDA_COR[m]};margin-bottom:2px">${fmtM(vlPago,m)}</div>
-      <div style="font-size:13px;font-weight:800;color:#16a34a">${fmtBRL(rlPago)}</div>
-    </div>`;
-  }).join("");
+  // cardsMoeda removed — panels consolidated into status row below
 
   // Anos e meses disponíveis nos pagamentos (dt_pgto preenchido)
   const pgtoComDt = invoices.filter(i=>i.dt_pgto&&["Pago Total","Pago Parcial","Pago Câmbio Futuro","Pago Câmbio Futuro Parcial"].includes(i.status_pgto));
@@ -3067,7 +3053,6 @@ function renderPagamentos() {
   ${botoesAnoHTML}
   ${botoesMesHTML}
   ${resumoPgtoHTML}
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px">${cardsMoeda}</div>
   <div class="filter-bar">
     ${buildFornDropdownHTML("pgto", todosForns, "Todos os fornecedores")}
     ${buildStatusDropdown("pgto")}
@@ -3093,12 +3078,13 @@ function renderPagamentos() {
     <button class="btn btn-primary" onclick="exportPDFPgto()">🖨️ PDF</button>
   </div>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px">
-    ${[["Em Aberto","#dc2626","#fee2e2"],["Pago Parcial","#d97706","#fef3c7"],["Pago Total","#16a34a","#dcfce7"],["Pago Câmbio Futuro","#7c3aed","#ede9fe"],["Pago Câmbio Futuro Parcial","#2563eb","#dbeafe"]].map(([s,c,bg])=>{
+    ${[["Pago Parcial","#d97706","#fef3c7","⚠️"],["Pago Total","#16a34a","#dcfce7","✅"],["Pago Câmbio Futuro","#7c3aed","#ede9fe","💱"],["Pago Câmbio Futuro Parcial","#2563eb","#dbeafe","🔷"]].map(([s,cor,bg,ic])=>{
       const invs = dadosPainel.filter(i=>i.status_pgto===s);
-      return `<div class="stat" style="background:${bg};border-left:4px solid ${c}">
-        <div style="color:${c};font-weight:700;font-size:12px">${s}</div>
-        <div style="font-size:26px;font-weight:700;color:${c}">${invs.length}</div>
-        <div style="font-size:13px;font-weight:700;color:${c}">${fmtBRL(invs.reduce((s2,i)=>s2+(parseFloat(i.reais)||0),0))}</div>
+      const tot  = invs.reduce((s2,i)=>s2+(parseFloat(i.reais)||0),0);
+      return `<div class="stat" style="background:${bg};border-left:4px solid ${cor};min-width:0">
+        <div style="color:${cor};font-weight:700;font-size:11px;margin-bottom:2px">${ic} ${s}</div>
+        <div style="font-size:22px;font-weight:800;color:${cor};line-height:1">${invs.length}</div>
+        <div style="font-size:12px;font-weight:700;color:${cor};margin-top:3px">${fmtBRL(tot)}</div>
       </div>`;
     }).join("")}
     ${MOEDAS.map(m=>{
