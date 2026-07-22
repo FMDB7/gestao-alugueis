@@ -1403,7 +1403,7 @@ async function salvar(){
     renderLtKpis();
     // Focus na categoria para próximo lançamento
     setTimeout(()=>document.getElementById('f-cat')?.focus(),100);document.getElementById('f-val').value='';document.getElementById('f-obs').value='';
-    await loadData();renderFL();
+    await loadData();
   }catch(ex){toast('❌ '+ex.message);}
   finally{btn.disabled=false;btn.innerHTML='+ Salvar';}
 }
@@ -1466,70 +1466,6 @@ function atualizarCtxResumo(){
 }
 
 
-function renderFL(){
-  const e=document.getElementById('f-emp').value,l=document.getElementById('f-loja').value;
-  const a=document.getElementById('f-ano').value,m=document.getElementById('f-mes').value;
-  const w=document.getElementById('form-lista');
-  const badge=document.getElementById('fl-total-badge');
-  if(!l){
-    w.innerHTML='<div class="empty" style="padding:1.5rem"><div class="empty-icon">📋</div><div>Selecione uma loja</div></div>';
-    if(badge)badge.textContent='';
-    return;
-  }
-  const d=S.lancamentos.filter(x=>(!e||x.empresa_nome===e)&&(!l||x.loja_nome===l)&&(!a||String(x.ano)===a)&&(!m||x.mes===m));
-  if(!d.length){
-    w.innerHTML='<div class="empty" style="padding:1.5rem"><div class="empty-icon">📋</div><div>Nenhum lançamento neste período</div></div>';
-    if(badge)badge.textContent='Total: R$ 0,00';
-    return;
-  }
-  const tot=d.reduce((s,x)=>s+parseFloat(x.valor),0);
-  if(badge)badge.textContent=fBR(tot);
-  w.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:12px">
-    <thead><tr>
-      <th style="background:var(--surface2);padding:6px 10px;text-align:left;font-size:10px;font-weight:700;color:var(--ink2);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border)">Categoria</th>
-      <th style="background:var(--surface2);padding:6px 10px;text-align:right;font-size:10px;font-weight:700;color:var(--ink2);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border)">Valor</th>
-      <th style="background:var(--surface2);padding:6px 10px;text-align:left;font-size:10px;font-weight:700;color:var(--ink2);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border)">Obs</th>
-      <th style="background:var(--surface2);padding:6px 10px;border-bottom:1px solid var(--border);width:70px"></th>
-    </tr></thead>
-    <tbody id="fl-body">
-    ${d.map(x=>`
-    <tr id="row-${x.id}" style="border-bottom:1px solid var(--border)">
-      <td style="padding:7px 10px"><span class="badge bb" style="font-size:10px">${x.cat_nome}</span></td>
-      <td class="tn" id="val-${x.id}" style="padding:7px 10px;font-size:12px">${fBR(x.valor)}</td>
-      <td style="padding:7px 10px;font-size:11px;color:var(--ink2)" id="obs-${x.id}">${x.obs||'—'}</td>
-      <td style="padding:7px 10px">
-        <div style="display:flex;gap:3px;justify-content:center">
-          <button class="btn btn-ghost btn-sm" onclick="editLanc('${x.id}',${x.valor},'${(x.obs||'').replace(/'/g,"\'")}')">✏️</button>
-          <button class="btn btn-danger" onclick="delL('${x.id}')">✕</button>
-        </div>
-      </td>
-    </tr>
-    <tr id="edit-${x.id}" style="display:none;background:var(--blue-bg)">
-      <td colspan="4" style="padding:.6rem .875rem">
-        <div style="display:flex;gap:.5rem;align-items:flex-end;flex-wrap:wrap">
-          <div class="fg" style="flex:1;min-width:130px">
-            <label class="fl">Novo valor (R$)</label>
-            <input type="number" id="edit-val-${x.id}" value="${parseFloat(x.valor).toFixed(2)}" step="0.01" min="0" class="fc" style="text-align:right"/>
-          </div>
-          <div class="fg" style="flex:2;min-width:160px">
-            <label class="fl">Observação</label>
-            <input type="text" id="edit-obs-${x.id}" value="${x.obs||''}" class="fc" placeholder="Observação"/>
-          </div>
-          <div style="display:flex;gap:.4rem">
-            <button class="btn btn-success btn-sm" onclick="salvarEdicao('${x.id}')">✔ Salvar</button>
-            <button class="btn btn-ghost btn-sm" onclick="cancelarEdicao('${x.id}')">Cancelar</button>
-          </div>
-        </div>
-      </td>
-    </tr>`).join('')}
-    <tr style="background:var(--blue-bg)">
-      <td style="padding:7px 10px;font-weight:700;color:var(--blue)">Total</td>
-      <td class="tn" id="fl-total" style="padding:7px 10px;font-weight:700;color:var(--blue)">${fBR(tot)}</td>
-      <td colspan="2"></td>
-    </tr>
-    </tbody></table>`;
-}
-
 
 function editLanc(id, val, obs){
   // Close any other open edit rows first
@@ -1577,7 +1513,7 @@ async function salvarEdicao(id){
 }
 async function delL(id){
   if(!confirm('Remover?'))return;
-  try{await db(`lancamentos?id=eq.${id}`,{method:'DELETE'});toast('🗑️ Removido');await loadData();renderFL();}
+  try{await db(`lancamentos?id=eq.${id}`,{method:'DELETE'});toast('🗑️ Removido');await loadData();}
   catch(ex){toast('❌ '+ex.message);}
 }
 
@@ -3207,7 +3143,7 @@ self.addEventListener('fetch',e=>{
 
 let tt;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),3000);}
 
-['f-emp','f-loja','f-ano','f-mes'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('change',()=>{if(id==='f-emp')updateLojas('f-loja','f-emp');renderFL();});});
+// (listener redundante removido — f-emp já dispara updateLojas via onchange inline no HTML)
 </script>
 </body>
 </html>
