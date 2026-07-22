@@ -46,6 +46,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);font-size:14p
 .nav-item:hover{color:rgba(255,255,255,.8);background:rgba(255,255,255,.04)}
 .nav-item.active{color:#fff;background:rgba(45,91,227,.18);border-left-color:#2d5be3}
 .nav-item svg{width:15px;height:15px;flex-shrink:0}
+.nav-item-featured{font-size:14.5px;font-weight:700;padding-top:.75rem;padding-bottom:.75rem}
+.nav-item-featured svg{width:18px;height:18px}
+.nav-item-featured:not(.active){color:rgba(255,255,255,.7)}
+.nav-item-featured.active{background:linear-gradient(90deg,rgba(45,91,227,.28),rgba(45,91,227,.06));border-left-width:4px;box-shadow:inset 0 0 0 1px rgba(45,91,227,.25)}
 .sidebar-user{padding:1rem 1.25rem;border-top:1px solid rgba(255,255,255,.06)}
 .user-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem}
 .user-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#2d5be3,#6d3fd4);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
@@ -97,6 +101,9 @@ input[type=number].fc{text-align:right}
 .tabs{display:flex;gap:.25rem;background:var(--surface2);border-radius:var(--r-sm);padding:.25rem;width:fit-content;margin-bottom:1.25rem}
 .tab{padding:.38rem .875rem;border-radius:5px;font-size:13px;font-weight:500;color:var(--ink2);cursor:pointer;border:none;background:transparent;transition:all .15s;font-family:var(--font)}
 .tab.active{background:var(--surface);color:#2d5be3;font-weight:600;box-shadow:var(--sh)}
+.tabs-rel{background:linear-gradient(90deg,#eef1fd,#f4f0fc);padding:.3rem;border:1px solid #dfe3fb}
+.tabs-rel .tab{color:#4a4f7a;font-weight:600}
+.tabs-rel .tab.active{background:linear-gradient(135deg,#2d5be3,#5b3fd6);color:#fff;box-shadow:0 3px 10px rgba(45,91,227,.35)}
 .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
 @media(max-width:700px){.charts-grid{grid-template-columns:1fr}}
 
@@ -199,10 +206,10 @@ tbody tr:hover td{background:var(--bg)}
       </div>
       <nav class="sidebar-nav">
         <div class="nav-section">Principal</div>
-        <div class="nav-item active" onclick="goPage('dashboard',this)">
+        <div class="nav-item nav-item-featured active" onclick="goPage('dashboard',this)">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard
         </div>
-        <div class="nav-item" onclick="goPage('relatorio',this)">
+        <div class="nav-item nav-item-featured" onclick="goPage('relatorio',this)">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Relatório
         </div>
         <div class="nav-section">Operação</div>
@@ -240,7 +247,7 @@ tbody tr:hover td{background:var(--bg)}
           <div class="page-title">Dashboard</div>
           <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;flex:1">
             <select class="fc" id="d-ano" onchange="renderDash()" style="width:100px">
-              <option value="">Todos anos</option><option value="2024">2024</option>
+              <option value="">Todos anos</option>
               <option value="2025">2025</option><option value="2026" selected>2026</option>
               <option value="2027">2027</option><option value="2028">2028</option>
             </select>
@@ -470,10 +477,10 @@ tbody tr:hover td{background:var(--bg)}
       <div id="page-relatorio" class="page">
         <div class="topbar"><div class="page-title">Relatório</div></div>
         <div class="content">
-          <div class="tabs">
-            <button class="tab active" onclick="showTab('rel-detalhado',this)">Detalhado por Mês</button>
-            <button class="tab" onclick="showTab('rel-anual',this)">Anual por Loja</button>
-            <button class="tab" onclick="showTab('rel-agrupado',this)">Agrupado</button>
+          <div class="tabs tabs-rel">
+            <button class="tab active" onclick="showRelTab('rel-detalhado',this,'detalhado')">Detalhado por Mês</button>
+            <button class="tab" onclick="showRelTab('rel-anual',this,'anual')">Anual por Loja</button>
+            <button class="tab" onclick="showRelTab('rel-agrupado',this,'agrupado')">Agrupado</button>
           </div>
           <div id="rel-agrupado" style="display:none">
           <div class="card"><div class="card-body">
@@ -496,7 +503,7 @@ tbody tr:hover td{background:var(--bg)}
                 </div>
               </div>
               <div class="fg"><label class="fl">Ano</label><select class="fc" id="r-ano"><option value="">Todos</option>
-                <option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option></select></div>
+                <option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option></select></div>
               <div class="fg"><label class="fl">Mês</label><select class="fc" id="r-mes"><option value="">Todos</option>
                 <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option><option value="MARÇO">Março</option>
                 <option value="ABRIL">Abril</option><option value="MAIO">Maio</option><option value="JUNHO">Junho</option>
@@ -554,10 +561,10 @@ tbody tr:hover td{background:var(--bg)}
                     </div>
                   </div>
                   <div class="fg"><label class="fl">Ano inicial</label><select class="fc" id="rd-ano-ini">
-                    <option value="2024">2024</option><option value="2025" selected>2025</option><option value="2026">2026</option><option value="2027">2027</option>
+                    <option value="2025" selected>2025</option><option value="2026">2026</option><option value="2027">2027</option>
                   </select></div>
                   <div class="fg"><label class="fl">Ano final</label><select class="fc" id="rd-ano-fim">
-                    <option value="2024">2024</option><option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
+                    <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
                   </select></div>
                   <div class="fg"><label class="fl">Categoria</label><select class="fc" id="rd-cat"><option value="">Todas</option></select></div>
                   <div class="fg" style="min-width:150px">
@@ -601,7 +608,7 @@ tbody tr:hover td{background:var(--bg)}
                     </div>
                   </div>
                   <div class="fg"><label class="fl">Ano</label><select class="fc" id="ra-ano">
-                    <option value="2024">2024</option><option value="2025">2025</option>
+                    <option value="2025">2025</option>
                     <option value="2026" selected>2026</option><option value="2027">2027</option>
                     <option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option>
                   </select></div>
@@ -1324,6 +1331,13 @@ function goPage(id,btn){
   btn.classList.add('active');
   if(id==='dashboard')renderDash();
   if(id==='cadastros')renderCads();
+  if(id==='relatorio'){
+    // Aba padrão (Detalhado por Mês) já pré-carrega Ano 2026 + Zona Franca
+    const ini=document.getElementById('rd-ano-ini');if(ini)ini.value='2026';
+    const fim=document.getElementById('rd-ano-fim');if(fim)fim.value='2026';
+    const grp=document.getElementById('rd-grupo');if(grp)grp.value='ZONA FRANCA';
+    renderDetalhado();
+  }
   if(id==='lancamento'){
     // Reset to main tab
     switchLtTab('main');
@@ -1339,6 +1353,26 @@ function showTab(id,btn){
   btn.classList.add('active');
   let el=btn.parentElement.nextElementSibling;
   while(el){el.style.display=el.id===id?'block':'none';el=el.nextElementSibling;}
+}
+
+// Abas de Relatório: além de trocar a visualização, já pré-carrega
+// Ano 2026 + Grupo Zona Franca como padrão e gera o relatório automaticamente.
+function showRelTab(id,btn,tipo){
+  showTab(id,btn);
+  if(tipo==='detalhado'){
+    const ini=document.getElementById('rd-ano-ini');if(ini)ini.value='2026';
+    const fim=document.getElementById('rd-ano-fim');if(fim)fim.value='2026';
+    const grp=document.getElementById('rd-grupo');if(grp)grp.value='ZONA FRANCA';
+    renderDetalhado();
+  }else if(tipo==='anual'){
+    const ano=document.getElementById('ra-ano');if(ano)ano.value='2026';
+    const grp=document.getElementById('ra-grupo');if(grp)grp.value='ZONA FRANCA';
+    renderAnual();
+  }else if(tipo==='agrupado'){
+    const ano=document.getElementById('r-ano');if(ano)ano.value='2026';
+    const grp=document.getElementById('r-grupo');if(grp)grp.value='ZONA FRANCA';
+    renderRel();
+  }
 }
 
 async function salvar(){
@@ -2433,15 +2467,15 @@ function renderAnual(){
     <span class="badge bg2">${lojasU.length} lojas</span>
     <span class="badge ba">${d.length} lançamentos</span>
   </div>
-  <div style="overflow:auto">
+  <div style="overflow:auto;max-height:70vh">
   <table style="min-width:max-content;border-collapse:collapse;width:100%">
-    <thead style="position:sticky;top:0;z-index:10">
+    <thead>
       <tr>
-        <th style="background:#1a3db8;color:#fff;position:sticky;left:0;z-index:11;min-width:180px;padding:8px 12px;font-size:11px">LOJAS</th>
-        <th style="background:#1a3db8;color:#fff;min-width:50px;padding:8px 10px;font-size:11px;text-align:center">ANO</th>
-        ${MESES.map(m=>`<th style="background:#2d5be3;color:#fff;min-width:110px;padding:8px 6px;font-size:10px;text-align:right">${m.slice(0,1)+m.slice(1,3).toLowerCase()}</th>`).join('')}
-        <th style="background:#0d9e6e;color:#fff;min-width:130px;padding:8px 10px;font-size:11px;text-align:right">ACUMULADO</th>
-        <th style="background:#0d9e6e;color:#fff;min-width:80px;padding:8px 10px;font-size:11px;text-align:center">%</th>
+        <th style="background:#1a3db8;color:#fff;position:sticky;left:0;top:0;z-index:12;min-width:180px;padding:8px 12px;font-size:11px">LOJAS</th>
+        <th style="background:#1a3db8;color:#fff;position:sticky;top:0;z-index:10;min-width:50px;padding:8px 10px;font-size:11px;text-align:center">ANO</th>
+        ${MESES.map(m=>`<th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:10;min-width:110px;padding:8px 6px;font-size:10px;text-align:right">${m.slice(0,1)+m.slice(1,3).toLowerCase()}</th>`).join('')}
+        <th style="background:#0d9e6e;color:#fff;position:sticky;top:0;z-index:10;min-width:130px;padding:8px 10px;font-size:11px;text-align:right">ACUMULADO</th>
+        <th style="background:#0d9e6e;color:#fff;position:sticky;top:0;z-index:10;min-width:80px;padding:8px 10px;font-size:11px;text-align:center">%</th>
       </tr>
     </thead>
     <tbody>
