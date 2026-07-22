@@ -2399,7 +2399,6 @@ function renderAnual(){
   const mesTotais={};
   MESES.forEach(m=>{mesTotais[m]=d.filter(l=>l.mes===m).reduce((s,l)=>s+parseFloat(l.valor),0);});
 
-  anualState={d,lojasU,ano,cat,emp,lojas,totalGeral,mesTotais};
   document.getElementById('btn-anual-pdf').style.display='inline-flex';
 
   // ── Análise de variação mês a mês (para o gráfico + insight executivo) ──
@@ -2411,7 +2410,7 @@ function renderAnual(){
     const pct=anterior>0?(delta/anterior*100):0;
     return{mes:m,valor:mesTotais[m],var:delta,varPct:pct};
   });
-  let insightHTML='';
+  let insight=null;
   if(mesesComDado.length>=2){
     const comVar=variacoes.filter(v=>v.var!==null);
     const maiorAlta=comVar.reduce((a,b)=>(b.varPct>a.varPct?b:a),comVar[0]);
@@ -2421,6 +2420,14 @@ function renderAnual(){
     const mediaVar=comVar.reduce((s,v)=>s+v.varPct,0)/comVar.length;
     const tendencia=varAcumPct>2?'alta':(varAcumPct<-2?'queda':'estabilidade');
     const tendTxt=tendencia==='alta'?'trajetória ascendente':(tendencia==='queda'?'trajetória de redução':'comportamento estável');
+    const recomendacao=tendencia==='alta'?'Recomenda-se atenção às cláusulas de reajuste e negociação com as lojas de maior peso no total.':tendencia==='queda'?'Redução consistente de custo fixo — cenário favorável para o período.':'Custo de aluguel sob controle, sem sinais de pressão relevante no período.';
+    insight={maiorAlta,maiorQueda,primeiro,ultimo,varAcumPct,mediaVar,tendencia,tendTxt,recomendacao,cat};
+  }
+  anualState={d,lojasU,ano,cat,emp,lojas,totalGeral,mesTotais,mesesComDado,variacoes,insight,chartImg:null};
+
+  let insightHTML='';
+  if(insight){
+    const{maiorAlta,maiorQueda,primeiro,ultimo,varAcumPct,mediaVar,tendTxt,recomendacao}=insight;
 
     insightHTML=`
     <div style="margin:1rem 1.25rem;padding:1rem 1.25rem;background:linear-gradient(135deg,#0f1f4d,#1a3db8);border-radius:10px;color:#fff">
@@ -2434,7 +2441,7 @@ function renderAnual(){
         e variação média mês a mês de <b>${mediaVar>=0?'+':''}${mediaVar.toFixed(1)}%</b>.
         O maior salto de custo ocorreu em <b>${maiorAlta.mes.charAt(0)+maiorAlta.mes.slice(1).toLowerCase()}</b> (${maiorAlta.varPct>=0?'+':''}${maiorAlta.varPct.toFixed(1)}%, ${fBR(maiorAlta.var)}),
         enquanto a maior redução foi em <b>${maiorQueda.mes.charAt(0)+maiorQueda.mes.slice(1).toLowerCase()}</b> (${maiorQueda.varPct.toFixed(1)}%, ${fBR(maiorQueda.var)}).
-        ${tendencia==='alta'?'Recomenda-se atenção às cláusulas de reajuste e negociação com as lojas de maior peso no total.':tendencia==='queda'?'Redução consistente de custo fixo — cenário favorável para o período.':'Custo de aluguel sob controle, sem sinais de pressão relevante no período.'}
+        ${recomendacao}
       </p>
       <div style="display:flex;gap:.6rem;flex-wrap:wrap">
         <span style="background:rgba(255,255,255,.12);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">📈 Maior alta: ${maiorAlta.mes} (${maiorAlta.varPct>=0?'+':''}${maiorAlta.varPct.toFixed(1)}%)</span>
@@ -2502,6 +2509,29 @@ function renderAnual(){
     if(window._anualVarChart)window._anualVarChart.destroy();
     const ctxAV=document.getElementById('c-anual-var');
     if(ctxAV){
+      // Plugin nativo (sem lib externa) para desenhar valor + variação % acima de cada coluna
+      const labelPlugin={
+        id:'anualVarLabels',
+        afterDatasetsDraw(chart){
+          const{ctx,data}=chart;
+          const meta=chart.getDatasetMeta(0);
+          ctx.save();
+          meta.data.forEach((bar,i)=>{
+            const v=variacoes[i];
+            const x=bar.x,y=bar.y;
+            ctx.textAlign='center';
+            ctx.font='700 10px Arial';
+            ctx.fillStyle='#1a1a2e';
+            ctx.fillText(fS(v.valor).replace('R$ ',''),x,y-(v.varPct!==null?16:6));
+            if(v.varPct!==null){
+              ctx.font='700 9px Arial';
+              ctx.fillStyle=v.varPct>=0?'#0d9e6e':'#e0433c';
+              ctx.fillText((v.varPct>=0?'▲ +':'▼ ')+v.varPct.toFixed(1)+'%',x,y-4);
+            }
+          });
+          ctx.restore();
+        }
+      };
       window._anualVarChart=new Chart(ctxAV,{
         type:'bar',
         data:{
@@ -2513,7 +2543,8 @@ function renderAnual(){
           }]
         },
         options:{
-          responsive:true,maintainAspectRatio:false,
+          responsive:true,maintainAspectRatio:false,animation:false,
+          layout:{padding:{top:24}},
           plugins:{
             legend:{display:false},
             tooltip:{callbacks:{
@@ -2526,23 +2557,48 @@ function renderAnual(){
             }}
           },
           scales:{
-            y:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},
+            y:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'},grace:'15%'},
             x:{grid:{display:false}}
           }
-        }
+        },
+        plugins:[labelPlugin]
       });
+      // Captura a imagem do gráfico para uso fiel no PDF (animação desativada = captura imediata e confiável)
+      anualState.chartImg = window._anualVarChart.toBase64Image();
     }
   }
 }
 
 function exportAnualPDF(){
-  const {d,lojasU,ano,cat,emp,totalGeral,mesTotais}=anualState;
+  const {d,lojasU,ano,cat,emp,totalGeral,mesTotais,insight,chartImg}=anualState;
   if(!lojasU||!lojasU.length){toast('⚠️ Gere o relatório primeiro');return;}
 
   const filtros=[];
   if(emp)filtros.push('Empresa: '+emp);
   if(cat)filtros.push('Categoria: '+cat);
   filtros.push('Ano: '+ano);
+
+  // Bloco de insight executivo + gráfico (fiel ao exibido na tela)
+  let insightBlocoHTML='';
+  if(insight){
+    const{maiorAlta,maiorQueda,primeiro,ultimo,varAcumPct,mediaVar,tendTxt,recomendacao}=insight;
+    insightBlocoHTML=`
+    <div style="background:linear-gradient(135deg,#0f1f4d,#1a3db8);border-radius:8px;color:#fff;padding:.6rem .8rem;margin-bottom:.5rem">
+      <div style="font-weight:700;font-size:9px;letter-spacing:.03em;margin-bottom:.3rem">💡 INSIGHT EXECUTIVO — VARIAÇÃO DE ALUGUEL</div>
+      <div style="font-size:8px;line-height:1.55;color:rgba(255,255,255,.94)">
+        O custo total de aluguéis (${cat||'todas categorias'}) apresentou <b>${tendTxt}</b> entre ${primeiro.charAt(0)+primeiro.slice(1).toLowerCase()} e ${ultimo.charAt(0)+ultimo.slice(1).toLowerCase()}/${ano},
+        com variação acumulada de <b>${varAcumPct>=0?'+':''}${varAcumPct.toFixed(1)}%</b> (${fBR(mesTotais[primeiro])} → ${fBR(mesTotais[ultimo])}),
+        e variação média mês a mês de <b>${mediaVar>=0?'+':''}${mediaVar.toFixed(1)}%</b>.
+        Maior alta: <b>${maiorAlta.mes.charAt(0)+maiorAlta.mes.slice(1).toLowerCase()}</b> (${maiorAlta.varPct>=0?'+':''}${maiorAlta.varPct.toFixed(1)}%, ${fBR(maiorAlta.var)}) ·
+        Maior queda: <b>${maiorQueda.mes.charAt(0)+maiorQueda.mes.slice(1).toLowerCase()}</b> (${maiorQueda.varPct.toFixed(1)}%, ${fBR(maiorQueda.var)}).
+        ${recomendacao}
+      </div>
+    </div>
+    ${chartImg?`<div style="border:1px solid #e4e7f4;border-radius:8px;padding:.5rem;margin-bottom:.5rem;text-align:center">
+      <div style="font-weight:700;font-size:8px;color:#555;margin-bottom:.25rem;text-align:left">VARIAÇÃO MENSAL DO ALUGUEL (${ano})</div>
+      <img src="${chartImg}" style="max-width:100%;max-height:200px"/>
+    </div>`:''}`;
+  }
 
   // Build rows
   let rows='';
@@ -2598,6 +2654,7 @@ function exportAnualPDF(){
     <span class="badge bg">${lojasU.length} lojas</span>
     <span class="badge ba">${d.length} lançamentos</span>
   </div>
+  ${insightBlocoHTML}
   <table>
     <thead>
       <tr>
