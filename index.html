@@ -835,7 +835,8 @@ const MSAL_CONFIG = {
 // Email corporativo do admin — detecta automaticamente
 const ADMIN_EMAIL_DOMAIN = 'topinternacional.com.br';
 const ADMIN_EMAILS = ['adm.financeiro@topinternacional.com.br'];
-const CORP_DOMAIN = 'topinternacional.com.br'; // e-mails desse domínio acessam via Microsoft SSO, sem senha local
+const CORP_DOMAINS = ['topinternacional.com.br', 'tfs.com.br']; // e-mails desses domínios acessam via Microsoft SSO, sem senha local
+function isCorpEmail(email){ return CORP_DOMAINS.some(d=>email.toLowerCase().endsWith('@'+d)); }
 
 let msalInstance = null;
 
@@ -3113,7 +3114,7 @@ async function renderUsuarios(){
       <td><span class="badge ${u.ativo?'bg2':'ba'}">${u.ativo?'Ativo':'Inativo'}</span></td>
       <td><div style="display:flex;gap:4px">
         <button class="btn btn-ghost btn-sm" onclick="toggleUsuario('${u.id}',${u.ativo})">${u.ativo?'Desativar':'Ativar'}</button>
-        ${u.email.endsWith('@'+CORP_DOMAIN)?'':`<button class="btn btn-ghost btn-sm" onclick="resetSenha('${u.id}')">🔑 Senha</button>`}
+        ${isCorpEmail(u.email)?'':`<button class="btn btn-ghost btn-sm" onclick="resetSenha('${u.id}')">🔑 Senha</button>`}
         ${u.id!==currentUser?.id?`<button class="btn btn-danger" onclick="delUsuario('${u.id}')">✕</button>`:''}
       </div></td>
     </tr>`).join('')}</tbody></table>`;
@@ -3132,7 +3133,7 @@ async function alterarPerfil(id,novoPerfil,nome){
 
 function checkNuEmailDominio(){
   const email=document.getElementById('nu-email').value.trim().toLowerCase();
-  const isCorp=email.endsWith('@'+CORP_DOMAIN);
+  const isCorp=isCorpEmail(email);
   document.getElementById('nu-senha-wrap').style.display=isCorp?'none':'block';
   document.getElementById('nu-sso-note').style.display=isCorp?'block':'none';
 }
@@ -3142,7 +3143,7 @@ async function addUsuario(){
   const email=document.getElementById('nu-email').value.trim().toLowerCase();
   const senha=document.getElementById('nu-senha').value;
   const perfil=document.getElementById('nu-perfil').value;
-  const isCorp=email.endsWith('@'+CORP_DOMAIN);
+  const isCorp=isCorpEmail(email);
 
   if(!nome||!email){toast('⚠️ Preencha nome e e-mail');return;}
   if(!isCorp){
