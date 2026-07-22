@@ -681,8 +681,11 @@ tbody tr:hover td{background:var(--bg)}
               <div class="card-body">
                 <div class="fgrid" style="margin-bottom:.75rem">
                   <div class="fg"><label class="fl">Nome *</label><input type="text" class="fc" id="nu-nome" placeholder="Nome completo"/></div>
-                  <div class="fg"><label class="fl">E-mail *</label><input type="email" class="fc" id="nu-email" placeholder="email@empresa.com.br"/></div>
-                  <div class="fg"><label class="fl">Senha *</label><input type="password" class="fc" id="nu-senha" placeholder="Mínimo 6 caracteres"/></div>
+                  <div class="fg"><label class="fl">E-mail *</label><input type="email" class="fc" id="nu-email" placeholder="email@empresa.com.br" oninput="checkNuEmailDominio()"/></div>
+                  <div class="fg" id="nu-senha-wrap"><label class="fl">Senha *</label><input type="password" class="fc" id="nu-senha" placeholder="Mínimo 6 caracteres"/></div>
+                  <div class="fg" id="nu-sso-note" style="display:none;align-self:flex-end;padding-bottom:.5rem">
+                    <span class="badge bg2" style="font-size:11px">🔐 Acesso via Microsoft 365 — sem necessidade de senha</span>
+                  </div>
                   <div class="fg"><label class="fl">Perfil</label><select class="fc" id="nu-perfil"><option value="usuario">Usuário</option><option value="visualizador">Visualizador (Dashboard + Relatório)</option><option value="admin">Administrador</option></select></div>
                 </div>
                 <button class="btn btn-primary" onclick="addUsuario()">Adicionar usuário</button>
@@ -832,6 +835,7 @@ const MSAL_CONFIG = {
 // Email corporativo do admin — detecta automaticamente
 const ADMIN_EMAIL_DOMAIN = 'topinternacional.com.br';
 const ADMIN_EMAILS = ['adm.financeiro@topinternacional.com.br'];
+const CORP_DOMAIN = 'topinternacional.com.br'; // e-mails desse domínio acessam via Microsoft SSO, sem senha local
 
 let msalInstance = null;
 
@@ -3109,7 +3113,7 @@ async function renderUsuarios(){
       <td><span class="badge ${u.ativo?'bg2':'ba'}">${u.ativo?'Ativo':'Inativo'}</span></td>
       <td><div style="display:flex;gap:4px">
         <button class="btn btn-ghost btn-sm" onclick="toggleUsuario('${u.id}',${u.ativo})">${u.ativo?'Desativar':'Ativar'}</button>
-        <button class="btn btn-ghost btn-sm" onclick="resetSenha('${u.id}')">🔑 Senha</button>
+        ${u.email.endsWith('@'+CORP_DOMAIN)?'':`<button class="btn btn-ghost btn-sm" onclick="resetSenha('${u.id}')">🔑 Senha</button>`}
         ${u.id!==currentUser?.id?`<button class="btn btn-danger" onclick="delUsuario('${u.id}')">✕</button>`:''}
       </div></td>
     </tr>`).join('')}</tbody></table>`;
@@ -3126,20 +3130,34 @@ async function alterarPerfil(id,novoPerfil,nome){
   }catch(ex){toast('❌ '+ex.message);renderUsuarios();}
 }
 
+function checkNuEmailDominio(){
+  const email=document.getElementById('nu-email').value.trim().toLowerCase();
+  const isCorp=email.endsWith('@'+CORP_DOMAIN);
+  document.getElementById('nu-senha-wrap').style.display=isCorp?'none':'block';
+  document.getElementById('nu-sso-note').style.display=isCorp?'block':'none';
+}
+
 async function addUsuario(){
   const nome=document.getElementById('nu-nome').value.trim();
   const email=document.getElementById('nu-email').value.trim().toLowerCase();
   const senha=document.getElementById('nu-senha').value;
   const perfil=document.getElementById('nu-perfil').value;
-  if(!nome||!email||!senha){toast('⚠️ Preencha todos os campos');return;}
-  if(senha.length<6){toast('⚠️ Senha precisa ter ao menos 6 caracteres');return;}
+  const isCorp=email.endsWith('@'+CORP_DOMAIN);
+
+  if(!nome||!email){toast('⚠️ Preencha nome e e-mail');return;}
+  if(!isCorp){
+    if(!senha){toast('⚠️ Preencha a senha');return;}
+    if(senha.length<6){toast('⚠️ Senha precisa ter ao menos 6 caracteres');return;}
+  }
   try{
-    const hash=await sha256(senha);
-    await db('usuarios',{method:'POST',body:JSON.stringify({nome,email,senha_hash:hash,perfil})});
+    // E-mails do domínio corporativo entram via Microsoft SSO — não usam senha local
+    const senha_hash=isCorp?'microsoft_sso_no_password':await sha256(senha);
+    await db('usuarios',{method:'POST',body:JSON.stringify({nome,email,senha_hash,perfil})});
     document.getElementById('nu-nome').value='';
     document.getElementById('nu-email').value='';
     document.getElementById('nu-senha').value='';
-    toast('✅ Usuário criado!');
+    checkNuEmailDominio();
+    toast(isCorp?'✅ Usuário criado! Ele acessa com a conta Microsoft corporativa.':'✅ Usuário criado!');
     renderUsuarios();
   }catch(ex){toast('❌ '+(ex.message.includes('unique')?'E-mail já cadastrado':ex.message));}
 }
