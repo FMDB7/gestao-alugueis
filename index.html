@@ -156,6 +156,7 @@ tbody tr:hover td{background:var(--bg)}
 .fc-large{font-size:15px!important;padding:.6rem .75rem!important}
 .rbar{height:5px;background:#2d5be3;border-radius:3px;display:inline-block;vertical-align:middle;margin-right:5px}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
 
@@ -502,29 +503,29 @@ tbody tr:hover td{background:var(--bg)}
                   </div>
                 </div>
               </div>
-              <div class="fg"><label class="fl">Ano</label><select class="fc" id="r-ano"><option value="">Todos</option>
+              <div class="fg"><label class="fl">Ano</label><select class="fc" id="r-ano" onchange="renderRel()"><option value="">Todos</option>
                 <option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option></select></div>
-              <div class="fg"><label class="fl">Mês</label><select class="fc" id="r-mes"><option value="">Todos</option>
+              <div class="fg"><label class="fl">Mês</label><select class="fc" id="r-mes" onchange="renderRel()"><option value="">Todos</option>
                 <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option><option value="MARÇO">Março</option>
                 <option value="ABRIL">Abril</option><option value="MAIO">Maio</option><option value="JUNHO">Junho</option>
                 <option value="JULHO">Julho</option><option value="AGOSTO">Agosto</option><option value="SETEMBRO">Setembro</option>
                 <option value="OUTUBRO">Outubro</option><option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
               </select></div>
-              <div class="fg"><label class="fl">Categoria</label><select class="fc" id="r-cat"><option value="">Todas</option></select></div>
+              <div class="fg"><label class="fl">Categoria</label><select class="fc" id="r-cat" onchange="renderRel()"><option value="">Todas</option></select></div>
               <div class="fg" style="min-width:200px">
                 <label class="fl">Agrupar por <span style="color:var(--blue)">(múltiplos)</span></label>
                 <div style="border:1px solid var(--border2);border-radius:6px;padding:.4rem .6rem;background:var(--surface)">
-                  <label style="display:flex;align-items:center;gap:.5rem;padding:.2rem 0;cursor:pointer;font-size:12px"><input type="checkbox" class="r-grp-chk" value="empresa" checked style="accent-color:#2d5be3"/> Empresa</label>
-                  <label style="display:flex;align-items:center;gap:.5rem;padding:.2rem 0;cursor:pointer;font-size:12px"><input type="checkbox" class="r-grp-chk" value="loja" style="accent-color:#2d5be3"/> Loja</label>
-                  <label style="display:flex;align-items:center;gap:.5rem;padding:.2rem 0;cursor:pointer;font-size:12px"><input type="checkbox" class="r-grp-chk" value="categoria" style="accent-color:#2d5be3"/> Categoria</label>
-                  <label style="display:flex;align-items:center;gap:.5rem;padding:.2rem 0;cursor:pointer;font-size:12px"><input type="checkbox" class="r-grp-chk" value="cidade" style="accent-color:#2d5be3"/> Cidade</label>
-                  <label style="display:flex;align-items:center;gap:.5rem;padding:.2rem 0;cursor:pointer;font-size:12px"><input type="checkbox" class="r-grp-chk" value="mes" style="accent-color:#2d5be3"/> Mês</label>
-                  <label style="display:flex;align-items:center;gap:.5rem;padding:.2rem 0;cursor:pointer;font-size:12px"><input type="checkbox" class="r-grp-chk" value="ano" style="accent-color:#2d5be3"/> Ano</label>
+                  <label style="display:flex;align-items:center;gap:.5rem;padding:.2rem 0;cursor:pointer;font-size:12px"><input type="checkbox" class="r-grp-chk" value="empresa" checked onchange="renderRel()" style="accent-color:#2d5be3"/> Empresa</label>
+                  <label style="display:flex;align-items:center;gap:.5rem;padding:.2rem 0;cursor:pointer;font-size:12px"><input type="checkbox" class="r-grp-chk" value="loja" onchange="renderRel()" style="accent-color:#2d5be3"/> Loja</label>
+                  <label style="display:flex;align-items:center;gap:.5rem;padding:.2rem 0;cursor:pointer;font-size:12px"><input type="checkbox" class="r-grp-chk" value="categoria" onchange="renderRel()" style="accent-color:#2d5be3"/> Categoria</label>
+                  <label style="display:flex;align-items:center;gap:.5rem;padding:.2rem 0;cursor:pointer;font-size:12px"><input type="checkbox" class="r-grp-chk" value="cidade" onchange="renderRel()" style="accent-color:#2d5be3"/> Cidade</label>
+                  <label style="display:flex;align-items:center;gap:.5rem;padding:.2rem 0;cursor:pointer;font-size:12px"><input type="checkbox" class="r-grp-chk" value="mes" onchange="renderRel()" style="accent-color:#2d5be3"/> Mês</label>
+                  <label style="display:flex;align-items:center;gap:.5rem;padding:.2rem 0;cursor:pointer;font-size:12px"><input type="checkbox" class="r-grp-chk" value="ano" onchange="renderRel()" style="accent-color:#2d5be3"/> Ano</label>
                 </div>
               </div>
               <div class="fg" style="min-width:150px">
                 <label class="fl">Grupo</label>
-                <select class="fc" id="r-grupo">
+                <select class="fc" id="r-grupo" onchange="renderRel()">
                   <option value="">Todos os grupos</option>
                   <option value="ZONA FRANCA">ZONA FRANCA</option>
                   <option value="MERCADO LOCAL">MERCADO LOCAL</option>
@@ -545,7 +546,7 @@ tbody tr:hover td{background:var(--bg)}
             <div class="card" style="margin-bottom:1rem">
               <div class="card-body">
                 <div class="filters">
-                  <div class="fg"><label class="fl">Empresa</label><select class="fc" id="rd-emp"><option value="">Todas</option></select></div>
+                  <div class="fg"><label class="fl">Empresa</label><select class="fc" id="rd-emp" onchange="renderDetalhado()"><option value="">Todas</option></select></div>
                   <div class="fg"><label class="fl">Loja</label>
                     <div style="position:relative">
                       <div id="rd-loja-trigger" onclick="toggleRdLojaDD()" style="border:1px solid var(--border2);border-radius:6px;padding:.45rem .7rem;font-size:13px;cursor:pointer;background:var(--surface);display:flex;justify-content:space-between;align-items:center">
@@ -560,16 +561,16 @@ tbody tr:hover td{background:var(--bg)}
                       </div>
                     </div>
                   </div>
-                  <div class="fg"><label class="fl">Ano inicial</label><select class="fc" id="rd-ano-ini">
+                  <div class="fg"><label class="fl">Ano inicial</label><select class="fc" id="rd-ano-ini" onchange="renderDetalhado()">
                     <option value="2025" selected>2025</option><option value="2026">2026</option><option value="2027">2027</option>
                   </select></div>
-                  <div class="fg"><label class="fl">Ano final</label><select class="fc" id="rd-ano-fim">
+                  <div class="fg"><label class="fl">Ano final</label><select class="fc" id="rd-ano-fim" onchange="renderDetalhado()">
                     <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
                   </select></div>
-                  <div class="fg"><label class="fl">Categoria</label><select class="fc" id="rd-cat"><option value="">Todas</option></select></div>
+                  <div class="fg"><label class="fl">Categoria</label><select class="fc" id="rd-cat" onchange="renderDetalhado()"><option value="">Todas</option></select></div>
                   <div class="fg" style="min-width:150px">
                     <label class="fl">Grupo</label>
-                    <select class="fc" id="rd-grupo">
+                    <select class="fc" id="rd-grupo" onchange="renderDetalhado()">
                       <option value="">Todos os grupos</option>
                       <option value="ZONA FRANCA">ZONA FRANCA</option>
                       <option value="MERCADO LOCAL">MERCADO LOCAL</option>
@@ -591,7 +592,7 @@ tbody tr:hover td{background:var(--bg)}
             <div class="card" style="margin-bottom:1rem">
               <div class="card-body">
                 <div class="filters">
-                  <div class="fg"><label class="fl">Empresa</label><select class="fc" id="ra-emp"><option value="">Todas</option></select></div>
+                  <div class="fg"><label class="fl">Empresa</label><select class="fc" id="ra-emp" onchange="renderAnual()"><option value="">Todas</option></select></div>
                   <div class="fg" style="min-width:180px">
                     <label class="fl">Lojas</label>
                     <div style="position:relative">
@@ -607,15 +608,15 @@ tbody tr:hover td{background:var(--bg)}
                       </div>
                     </div>
                   </div>
-                  <div class="fg"><label class="fl">Ano</label><select class="fc" id="ra-ano">
+                  <div class="fg"><label class="fl">Ano</label><select class="fc" id="ra-ano" onchange="renderAnual()">
                     <option value="2025">2025</option>
                     <option value="2026" selected>2026</option><option value="2027">2027</option>
                     <option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option>
                   </select></div>
-                  <div class="fg"><label class="fl">Categoria</label><select class="fc" id="ra-cat"><option value="">Todas</option></select></div>
+                  <div class="fg"><label class="fl">Categoria</label><select class="fc" id="ra-cat" onchange="renderAnual()"><option value="">Todas</option></select></div>
                   <div class="fg" style="min-width:150px">
                     <label class="fl">Grupo</label>
-                    <select class="fc" id="ra-grupo">
+                    <select class="fc" id="ra-grupo" onchange="renderAnual()">
                       <option value="">Todos os grupos</option>
                       <option value="ZONA FRANCA">ZONA FRANCA</option>
                       <option value="MERCADO LOCAL">MERCADO LOCAL</option>
@@ -1185,7 +1186,46 @@ function startAutoRefresh(){
     await loadData();
     const activePage=document.querySelector('.page.active');
     if(activePage&&activePage.id==='page-dashboard')renderDash();
-  },120000);
+  },120000); // mantido como rede de segurança; a atualização principal agora é em tempo real (ver initRealtime)
+  initRealtime();
+}
+
+let realtimeChannel=null;
+// Assina eventos em tempo real (INSERT/UPDATE/DELETE) da tabela lancamentos via WebSocket do Supabase.
+// Assim, quando qualquer usuário lança ou exclui um valor, todos os outros usuários conectados
+// veem a atualização automaticamente, sem precisar recarregar a página.
+function initRealtime(){
+  if(realtimeChannel)return; // já inscrito, evita duplicar
+  try{
+    const supa=window.supabase.createClient(SB,SK);
+    realtimeChannel=supa.channel('lancamentos-live')
+      .on('postgres_changes',{event:'*',schema:'public',table:'lancamentos'},async()=>{
+        if(!currentUser)return;
+        await loadData();
+        refreshVisaoAtual();
+      })
+      .subscribe();
+  }catch(e){
+    console.log('Tempo real indisponível, mantendo apenas atualização periódica:',e);
+  }
+}
+
+// Atualiza a visualização atualmente aberta na tela, refletindo os dados mais recentes
+function refreshVisaoAtual(){
+  const activePage=document.querySelector('.page.active');
+  if(!activePage)return;
+  if(activePage.id==='page-dashboard'){
+    renderDash();
+  }else if(activePage.id==='page-lancamento'){
+    renderLtRecentes();renderLtKpis();
+  }else if(activePage.id==='page-relatorio'){
+    const detVis=document.getElementById('rel-detalhado')?.style.display!=='none';
+    const anualVis=document.getElementById('rel-anual')?.style.display!=='none';
+    const agrupVis=document.getElementById('rel-agrupado')?.style.display!=='none';
+    if(detVis && detState?.lojasU?.length) renderDetalhado();
+    else if(anualVis && anualState?.lojasU?.length) renderAnual();
+    else if(agrupVis) renderRel();
+  }
 }
 
 async function logout(forced=false){
@@ -1193,6 +1233,7 @@ async function logout(forced=false){
   currentUser=null;
   currentSession=null;
   if(autoRefreshTimer)clearInterval(autoRefreshTimer);
+  if(realtimeChannel){try{realtimeChannel.unsubscribe();}catch(e){} realtimeChannel=null;}
   if(inactivityTimer)clearTimeout(inactivityTimer);
   if(countdownTimer)clearInterval(countdownTimer);
   sessionStorage.clear();
@@ -2346,13 +2387,14 @@ function filterRaLojaDD(){
   const lojas=S.lojas.filter(l=>!emp||l.empresa_nome===emp).sort((a,b)=>(a.uf||'').localeCompare(b.uf||'')||a.nome.localeCompare(b.nome));
   renderRaLojaList(lojas,search);
 }
-function toggleRaLoja(nome){raSelectedLojas.has(nome)?raSelectedLojas.delete(nome):raSelectedLojas.add(nome);updateRaLojaTrigger();filterRaLojaDD();}
+function toggleRaLoja(nome){raSelectedLojas.has(nome)?raSelectedLojas.delete(nome):raSelectedLojas.add(nome);updateRaLojaTrigger();filterRaLojaDD();renderAnual();}
 function toggleRaUF(uf){
   const emp=document.getElementById('ra-emp')?.value||'';
   const lojas=S.lojas.filter(l=>(!emp||l.empresa_nome===emp)&&l.uf===uf).map(l=>l.nome);
   const all=lojas.every(n=>raSelectedLojas.has(n));
   if(all)lojas.forEach(n=>raSelectedLojas.delete(n));else lojas.forEach(n=>raSelectedLojas.add(n));
   updateRaLojaTrigger();filterRaLojaDD();
+  renderAnual();
 }
 function updateRaLojaTrigger(){
   const n=raSelectedLojas.size;
@@ -2792,13 +2834,14 @@ function filterRdLojaDD(){
   const lojas=S.lojas.filter(l=>!emp||l.empresa_nome===emp).sort((a,b)=>(a.uf||'').localeCompare(b.uf||'')||a.nome.localeCompare(b.nome));
   renderRdLojaList(lojas,search);
 }
-function toggleRdLoja(nome){rdSelectedLojas.has(nome)?rdSelectedLojas.delete(nome):rdSelectedLojas.add(nome);updateRdLojaTrigger();filterRdLojaDD();}
+function toggleRdLoja(nome){rdSelectedLojas.has(nome)?rdSelectedLojas.delete(nome):rdSelectedLojas.add(nome);updateRdLojaTrigger();filterRdLojaDD();renderDetalhado();}
 function toggleRdUF(uf){
   const emp=document.getElementById('rd-emp')?.value||'';
   const lojas=S.lojas.filter(l=>(!emp||l.empresa_nome===emp)&&l.uf===uf).map(l=>l.nome);
   const all=lojas.every(n=>rdSelectedLojas.has(n));
   if(all)lojas.forEach(n=>rdSelectedLojas.delete(n));else lojas.forEach(n=>rdSelectedLojas.add(n));
   updateRdLojaTrigger();filterRdLojaDD();
+  renderDetalhado();
 }
 function updateRdLojaTrigger(){
   const n=rdSelectedLojas.size;
@@ -3129,6 +3172,7 @@ function toggleLoja(nome){
   else selectedLojas.add(nome);
   updateLojaTrigger();
   filterLojaDD();
+  renderRel();
 }
 
 function toggleUF(uf){
@@ -3139,6 +3183,7 @@ function toggleUF(uf){
   else lojas.forEach(n=>selectedLojas.add(n));
   updateLojaTrigger();
   filterLojaDD();
+  renderRel();
 }
 
 function updateLojaTrigger(){
