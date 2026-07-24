@@ -144,6 +144,11 @@ tbody tr:hover td{background:var(--bg)}
 .empty-icon{font-size:2rem;margin-bottom:.5rem;opacity:.4}
 #toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#0f1117;color:#fff;padding:.6rem 1.1rem;border-radius:var(--r-sm);font-size:13px;font-weight:500;opacity:0;transform:translateY(8px);transition:all .25s;z-index:9999;max-width:300px;pointer-events:none}
 #toast.show{opacity:1;transform:translateY(0)}
+#toast-undo{position:fixed;bottom:1.5rem;right:1.5rem;background:#0f1117;color:#fff;padding:.65rem .7rem .65rem 1.1rem;border-radius:var(--r-sm);font-size:13px;font-weight:500;opacity:0;transform:translateY(8px);transition:all .25s;z-index:9999;max-width:360px;display:flex;align-items:center;gap:.75rem;pointer-events:none}
+#toast-undo.show{opacity:1;transform:translateY(0);pointer-events:auto}
+#toast-undo button{background:#2d5be3;color:#fff;border:none;padding:.35rem .8rem;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0}
+#toast-undo button:hover{background:#2349b8}
+#toast-undo .tu-bar{position:absolute;left:0;bottom:0;height:2px;background:#2d5be3;border-radius:0 0 0 var(--r-sm)}
 .spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .grade-input{border:1px solid transparent;background:transparent;padding:.2rem .4rem;border-radius:4px;width:100%;min-width:82px;text-align:right;font-size:12px;font-family:var(--font);color:var(--ink)}
@@ -716,6 +721,7 @@ tbody tr:hover td{background:var(--bg)}
   </div>
 </div>
 <div id="toast"></div>
+<div id="toast-undo"><span id="toast-undo-msg"></span><button id="toast-undo-btn">↩ Desfazer</button></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
@@ -1560,7 +1566,8 @@ async function salvarEdicao(id){
 }
 async function delL(id){
   if(!confirm('Remover?'))return;
-  try{await db(`lancamentos?id=eq.${id}`,{method:'DELETE'});toast('🗑️ Removido');await loadData();}
+  const registro=S.lancamentos.find(l=>l.id===id);
+  try{await db(`lancamentos?id=eq.${id}`,{method:'DELETE'});await loadData();toastUndo('🗑️ Lançamento removido',registro?[registro]:[]);}
   catch(ex){toast('❌ '+ex.message);}
 }
 
@@ -1713,10 +1720,11 @@ async function salvarModalEdit(id){
 
 async function delLH(id){
   if(!confirm('Remover este lançamento?'))return;
+  const registro=S.lancamentos.find(l=>l.id===id);
   try{
     await db(`lancamentos?id=eq.${id}`,{method:'DELETE'});
     S.lancamentos=S.lancamentos.filter(l=>l.id!==id);
-    toast('🗑️ Removido');renderHist();
+    toastUndo('🗑️ Lançamento removido',registro?[registro]:[]);renderHist();
   }catch(ex){toast('❌ '+ex.message);}
 }
 
@@ -2072,9 +2080,23 @@ function renderCads(){
   fs('nl-emp',S.empresas.map(e=>e.nome).sort(),'Selecione...');
 }
 async function addEmpresa(){const v=document.getElementById('new-emp').value.trim().toUpperCase();if(!v){toast('⚠️ Informe o nome');return;}try{await db('empresas',{method:'POST',body:JSON.stringify({nome:v})});document.getElementById('new-emp').value='';toast('✅ Empresa adicionada!');await loadData();renderCads();}catch(ex){toast('❌ '+ex.message);}}
-async function delEmp(id){if(!confirm('Remover empresa?'))return;try{await db(`empresas?id=eq.${id}`,{method:'DELETE'});toast('🗑️ Removida');await loadData();renderCads();}catch(ex){toast('❌ '+ex.message);}}
+async function delEmp(id){
+  const qtd=S.lancamentos.filter(l=>l.empresa_id===id).length;
+  const msg=qtd>0
+    ? `⚠️ Esta empresa tem ${qtd} lançamento${qtd>1?'s':''} vinculado${qtd>1?'s':''}!\n\nExcluir a empresa vai APAGAR PERMANENTEMENTE ${qtd>1?'esses '+qtd+' lançamentos':'esse lançamento'} também (exclusão em cascata).\n\nDeseja realmente continuar?`
+    : 'Remover empresa?';
+  if(!confirm(msg))return;
+  try{await db(`empresas?id=eq.${id}`,{method:'DELETE'});toast('🗑️ Removida');await loadData();renderCads();}catch(ex){toast('❌ '+ex.message);}
+}
 async function addLoja(){const n=document.getElementById('nl-nome').value.trim(),en=document.getElementById('nl-emp').value,c=document.getElementById('nl-cidade').value.trim().toUpperCase(),u=document.getElementById('nl-uf').value.trim().toUpperCase();if(!n||!en||!c||!u){toast('⚠️ Preencha todos os campos');return;}const e=S.empresas.find(x=>x.nome===en);if(!e)return;try{await db('lojas',{method:'POST',body:JSON.stringify({nome:n,empresa_id:e.id,cidade:c,uf:u})});document.getElementById('nl-nome').value='';document.getElementById('nl-cidade').value='';document.getElementById('nl-uf').value='';toast('✅ Loja adicionada!');await loadData();renderCads();}catch(ex){toast('❌ '+ex.message);}}
-async function delLoja(id){if(!confirm('Remover loja?'))return;try{await db(`lojas?id=eq.${id}`,{method:'DELETE'});toast('🗑️ Removida');await loadData();renderCads();}catch(ex){toast('❌ '+ex.message);}}
+async function delLoja(id){
+  const qtd=S.lancamentos.filter(l=>l.loja_id===id).length;
+  const msg=qtd>0
+    ? `⚠️ Esta loja tem ${qtd} lançamento${qtd>1?'s':''} vinculado${qtd>1?'s':''}!\n\nExcluir a loja vai APAGAR PERMANENTEMENTE ${qtd>1?'esses '+qtd+' lançamentos':'esse lançamento'} também (exclusão em cascata).\n\nDeseja realmente continuar?`
+    : 'Remover loja?';
+  if(!confirm(msg))return;
+  try{await db(`lojas?id=eq.${id}`,{method:'DELETE'});toast('🗑️ Removida');await loadData();renderCads();}catch(ex){toast('❌ '+ex.message);}
+}
 
 function editarLoja(id){
   const row=document.getElementById('loja-row-'+id);
@@ -2152,7 +2174,14 @@ async function salvarCategoria(id){
 }
 
 async function addCat(){const v=document.getElementById('new-cat').value.trim().toUpperCase();if(!v){toast('⚠️ Informe o nome');return;}try{await db('categorias',{method:'POST',body:JSON.stringify({nome:v})});document.getElementById('new-cat').value='';toast('✅ Categoria adicionada!');await loadData();renderCads();}catch(ex){toast('❌ '+ex.message);}}
-async function delCat2(id){if(!confirm('Remover categoria?'))return;try{await db(`categorias?id=eq.${id}`,{method:'DELETE'});toast('🗑️ Removida');await loadData();renderCads();}catch(ex){toast('❌ '+ex.message);}}
+async function delCat2(id){
+  const qtd=S.lancamentos.filter(l=>l.categoria_id===id).length;
+  const msg=qtd>0
+    ? `⚠️ Esta categoria tem ${qtd} lançamento${qtd>1?'s':''} vinculado${qtd>1?'s':''}!\n\nExcluir a categoria vai APAGAR PERMANENTEMENTE ${qtd>1?'esses '+qtd+' lançamentos':'esse lançamento'} também (exclusão em cascata).\n\nDeseja realmente continuar?`
+    : 'Remover categoria?';
+  if(!confirm(msg))return;
+  try{await db(`categorias?id=eq.${id}`,{method:'DELETE'});toast('🗑️ Removida');await loadData();renderCads();}catch(ex){toast('❌ '+ex.message);}
+}
 
 
 let countdownTimer=null;
@@ -2345,29 +2374,31 @@ function atualizarSelecao(){
 async function excluirSelecionados(){
   const selecionados=[...document.querySelectorAll('.lt-chk:checked')].map(c=>c.dataset.id);
   if(!selecionados.length){toast('⚠️ Nenhum item selecionado');return;}
-  if(!confirm(`Excluir ${selecionados.length} lançamento${selecionados.length>1?'s':''}? Esta ação não pode ser desfeita.`))return;
+  if(!confirm(`Excluir ${selecionados.length} lançamento${selecionados.length>1?'s':''}?`))return;
   const btn=document.getElementById('btn-del-sel');
   if(btn){btn.disabled=true;btn.innerHTML='<div class="spinner"></div> Excluindo...';}
+  const registros=S.lancamentos.filter(l=>selecionados.includes(l.id));
   try{
-    // Delete in batch using IN filter
-    const ids=selecionados.map(id=>`"${id}"`).join(',');
+    // Exclusão em lote via filtro IN, escopado exatamente pelos IDs selecionados
     await db(`lancamentos?id=in.(${selecionados.join(',')})`,{method:'DELETE'});
     S.lancamentos=S.lancamentos.filter(l=>!selecionados.includes(l.id));
-    toast(`✅ ${selecionados.length} lançamento${selecionados.length>1?'s':''} excluído${selecionados.length>1?'s':''}!`);
+    toastUndo(`🗑️ ${selecionados.length} lançamento${selecionados.length>1?'s':''} excluído${selecionados.length>1?'s':''}`,registros);
     renderLtRecentes();
     renderLtKpis();
   }catch(ex){
     toast('❌ '+ex.message);
+  }finally{
     if(btn){btn.disabled=false;btn.innerHTML='🗑️ Excluir selecionados';}
   }
 }
 
 async function delLReload(id){
   if(!confirm('Remover este lançamento?'))return;
+  const registro=S.lancamentos.find(l=>l.id===id);
   try{
     await db(`lancamentos?id=eq.${id}`,{method:'DELETE'});
     S.lancamentos=S.lancamentos.filter(l=>l.id!==id);
-    toast('🗑️ Removido');
+    toastUndo('🗑️ Lançamento removido',registro?[registro]:[]);
     renderLtRecentes();
     renderLtKpis();
   }catch(ex){toast('❌ '+ex.message);}
@@ -3387,6 +3418,43 @@ self.addEventListener('fetch',e=>{
 }
 
 let tt;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),3000);}
+
+// ── Camada de segurança contra exclusão acidental de lançamentos ──
+// Mostra um toast com botão "Desfazer" por alguns segundos. Se clicado,
+// recria os lançamentos excluídos exatamente como estavam (mesmos valores,
+// loja, categoria, ano, mês e observação).
+let ttUndo;
+function toastUndo(msg, registrosExcluidos, segundos=8){
+  const t=document.getElementById('toast-undo');
+  const msgEl=document.getElementById('toast-undo-msg');
+  const btn=document.getElementById('toast-undo-btn');
+  msgEl.textContent=msg;
+  t.classList.add('show');
+  clearTimeout(ttUndo);
+  const novoBtn=btn.cloneNode(true); // remove listeners antigos
+  btn.parentNode.replaceChild(novoBtn,btn);
+  novoBtn.onclick=async()=>{
+    clearTimeout(ttUndo);
+    t.classList.remove('show');
+    await restaurarLancamentos(registrosExcluidos);
+  };
+  ttUndo=setTimeout(()=>t.classList.remove('show'),segundos*1000);
+}
+async function restaurarLancamentos(registros){
+  if(!registros||!registros.length)return;
+  try{
+    const payload=registros.map(r=>({
+      empresa_id:r.empresa_id, loja_id:r.loja_id, categoria_id:r.categoria_id,
+      ano:r.ano, mes:r.mes, mes_num:r.mes_num, valor:r.valor, obs:r.obs||null
+    }));
+    await db('lancamentos',{method:'POST',body:JSON.stringify(payload)});
+    toast(`✅ ${registros.length>1?registros.length+' lançamentos restaurados!':'Lançamento restaurado!'}`);
+    await loadData();
+    // Atualiza qualquer view visível que dependa da lista de lançamentos
+    if(document.getElementById('page-lancamento')?.classList.contains('active')){renderLtRecentes?.();renderLtKpis?.();}
+    if(document.getElementById('page-dashboard')?.classList.contains('active'))renderDash();
+  }catch(ex){toast('❌ Não foi possível restaurar: '+ex.message);}
+}
 
 // (listener redundante removido — f-emp já dispara updateLojas via onchange inline no HTML)
 </script>
