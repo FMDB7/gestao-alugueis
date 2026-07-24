@@ -661,24 +661,8 @@ tbody tr:hover td{background:var(--bg)}
 
           <!-- ══ ABA 1: FATURAMENTO × ALUGUEL ══ -->
           <div id="fat-analise">
-            <div class="card" style="margin-bottom:1rem">
-              <div class="card-body">
-                <div style="font-weight:700;font-size:13px;margin-bottom:.75rem">➕ Lançar Faturamento Mensal</div>
-                <div class="filters">
-                  <div class="fg"><label class="fl">Loja *</label><select class="fc" id="ft-loja"><option value="">Selecione...</option></select></div>
-                  <div class="fg"><label class="fl">Ano *</label><select class="fc" id="ft-ano">
-                    <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
-                  </select></div>
-                  <div class="fg"><label class="fl">Mês *</label><select class="fc" id="ft-mes">
-                    <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option><option value="MARÇO">Março</option>
-                    <option value="ABRIL">Abril</option><option value="MAIO">Maio</option><option value="JUNHO">Junho</option>
-                    <option value="JULHO">Julho</option><option value="AGOSTO">Agosto</option><option value="SETEMBRO">Setembro</option>
-                    <option value="OUTUBRO">Outubro</option><option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
-                  </select></div>
-                  <div class="fg"><label class="fl">Faturamento (R$) *</label><input type="text" class="fc" id="ft-valor" placeholder="0,00" inputmode="decimal"/></div>
-                  <div style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="salvarFaturamento()">✔ Salvar</button></div>
-                </div>
-              </div>
+            <div style="margin-bottom:1rem">
+              <button class="btn btn-primary" onclick="abrirModalFat()">+ Lançar Faturamento Mensal</button>
             </div>
             <div class="card">
               <div class="card-body">
@@ -739,6 +723,58 @@ tbody tr:hover td{background:var(--bg)}
                 <div style="font-weight:700;font-size:13px;margin-bottom:.75rem">E-mails autorizados</div>
                 <div id="emails-alerta-wrap"></div>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ MODAL LANÇAR FATURAMENTO ══ -->
+      <div id="modal-fat" style="display:none;position:fixed;inset:0;background:rgba(15,17,23,.6);z-index:300;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(4px)">
+        <div style="background:var(--surface);border-radius:14px;box-shadow:0 24px 64px rgba(0,0,0,.22);width:100%;max-width:640px;max-height:90vh;overflow-y:auto">
+          <div style="padding:1.1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:1;border-radius:14px 14px 0 0">
+            <div style="display:flex;align-items:center;gap:.5rem">
+              <span style="color:var(--blue);font-size:16px">+</span>
+              <span style="font-size:15px;font-weight:700;color:var(--ink)">Lançar Faturamento Mensal</span>
+            </div>
+            <button onclick="fecharModalFat()" style="background:none;border:1px solid var(--border2);border-radius:6px;padding:3px 10px;font-size:11px;color:var(--ink2);cursor:pointer;display:flex;align-items:center;gap:4px">
+              <span style="font-size:10px;opacity:.6">ESC</span> para fechar
+            </button>
+          </div>
+          <div style="padding:1.5rem">
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:1rem;margin-bottom:1rem">
+              <div class="fg">
+                <label class="fl">LOJA ★</label>
+                <select class="fc" id="ft-loja"><option value="">Selecione...</option></select>
+              </div>
+              <div class="fg">
+                <label class="fl">ANO ★</label>
+                <select class="fc" id="ft-ano">
+                  <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
+                </select>
+              </div>
+              <div class="fg">
+                <label class="fl">MÊS ★</label>
+                <select class="fc" id="ft-mes">
+                  <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option><option value="MARÇO">Março</option>
+                  <option value="ABRIL">Abril</option><option value="MAIO">Maio</option><option value="JUNHO">Junho</option>
+                  <option value="JULHO">Julho</option><option value="AGOSTO">Agosto</option><option value="SETEMBRO">Setembro</option>
+                  <option value="OUTUBRO">Outubro</option><option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
+                </select>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:1.5rem">
+              <div class="fg">
+                <label class="fl">FATURAMENTO (R$) ★</label>
+                <input type="text" class="fc" id="ft-valor" placeholder="0,00"
+                  style="text-align:right;font-size:16px;font-weight:600;letter-spacing:.02em"
+                  oninput="mascaraValor(this)"
+                  onkeydown="if(event.key==='Enter')salvarFaturamento()"/>
+              </div>
+            </div>
+            <div style="display:flex;gap:.75rem;align-items:center;padding-top:1rem;border-top:1px solid var(--border)">
+              <button class="btn btn-primary" id="btn-salvar-fat" onclick="salvarFaturamento()" style="padding:.6rem 1.5rem;font-size:14px">✔ Salvar Faturamento</button>
+              <button class="btn btn-ghost" onclick="fecharModalFat()" style="padding:.6rem 1rem">Cancelar</button>
+              <span style="margin-left:auto;font-size:11px;color:var(--ink3)">★ campos obrigatórios</span>
             </div>
           </div>
         </div>
@@ -909,7 +945,9 @@ async function db(path,opts={}){
     throw new Error(msg);
   }
   if(r.status===204)return null;
-  return r.json();
+  const txt=await r.text();
+  if(!txt)return null;
+  try{return JSON.parse(txt);}catch{return null;}
 }
 
 let S={empresas:[],lojas:[],categorias:[],lancamentos:[]};
@@ -2329,6 +2367,8 @@ document.addEventListener('keydown',e=>{
     if(modal&&modal.style.display==='flex') fecharModalLanc();
     const editModal=document.getElementById('edit-modal');
     if(editModal&&editModal.style.display==='flex') fecharModalEdit();
+    const modalFat=document.getElementById('modal-fat');
+    if(modalFat&&modalFat.style.display==='flex') fecharModalFat();
   }
 });
 
@@ -3585,6 +3625,23 @@ function initFatPage(){
 }
 
 // ── Faturamento mensal ──
+function abrirModalFat(){
+  const modal=document.getElementById('modal-fat');
+  modal.style.display='flex';
+  const now=new Date();
+  const meses=['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+  const ftMes=document.getElementById('ft-mes');
+  const ftAno=document.getElementById('ft-ano');
+  if(ftMes) ftMes.value=meses[now.getMonth()];
+  if(ftAno) ftAno.value=now.getFullYear().toString();
+  setTimeout(()=>document.getElementById('ft-loja')?.focus(),100);
+}
+function fecharModalFat(){
+  document.getElementById('modal-fat').style.display='none';
+  document.getElementById('ft-valor').value='';
+  document.getElementById('ft-loja').value='';
+}
+
 async function salvarFaturamento(){
   const lojaNome=document.getElementById('ft-loja').value;
   const ano=parseInt(document.getElementById('ft-ano').value);
@@ -3594,6 +3651,8 @@ async function salvarFaturamento(){
   if(!lojaNome||!valor||valor<=0){toast('⚠️ Preencha loja e valor');return;}
   const loja=S.lojas.find(l=>l.nome===lojaNome);
   if(!loja)return;
+  const btn=document.getElementById('btn-salvar-fat');
+  if(btn){btn.disabled=true;btn.innerHTML='<div class="spinner"></div> Salvando...';}
   try{
     // upsert: se já existe faturamento para loja/ano/mês, atualiza
     await db(`faturamentos?on_conflict=loja_id,ano,mes_num`,{
@@ -3601,10 +3660,13 @@ async function salvarFaturamento(){
       headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
       body:JSON.stringify({loja_id:loja.id,ano,mes,mes_num:MESES_NUM[mes],valor})
     });
-    document.getElementById('ft-valor').value='';
     toast('✅ Faturamento salvo!');
+    fecharModalFat();
     await loadFatData();renderFatAnalise();
-  }catch(ex){toast('❌ '+ex.message);}
+  }catch(ex){toast('❌ '+ex.message);
+  }finally{
+    if(btn){btn.disabled=false;btn.innerHTML='✔ Salvar Faturamento';}
+  }
 }
 
 async function delFaturamento(id){
