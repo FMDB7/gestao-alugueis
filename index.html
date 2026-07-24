@@ -1841,18 +1841,18 @@ function renderRel(){
   </div>
 
   <!-- TABELA -->
-  <div style="overflow-x:auto"><table>
+  <div style="overflow:auto;max-height:65vh"><table style="border-collapse:collapse">
     <thead><tr>
-      <th style="background:#2d5be3;color:#fff;width:36px">#</th>
-      ${grupos.map(g=>`<th style="background:#2d5be3;color:#fff">${lblmap[g]}</th>`).join('')}
-      <th style="background:#2d5be3;color:#fff;text-align:right">Total (R$)</th>
-      <th style="background:#2d5be3;color:#fff;text-align:right">%</th>
-      <th style="background:#2d5be3;color:#fff;min-width:130px">Participação</th>
+      <th style="background:#2d5be3;color:#fff;width:36px;position:sticky;top:0;z-index:11">#</th>
+      ${grupos.map((g,gi)=>`<th style="background:#2d5be3;color:#fff;position:sticky;top:0;${gi===0?'left:0;z-index:12':'z-index:11'}">${lblmap[g]}</th>`).join('')}
+      <th style="background:#2d5be3;color:#fff;text-align:right;position:sticky;top:0;z-index:11">Total (R$)</th>
+      <th style="background:#2d5be3;color:#fff;text-align:right;position:sticky;top:0;z-index:11">%</th>
+      <th style="background:#2d5be3;color:#fff;min-width:130px;position:sticky;top:0;z-index:11">Participação</th>
     </tr></thead>
     <tbody>
     ${rows.map((r,i)=>`<tr style="${i%2===1?'background:#f8f9ff':''}">
       <td style="color:#9399b8;font-size:11px;text-align:center">${i+1}</td>
-      ${r.parts.map((p,pi)=>`<td style="font-weight:${pi===0?'600':'400'}">${p}</td>`).join('')}
+      ${r.parts.map((p,pi)=>`<td style="font-weight:${pi===0?'600':'400'}${pi===0?`;position:sticky;left:0;background:${i%2===1?'#f8f9ff':'#fff'};border-right:2px solid #2d5be3`:''}">${p}</td>`).join('')}
       <td class="tn" style="font-weight:700">${fBR(r.valor)}</td>
       <td style="text-align:right;font-weight:600;color:#2d5be3">${(r.valor/tot*100).toFixed(1)}%</td>
       <td>
