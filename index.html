@@ -744,7 +744,9 @@ tbody tr:hover td{background:var(--bg)}
             <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:1rem;margin-bottom:1rem">
               <div class="fg">
                 <label class="fl">LOJA ★</label>
-                <select class="fc" id="ft-loja"><option value="">Selecione...</option></select>
+                <input class="fc" id="ft-loja" list="ft-loja-list" placeholder="Digite para buscar a loja..." autocomplete="off" oninput="onFtLojaChange()"/>
+                <datalist id="ft-loja-list"></datalist>
+                <div id="ft-loja-info" style="display:none;margin-top:.5rem;padding:.5rem .75rem;background:var(--blue-bg);border-radius:8px;font-size:12px;color:var(--ink2)"></div>
               </div>
               <div class="fg">
                 <label class="fl">ANO ★</label>
@@ -3618,10 +3620,23 @@ async function loadFatData(){
 
 function initFatPage(){
   const lojasOrd=S.lojas.map(l=>l.nome).sort();
-  fs('ft-loja',lojasOrd,'Selecione...');
+  const dl=document.getElementById('ft-loja-list');
+  if(dl)dl.innerHTML=lojasOrd.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">`).join('');
   fs('fta-loja',lojasOrd,'Todas');
   fs('ct-floja',lojasOrd,'Todas');
   loadFatData().then(()=>{renderFatAnalise();verificarAlertasContratos();});
+}
+
+// Mostra instantaneamente empresa, cidade/UF e último faturamento lançado ao selecionar a loja
+function onFtLojaChange(){
+  const nome=document.getElementById('ft-loja').value.trim();
+  const info=document.getElementById('ft-loja-info');
+  const loja=S.lojas.find(l=>l.nome===nome);
+  if(!loja){info.style.display='none';return;}
+  const ultimo=S.faturamentos.filter(f=>f.loja_nome===loja.nome).sort((a,b)=>b.ano-a.ano||b.mes_num-a.mes_num)[0];
+  info.innerHTML=`🏬 <b>${loja.nome}</b> · ${loja.empresa_nome} · ${loja.cidade||'—'}/${loja.uf||'—'}`+
+    (ultimo?` <br>📅 Último faturamento lançado: <b>${ultimo.mes.charAt(0)+ultimo.mes.slice(1).toLowerCase()}/${ultimo.ano}</b> — ${fBR(ultimo.valor)}`:' <br>📅 Nenhum faturamento lançado ainda para esta loja');
+  info.style.display='block';
 }
 
 // ── Faturamento mensal ──
@@ -3640,6 +3655,7 @@ function fecharModalFat(){
   document.getElementById('modal-fat').style.display='none';
   document.getElementById('ft-valor').value='';
   document.getElementById('ft-loja').value='';
+  document.getElementById('ft-loja-info').style.display='none';
 }
 
 async function salvarFaturamento(){
@@ -3650,7 +3666,7 @@ async function salvarFaturamento(){
   const valor=parseFloat(valorStr);
   if(!lojaNome||!valor||valor<=0){toast('⚠️ Preencha loja e valor');return;}
   const loja=S.lojas.find(l=>l.nome===lojaNome);
-  if(!loja)return;
+  if(!loja){toast('⚠️ Selecione uma loja válida da lista');return;}
   const btn=document.getElementById('btn-salvar-fat');
   if(btn){btn.disabled=true;btn.innerHTML='<div class="spinner"></div> Salvando...';}
   try{
@@ -3661,8 +3677,11 @@ async function salvarFaturamento(){
       body:JSON.stringify({loja_id:loja.id,ano,mes,mes_num:MESES_NUM[mes],valor})
     });
     toast('✅ Faturamento salvo!');
-    fecharModalFat();
+    // Manter modal aberto para o próximo lançamento — limpa só o valor,
+    // mantém loja/ano/mês preenchidos (mesmo padrão do lançamento de aluguel)
+    document.getElementById('ft-valor').value='';
     await loadFatData();renderFatAnalise();
+    setTimeout(()=>document.getElementById('ft-valor')?.focus(),100);
   }catch(ex){toast('❌ '+ex.message);
   }finally{
     if(btn){btn.disabled=false;btn.innerHTML='✔ Salvar Faturamento';}
