@@ -3719,41 +3719,44 @@ function renderFatAnalise(){
       const pct=f.valor>0?(aluguel/f.valor*100):0;
       subFat+=f.valor;subAl+=aluguel;totFatGeral+=f.valor;totAlGeral+=aluguel;linhas++;
       return`<tr>
-        <td style="position:sticky;left:0;background:#fff;border-right:2px solid #2d5be3">${i===0?`<strong style="color:#1a3db8">${loja}</strong>`:''}</td>
-        <td style="text-align:center;color:#2d5be3;font-weight:600">${i===0?f.ano:''}</td>
-        <td>${f.mes.charAt(0)+f.mes.slice(1).toLowerCase()}</td>
-        <td class="tn">${fBR(f.valor)}</td>
-        <td class="tn">${aluguel>0?fBR(aluguel):'—'}</td>
-        <td style="text-align:center;font-weight:700;color:${aluguel>0?corPct(pct):'#c3c7dd'}">${aluguel>0?pct.toFixed(1)+'%':'—'}</td>
-        <td style="text-align:center"><button class="btn btn-danger" style="padding:2px 8px;font-size:11px" onclick="delFaturamento('${f.id}')">✕</button></td>
+        <td style="padding:9px 12px;font-size:13.5px;position:sticky;left:0;background:#fff;border-right:2px solid #2d5be3">${i===0?`<strong style="color:#1a3db8;font-size:14px">${loja}</strong>`:''}</td>
+        <td style="padding:9px 12px;font-size:13.5px;text-align:center;color:#2d5be3;font-weight:700">${i===0?f.ano:''}</td>
+        <td style="padding:9px 12px;font-size:13.5px">${f.mes.charAt(0)+f.mes.slice(1).toLowerCase()}</td>
+        <td class="tn" style="padding:9px 12px;font-size:13.5px">${fBR(f.valor)}</td>
+        <td class="tn" style="padding:9px 12px;font-size:13.5px">${aluguel>0?fBR(aluguel):'—'}</td>
+        <td style="padding:9px 12px;font-size:13.5px;text-align:center;font-weight:700;color:${aluguel>0?corPct(pct):'#c3c7dd'}">${aluguel>0?pct.toFixed(1)+'%':'—'}</td>
+        <td style="padding:9px 12px;text-align:center"><button class="btn btn-danger" style="padding:3px 9px;font-size:12px" onclick="delFaturamento('${f.id}')">✕</button></td>
       </tr>`;
     }).join('');
     const subPct=subFat>0?(subAl/subFat*100):0;
-    const subtotal=`<tr style="background:var(--blue-bg2,#eef2fd)">
-      <td colspan="2" style="font-weight:700;color:#1a3db8;position:sticky;left:0;background:var(--blue-bg2,#eef2fd)">Subtotal ${fAno}</td>
-      <td></td>
-      <td class="tn" style="font-weight:700;color:#1a3db8">${fBR(subFat)}</td>
-      <td class="tn" style="font-weight:700;color:#1a3db8">${subAl>0?fBR(subAl):'—'}</td>
-      <td style="text-align:center;font-weight:700;color:${subAl>0?corPct(subPct):'#c3c7dd'}">${subAl>0?subPct.toFixed(1)+'%':'—'}</td>
-      <td></td>
+    const subBg='#eef2fd';
+    const subtotal=`<tr>
+      <td colspan="2" style="padding:9px 12px;font-size:13.5px;font-weight:700;color:#1a3db8;position:sticky;left:0;background:${subBg}">Subtotal ${fAno}</td>
+      <td style="padding:9px 12px;background:${subBg}"></td>
+      <td class="tn" style="padding:9px 12px;font-size:13.5px;font-weight:700;color:#1a3db8;background:${subBg}">${fBR(subFat)}</td>
+      <td class="tn" style="padding:9px 12px;font-size:13.5px;font-weight:700;color:#1a3db8;background:${subBg}">${subAl>0?fBR(subAl):'—'}</td>
+      <td style="padding:9px 12px;text-align:center;font-weight:700;font-size:13.5px;color:${subAl>0?corPct(subPct):'#8b90ad'};background:${subBg}">${subAl>0?subPct.toFixed(1)+'%':'—'}</td>
+      <td style="padding:9px 12px;background:${subBg}"></td>
     </tr>`;
-    const totalLoja=`<tr style="background:#1a3db8;color:#fff">
-      <td colspan="3" style="font-weight:700;position:sticky;left:0;background:#1a3db8">TOTAL — ${loja}</td>
-      <td class="tn" style="font-weight:700">${fBR(subFat)}</td>
-      <td class="tn" style="font-weight:700">${subAl>0?fBR(subAl):'—'}</td>
-      <td style="text-align:center;font-weight:700">${subAl>0?subPct.toFixed(1)+'%':'—'}</td>
-      <td></td>
+    const totBg='#1a3db8';
+    const totalLoja=`<tr>
+      <td colspan="3" style="padding:10px 12px;font-size:13.5px;font-weight:700;color:#fff;position:sticky;left:0;background:${totBg}">TOTAL — ${loja}</td>
+      <td class="tn" style="padding:10px 12px;font-size:13.5px;font-weight:700;color:#fff;background:${totBg}">${fBR(subFat)}</td>
+      <td class="tn" style="padding:10px 12px;font-size:13.5px;font-weight:700;color:#fff;background:${totBg}">${subAl>0?fBR(subAl):'—'}</td>
+      <td style="padding:10px 12px;text-align:center;font-weight:700;font-size:13.5px;color:#fff;background:${totBg}">${subAl>0?subPct.toFixed(1)+'%':'—'}</td>
+      <td style="padding:10px 12px;background:${totBg}"></td>
     </tr>`;
-    return trs+subtotal+totalLoja+`<tr><td colspan="7" style="height:6px;background:transparent;border:none"></td></tr>`;
+    return trs+subtotal+totalLoja+`<tr><td colspan="7" style="height:8px;background:transparent;border:none"></td></tr>`;
   }).join('');
 
   const pctGeral=totFatGeral>0?(totAlGeral/totFatGeral*100):0;
-  const totalGeralRow=`<tr style="background:#0d9e6e;color:#fff">
-    <td colspan="3" style="font-weight:700;font-size:13px;position:sticky;left:0;background:#0d9e6e">TOTAL GERAL</td>
-    <td class="tn" style="font-weight:700;font-size:13px">${fBR(totFatGeral)}</td>
-    <td class="tn" style="font-weight:700;font-size:13px">${totAlGeral>0?fBR(totAlGeral):'—'}</td>
-    <td style="text-align:center;font-weight:700;font-size:13px">${totAlGeral>0?pctGeral.toFixed(1)+'%':'—'}</td>
-    <td></td>
+  const geralBg='#0d9e6e';
+  const totalGeralRow=`<tr>
+    <td colspan="3" style="padding:11px 12px;font-weight:700;font-size:14.5px;color:#fff;position:sticky;left:0;background:${geralBg}">TOTAL GERAL</td>
+    <td class="tn" style="padding:11px 12px;font-weight:700;font-size:14.5px;color:#fff;background:${geralBg}">${fBR(totFatGeral)}</td>
+    <td class="tn" style="padding:11px 12px;font-weight:700;font-size:14.5px;color:#fff;background:${geralBg}">${totAlGeral>0?fBR(totAlGeral):'—'}</td>
+    <td style="padding:11px 12px;text-align:center;font-weight:700;font-size:14.5px;color:#fff;background:${geralBg}">${totAlGeral>0?pctGeral.toFixed(1)+'%':'—'}</td>
+    <td style="padding:11px 12px;background:${geralBg}"></td>
   </tr>`;
 
   wrap.innerHTML=`
@@ -3764,15 +3767,15 @@ function renderFatAnalise(){
     <span class="badge ba">${lojasU.length} loja${lojasU.length>1?'s':''}</span>
     <span class="badge bb">${linhas} lançamento${linhas>1?'s':''}</span>
   </div>
-  <div style="overflow:auto;max-height:60vh;border:1px solid var(--border)"><table style="border-collapse:collapse;width:100%">
+  <div style="overflow:auto;max-height:60vh;border:1px solid var(--border);border-radius:8px"><table style="border-collapse:collapse;width:100%">
     <thead><tr>
-      <th style="background:#1a3db8;color:#fff;position:sticky;top:0;left:0;z-index:12;min-width:170px">LOJA</th>
-      <th style="background:#1a3db8;color:#fff;position:sticky;top:0;z-index:11;text-align:center">ANO</th>
-      <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11">MÊS</th>
-      <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;text-align:right">FATURAMENTO</th>
-      <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;text-align:right">ALUGUEL</th>
-      <th style="background:#0d9e6e;color:#fff;position:sticky;top:0;z-index:11;text-align:center">% ALUGUEL/FAT</th>
-      <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;min-width:40px"></th>
+      <th style="background:#1a3db8;color:#fff;position:sticky;top:0;left:0;z-index:12;min-width:170px;padding:10px 12px;font-size:12px;letter-spacing:.02em">LOJA</th>
+      <th style="background:#1a3db8;color:#fff;position:sticky;top:0;z-index:11;text-align:center;padding:10px 12px;font-size:12px;letter-spacing:.02em">ANO</th>
+      <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;padding:10px 12px;font-size:12px;letter-spacing:.02em">MÊS</th>
+      <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;text-align:right;padding:10px 12px;font-size:12px;letter-spacing:.02em">FATURAMENTO</th>
+      <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;text-align:right;padding:10px 12px;font-size:12px;letter-spacing:.02em">ALUGUEL</th>
+      <th style="background:#0d9e6e;color:#fff;position:sticky;top:0;z-index:11;text-align:center;padding:10px 12px;font-size:12px;letter-spacing:.02em">% ALUGUEL/FAT</th>
+      <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;min-width:40px;padding:10px 12px"></th>
     </tr></thead><tbody>${blocos}${totalGeralRow}</tbody></table></div>
   <div style="font-size:11px;color:var(--ink3);margin-top:.5rem">🟢 até 10% · 🟡 10–15% · 🔴 acima de 15% — o valor do aluguel é somado automaticamente de todos os lançamentos da loja no mês.</div>`;
 }
