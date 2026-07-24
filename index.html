@@ -3705,30 +3705,75 @@ function renderFatAnalise(){
     &&(!fGrupo||getGrupoLoja(f.loja_nome)===fGrupo));
   if(!fats.length){wrap.innerHTML='<div class="empty"><div class="empty-icon">📊</div><div>Nenhum faturamento lançado para os filtros</div></div>';return;}
   fats=fats.sort((a,b)=>a.loja_nome.localeCompare(b.loja_nome)||a.mes_num-b.mes_num);
-  const rows=fats.map(f=>{
-    const aluguel=S.lancamentos.filter(l=>l.loja_nome===f.loja_nome&&l.ano===f.ano&&l.mes===f.mes).reduce((s,l)=>s+parseFloat(l.valor),0);
-    const pct=f.valor>0?(aluguel/f.valor*100):0;
-    const cor=pct>15?'#d93b3b':(pct>10?'#c97d0a':'#0d9e6e');
-    return`<tr>
-      <td style="font-weight:600;position:sticky;left:0;background:#fff;border-right:2px solid #2d5be3">${f.loja_nome}</td>
-      <td style="text-align:center">${f.ano}</td>
-      <td>${f.mes.charAt(0)+f.mes.slice(1).toLowerCase()}</td>
-      <td class="tn">${fBR(f.valor)}</td>
-      <td class="tn">${aluguel>0?fBR(aluguel):'—'}</td>
-      <td style="text-align:center;font-weight:700;color:${cor}">${aluguel>0?pct.toFixed(2)+'%':'—'}</td>
-      <td style="text-align:center"><button class="btn btn-danger" onclick="delFaturamento('${f.id}')">✕</button></td>
+
+  const lojasU=[...new Set(fats.map(f=>f.loja_nome))];
+  let totFatGeral=0,totAlGeral=0,linhas=0;
+
+  const corPct=pct=>pct>15?'#d93b3b':(pct>10?'#c97d0a':'#0d9e6e');
+
+  const blocos=lojasU.map(loja=>{
+    const linhasLoja=fats.filter(f=>f.loja_nome===loja);
+    let subFat=0,subAl=0;
+    const trs=linhasLoja.map((f,i)=>{
+      const aluguel=S.lancamentos.filter(l=>l.loja_nome===f.loja_nome&&l.ano===f.ano&&l.mes===f.mes).reduce((s,l)=>s+parseFloat(l.valor),0);
+      const pct=f.valor>0?(aluguel/f.valor*100):0;
+      subFat+=f.valor;subAl+=aluguel;totFatGeral+=f.valor;totAlGeral+=aluguel;linhas++;
+      return`<tr>
+        <td style="position:sticky;left:0;background:#fff;border-right:2px solid #2d5be3">${i===0?`<strong style="color:#1a3db8">${loja}</strong>`:''}</td>
+        <td style="text-align:center;color:#2d5be3;font-weight:600">${i===0?f.ano:''}</td>
+        <td>${f.mes.charAt(0)+f.mes.slice(1).toLowerCase()}</td>
+        <td class="tn">${fBR(f.valor)}</td>
+        <td class="tn">${aluguel>0?fBR(aluguel):'—'}</td>
+        <td style="text-align:center;font-weight:700;color:${aluguel>0?corPct(pct):'#c3c7dd'}">${aluguel>0?pct.toFixed(1)+'%':'—'}</td>
+        <td style="text-align:center"><button class="btn btn-danger" style="padding:2px 8px;font-size:11px" onclick="delFaturamento('${f.id}')">✕</button></td>
+      </tr>`;
+    }).join('');
+    const subPct=subFat>0?(subAl/subFat*100):0;
+    const subtotal=`<tr style="background:var(--blue-bg2,#eef2fd)">
+      <td colspan="2" style="font-weight:700;color:#1a3db8;position:sticky;left:0;background:var(--blue-bg2,#eef2fd)">Subtotal ${fAno}</td>
+      <td></td>
+      <td class="tn" style="font-weight:700;color:#1a3db8">${fBR(subFat)}</td>
+      <td class="tn" style="font-weight:700;color:#1a3db8">${subAl>0?fBR(subAl):'—'}</td>
+      <td style="text-align:center;font-weight:700;color:${subAl>0?corPct(subPct):'#c3c7dd'}">${subAl>0?subPct.toFixed(1)+'%':'—'}</td>
+      <td></td>
     </tr>`;
+    const totalLoja=`<tr style="background:#1a3db8;color:#fff">
+      <td colspan="3" style="font-weight:700;position:sticky;left:0;background:#1a3db8">TOTAL — ${loja}</td>
+      <td class="tn" style="font-weight:700">${fBR(subFat)}</td>
+      <td class="tn" style="font-weight:700">${subAl>0?fBR(subAl):'—'}</td>
+      <td style="text-align:center;font-weight:700">${subAl>0?subPct.toFixed(1)+'%':'—'}</td>
+      <td></td>
+    </tr>`;
+    return trs+subtotal+totalLoja+`<tr><td colspan="7" style="height:6px;background:transparent;border:none"></td></tr>`;
   }).join('');
-  wrap.innerHTML=`<div style="overflow:auto;max-height:60vh"><table style="border-collapse:collapse">
+
+  const pctGeral=totFatGeral>0?(totAlGeral/totFatGeral*100):0;
+  const totalGeralRow=`<tr style="background:#0d9e6e;color:#fff">
+    <td colspan="3" style="font-weight:700;font-size:13px;position:sticky;left:0;background:#0d9e6e">TOTAL GERAL</td>
+    <td class="tn" style="font-weight:700;font-size:13px">${fBR(totFatGeral)}</td>
+    <td class="tn" style="font-weight:700;font-size:13px">${totAlGeral>0?fBR(totAlGeral):'—'}</td>
+    <td style="text-align:center;font-weight:700;font-size:13px">${totAlGeral>0?pctGeral.toFixed(1)+'%':'—'}</td>
+    <td></td>
+  </tr>`;
+
+  wrap.innerHTML=`
+  <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem">
+    <span class="badge bb">Total Faturamento: ${fBR(totFatGeral)}</span>
+    <span class="badge bg2">Total Aluguel: ${fBR(totAlGeral)}</span>
+    <span class="badge" style="background:${corPct(pctGeral)}22;color:${corPct(pctGeral)}">% Geral: ${pctGeral.toFixed(1)}%</span>
+    <span class="badge ba">${lojasU.length} loja${lojasU.length>1?'s':''}</span>
+    <span class="badge bb">${linhas} lançamento${linhas>1?'s':''}</span>
+  </div>
+  <div style="overflow:auto;max-height:60vh;border:1px solid var(--border)"><table style="border-collapse:collapse;width:100%">
     <thead><tr>
-      <th style="background:#2d5be3;color:#fff;position:sticky;top:0;left:0;z-index:12">LOJA</th>
-      <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;text-align:center">ANO</th>
+      <th style="background:#1a3db8;color:#fff;position:sticky;top:0;left:0;z-index:12;min-width:170px">LOJA</th>
+      <th style="background:#1a3db8;color:#fff;position:sticky;top:0;z-index:11;text-align:center">ANO</th>
       <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11">MÊS</th>
       <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;text-align:right">FATURAMENTO</th>
       <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;text-align:right">ALUGUEL</th>
       <th style="background:#0d9e6e;color:#fff;position:sticky;top:0;z-index:11;text-align:center">% ALUGUEL/FAT</th>
-      <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11"></th>
-    </tr></thead><tbody>${rows}</tbody></table></div>
+      <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;min-width:40px"></th>
+    </tr></thead><tbody>${blocos}${totalGeralRow}</tbody></table></div>
   <div style="font-size:11px;color:var(--ink3);margin-top:.5rem">🟢 até 10% · 🟡 10–15% · 🔴 acima de 15% — o valor do aluguel é somado automaticamente de todos os lançamentos da loja no mês.</div>`;
 }
 
