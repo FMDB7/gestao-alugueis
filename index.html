@@ -222,6 +222,9 @@ tbody tr:hover td{background:var(--bg)}
         <div class="nav-item" onclick="goPage('lancamento',this)">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Lançamento
         </div>
+        <div class="nav-item" onclick="goPage('faturamento',this)">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Faturamento
+        </div>
         <div class="nav-section">Config</div>
         <div class="nav-item" onclick="goPage('cadastros',this)">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Cadastros
@@ -644,6 +647,100 @@ tbody tr:hover td{background:var(--bg)}
             <div class="card"><div id="anual-wrap" style="overflow:auto;max-height:65vh"><div class="empty"><div class="empty-icon">📅</div><div>Configure os filtros e clique em Gerar</div></div></div></div>
           </div><!-- end rel-anual -->
 
+        </div>
+      </div>
+
+      <div id="page-faturamento" class="page">
+        <div class="topbar"><div class="page-title">Faturamento & Contratos</div></div>
+        <div class="content">
+          <div class="tabs tabs-rel">
+            <button class="tab active" onclick="showTab('fat-analise',this);renderFatAnalise()">Faturamento × Aluguel</button>
+            <button class="tab" onclick="showTab('fat-contratos',this);renderContratos()">Contratos</button>
+            <button class="tab" onclick="showTab('fat-emails',this);renderEmailsAlerta()">E-mails de Alerta</button>
+          </div>
+
+          <!-- ══ ABA 1: FATURAMENTO × ALUGUEL ══ -->
+          <div id="fat-analise">
+            <div class="card" style="margin-bottom:1rem">
+              <div class="card-body">
+                <div style="font-weight:700;font-size:13px;margin-bottom:.75rem">➕ Lançar Faturamento Mensal</div>
+                <div class="filters">
+                  <div class="fg"><label class="fl">Loja *</label><select class="fc" id="ft-loja"><option value="">Selecione...</option></select></div>
+                  <div class="fg"><label class="fl">Ano *</label><select class="fc" id="ft-ano">
+                    <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
+                  </select></div>
+                  <div class="fg"><label class="fl">Mês *</label><select class="fc" id="ft-mes">
+                    <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option><option value="MARÇO">Março</option>
+                    <option value="ABRIL">Abril</option><option value="MAIO">Maio</option><option value="JUNHO">Junho</option>
+                    <option value="JULHO">Julho</option><option value="AGOSTO">Agosto</option><option value="SETEMBRO">Setembro</option>
+                    <option value="OUTUBRO">Outubro</option><option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
+                  </select></div>
+                  <div class="fg"><label class="fl">Faturamento (R$) *</label><input type="text" class="fc" id="ft-valor" placeholder="0,00" inputmode="decimal"/></div>
+                  <div style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="salvarFaturamento()">✔ Salvar</button></div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-body">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem">
+                  <div style="font-weight:700;font-size:13px">📊 Aluguel × Faturamento (%)</div>
+                  <div class="filters" style="margin:0">
+                    <div class="fg"><label class="fl">Loja</label><select class="fc" id="fta-loja" onchange="renderFatAnalise()"><option value="">Todas</option></select></div>
+                    <div class="fg"><label class="fl">Grupo</label><select class="fc" id="fta-grupo" onchange="renderFatAnalise()">
+                      <option value="">Todos os grupos</option>
+                      <option value="ZONA FRANCA">ZONA FRANCA</option>
+                      <option value="MERCADO LOCAL">MERCADO LOCAL</option>
+                    </select></div>
+                    <div class="fg"><label class="fl">Ano</label><select class="fc" id="fta-ano" onchange="renderFatAnalise()">
+                      <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
+                    </select></div>
+                  </div>
+                </div>
+                <div id="fat-analise-wrap"><div class="empty"><div class="empty-icon">📊</div><div>Sem dados de faturamento</div></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ══ ABA 2: CONTRATOS ══ -->
+          <div id="fat-contratos" style="display:none">
+            <div class="card">
+              <div class="card-body">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem">
+                  <div style="font-weight:700;font-size:13px">📋 Contratos de Aluguel por Loja</div>
+                  <div class="filters" style="margin:0">
+                    <div class="fg"><label class="fl">Loja</label><select class="fc" id="ct-floja" onchange="renderContratos()"><option value="">Todas</option></select></div>
+                    <div class="fg"><label class="fl">Grupo</label><select class="fc" id="ct-fgrupo" onchange="renderContratos()">
+                      <option value="">Todos os grupos</option>
+                      <option value="ZONA FRANCA">ZONA FRANCA</option>
+                      <option value="MERCADO LOCAL">MERCADO LOCAL</option>
+                    </select></div>
+                  </div>
+                </div>
+                <div style="font-size:11.5px;color:var(--ink3);margin-bottom:.75rem">⚠️ Contratos a <b>8 meses ou menos</b> do vencimento aparecem com alerta vermelho. Clique em ✏️ para preencher metragem e datas de cada loja.</div>
+                <div id="contratos-wrap"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ══ ABA 3: E-MAILS DE ALERTA ══ -->
+          <div id="fat-emails" style="display:none">
+            <div class="card" style="margin-bottom:1rem">
+              <div class="card-body">
+                <div style="font-weight:700;font-size:13px;margin-bottom:.75rem">📧 Cadastrar e-mail para receber alertas de vencimento</div>
+                <div class="filters">
+                  <div class="fg"><label class="fl">Nome</label><input type="text" class="fc" id="ea-nome" placeholder="Ex: Financeiro"/></div>
+                  <div class="fg"><label class="fl">E-mail *</label><input type="email" class="fc" id="ea-email" placeholder="email@empresa.com.br"/></div>
+                  <div style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="addEmailAlerta()">✔ Adicionar</button></div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-body">
+                <div style="font-weight:700;font-size:13px;margin-bottom:.75rem">E-mails autorizados</div>
+                <div id="emails-alerta-wrap"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1177,16 +1274,19 @@ function toggleAdminFeatures(isAdmin){
 function aplicarRestricaoPerfil(perfil){
   const lancNav=document.querySelector('.nav-item[onclick*="lancamento"]');
   const cadNav=document.querySelector('.nav-item[onclick*="cadastros"]');
+  const fatNav=document.querySelector('.nav-item[onclick*="faturamento"]');
   if(perfil==='visualizador'){
     if(lancNav)lancNav.style.display='none';
     if(cadNav)cadNav.style.display='none';
+    if(fatNav)fatNav.style.display='none';
     // Se o visualizador estiver numa página bloqueada, redireciona para o Dashboard
     const activePage=document.querySelector('.page.active');
-    if(activePage && (activePage.id==='page-lancamento' || activePage.id==='page-cadastros')){
+    if(activePage && (activePage.id==='page-lancamento' || activePage.id==='page-cadastros' || activePage.id==='page-faturamento')){
       goPage('dashboard', document.querySelector('.nav-item[onclick*="dashboard"]'));
     }
   }else{
     if(lancNav)lancNav.style.display='flex';
+    if(fatNav)fatNav.style.display='flex';
     toggleAdminFeatures(perfil==='admin');
   }
 }
@@ -1378,7 +1478,7 @@ function closeSidebar(){
 }
 
 function goPage(id,btn){
-  if(currentUser && currentUser.perfil==='visualizador' && (id==='lancamento'||id==='cadastros')){
+  if(currentUser && currentUser.perfil==='visualizador' && (id==='lancamento'||id==='cadastros'||id==='faturamento')){
     toast('⛔ Seu perfil não tem acesso a esta área');
     return;
   }
@@ -1389,6 +1489,7 @@ function goPage(id,btn){
   btn.classList.add('active');
   if(id==='dashboard')renderDash();
   if(id==='cadastros')renderCads();
+  if(id==='faturamento')initFatPage();
   if(id==='relatorio'){
     // Aba padrão (Detalhado por Mês) já pré-carrega Ano 2026 + Zona Franca
     const ini=document.getElementById('rd-ano-ini');if(ini)ini.value='2026';
@@ -3457,6 +3558,236 @@ async function restaurarLancamentos(registros){
 }
 
 // (listener redundante removido — f-emp já dispara updateLojas via onchange inline no HTML)
+
+// ═══════════════ MÓDULO FATURAMENTO & CONTRATOS ═══════════════
+const MESES_NUM={JANEIRO:1,FEVEREIRO:2,MARÇO:3,ABRIL:4,MAIO:5,JUNHO:6,JULHO:7,AGOSTO:8,SETEMBRO:9,OUTUBRO:10,NOVEMBRO:11,DEZEMBRO:12};
+S.faturamentos=[];S.contratos=[];S.emailsAlerta=[];
+
+async function loadFatData(){
+  try{
+    const[f,c,e]=await Promise.all([
+      db('faturamentos?select=*,lojas(nome)&order=ano.desc,mes_num.desc'),
+      db('contratos?select=*,lojas(nome)'),
+      db('emails_alerta?select=*&order=email')
+    ]);
+    S.faturamentos=(f||[]).map(x=>({...x,loja_nome:x.lojas?.nome||''}));
+    S.contratos=(c||[]).map(x=>({...x,loja_nome:x.lojas?.nome||''}));
+    S.emailsAlerta=e||[];
+  }catch(ex){console.log('Erro fat:',ex.message);}
+}
+
+function initFatPage(){
+  const lojasOrd=S.lojas.map(l=>l.nome).sort();
+  fs('ft-loja',lojasOrd,'Selecione...');
+  fs('fta-loja',lojasOrd,'Todas');
+  fs('ct-floja',lojasOrd,'Todas');
+  loadFatData().then(()=>{renderFatAnalise();verificarAlertasContratos();});
+}
+
+// ── Faturamento mensal ──
+async function salvarFaturamento(){
+  const lojaNome=document.getElementById('ft-loja').value;
+  const ano=parseInt(document.getElementById('ft-ano').value);
+  const mes=document.getElementById('ft-mes').value;
+  const valorStr=document.getElementById('ft-valor').value.replace(/\./g,'').replace(',','.');
+  const valor=parseFloat(valorStr);
+  if(!lojaNome||!valor||valor<=0){toast('⚠️ Preencha loja e valor');return;}
+  const loja=S.lojas.find(l=>l.nome===lojaNome);
+  if(!loja)return;
+  try{
+    // upsert: se já existe faturamento para loja/ano/mês, atualiza
+    await db(`faturamentos?on_conflict=loja_id,ano,mes_num`,{
+      method:'POST',
+      headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
+      body:JSON.stringify({loja_id:loja.id,ano,mes,mes_num:MESES_NUM[mes],valor})
+    });
+    document.getElementById('ft-valor').value='';
+    toast('✅ Faturamento salvo!');
+    await loadFatData();renderFatAnalise();
+  }catch(ex){toast('❌ '+ex.message);}
+}
+
+async function delFaturamento(id){
+  if(!confirm('Remover este faturamento?'))return;
+  try{await db(`faturamentos?id=eq.${id}`,{method:'DELETE'});toast('🗑️ Removido');await loadFatData();renderFatAnalise();}
+  catch(ex){toast('❌ '+ex.message);}
+}
+
+function renderFatAnalise(){
+  const wrap=document.getElementById('fat-analise-wrap');
+  if(!wrap)return;
+  const fLoja=document.getElementById('fta-loja')?.value||'';
+  const fGrupo=document.getElementById('fta-grupo')?.value||'';
+  const fAno=parseInt(document.getElementById('fta-ano')?.value||'2026');
+  let fats=S.faturamentos.filter(f=>f.ano===fAno
+    &&(!fLoja||f.loja_nome===fLoja)
+    &&(!fGrupo||getGrupoLoja(f.loja_nome)===fGrupo));
+  if(!fats.length){wrap.innerHTML='<div class="empty"><div class="empty-icon">📊</div><div>Nenhum faturamento lançado para os filtros</div></div>';return;}
+  fats=fats.sort((a,b)=>a.loja_nome.localeCompare(b.loja_nome)||a.mes_num-b.mes_num);
+  const rows=fats.map(f=>{
+    const aluguel=S.lancamentos.filter(l=>l.loja_nome===f.loja_nome&&l.ano===f.ano&&l.mes===f.mes).reduce((s,l)=>s+parseFloat(l.valor),0);
+    const pct=f.valor>0?(aluguel/f.valor*100):0;
+    const cor=pct>15?'#d93b3b':(pct>10?'#c97d0a':'#0d9e6e');
+    return`<tr>
+      <td style="font-weight:600;position:sticky;left:0;background:#fff;border-right:2px solid #2d5be3">${f.loja_nome}</td>
+      <td style="text-align:center">${f.ano}</td>
+      <td>${f.mes.charAt(0)+f.mes.slice(1).toLowerCase()}</td>
+      <td class="tn">${fBR(f.valor)}</td>
+      <td class="tn">${aluguel>0?fBR(aluguel):'—'}</td>
+      <td style="text-align:center;font-weight:700;color:${cor}">${aluguel>0?pct.toFixed(2)+'%':'—'}</td>
+      <td style="text-align:center"><button class="btn btn-danger" onclick="delFaturamento('${f.id}')">✕</button></td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML=`<div style="overflow:auto;max-height:60vh"><table style="border-collapse:collapse">
+    <thead><tr>
+      <th style="background:#2d5be3;color:#fff;position:sticky;top:0;left:0;z-index:12">LOJA</th>
+      <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;text-align:center">ANO</th>
+      <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11">MÊS</th>
+      <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;text-align:right">FATURAMENTO</th>
+      <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;text-align:right">ALUGUEL</th>
+      <th style="background:#0d9e6e;color:#fff;position:sticky;top:0;z-index:11;text-align:center">% ALUGUEL/FAT</th>
+      <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11"></th>
+    </tr></thead><tbody>${rows}</tbody></table></div>
+  <div style="font-size:11px;color:var(--ink3);margin-top:.5rem">🟢 até 10% · 🟡 10–15% · 🔴 acima de 15% — o valor do aluguel é somado automaticamente de todos os lançamentos da loja no mês.</div>`;
+}
+
+// ── Contratos ──
+function calcStatusContrato(fim){
+  if(!fim)return{label:'Sem data',cor:'#9399b8',bg:'#f0f1f7',dias:null,meses:null};
+  const hoje=new Date();hoje.setHours(0,0,0,0);
+  const dtFim=new Date(fim+'T00:00:00');
+  const diffMs=dtFim-hoje;
+  const dias=Math.ceil(diffMs/(1000*60*60*24));
+  const meses=Math.floor(dias/30.44);
+  const diasResto=Math.max(0,Math.round(dias-meses*30.44));
+  if(dias<0)return{label:'VENCIDO há '+Math.abs(dias)+' dia(s)',cor:'#fff',bg:'#d93b3b',dias,meses};
+  if(meses<8)return{label:`⚠️ Vence em ${meses}m ${diasResto}d`,cor:'#fff',bg:'#d93b3b',dias,meses};
+  if(meses<12)return{label:`Vence em ${meses}m ${diasResto}d`,cor:'#7a5c00',bg:'#fdf5d6',dias,meses};
+  return{label:`OK — ${meses}m restantes`,cor:'#0d6e4e',bg:'#e8f8f3',dias,meses};
+}
+function calcPrazoContrato(ini,fim){
+  if(!ini||!fim)return'—';
+  const a=new Date(ini),b=new Date(fim);
+  const meses=(b.getFullYear()-a.getFullYear())*12+(b.getMonth()-a.getMonth());
+  return meses>0?meses+' meses':'—';
+}
+
+function renderContratos(){
+  const wrap=document.getElementById('contratos-wrap');
+  if(!wrap)return;
+  const fLoja=document.getElementById('ct-floja')?.value||'';
+  const fGrupo=document.getElementById('ct-fgrupo')?.value||'';
+  let lojas=S.lojas.filter(l=>(!fLoja||l.nome===fLoja)&&(!fGrupo||getGrupoLoja(l.nome)===fGrupo)).sort((a,b)=>a.nome.localeCompare(b.nome));
+  if(!lojas.length){wrap.innerHTML='<div class="empty"><div>Nenhuma loja</div></div>';return;}
+  const rows=lojas.map(l=>{
+    const ct=S.contratos.find(c=>c.loja_id===l.id)||{};
+    const st=calcStatusContrato(ct.fim_contrato);
+    return`<tr id="ct-row-${l.id}">
+      <td style="font-weight:600;position:sticky;left:0;background:#fff;border-right:2px solid #2d5be3">${l.nome}</td>
+      <td style="text-align:center">${ct.metragem?parseFloat(ct.metragem).toLocaleString('pt-BR')+' m²':'—'}</td>
+      <td style="text-align:center">${ct.inicio_contrato?new Date(ct.inicio_contrato+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
+      <td style="text-align:center">${ct.fim_contrato?new Date(ct.fim_contrato+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
+      <td style="text-align:center">${calcPrazoContrato(ct.inicio_contrato,ct.fim_contrato)}</td>
+      <td style="text-align:center"><span style="background:${st.bg};color:${st.cor};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap">${st.label}</span></td>
+      <td style="text-align:center"><button class="btn btn-ghost btn-sm" onclick="editarContrato('${l.id}')">✏️ Editar</button></td>
+    </tr>
+    <tr id="ct-edit-${l.id}" style="display:none;background:var(--blue-bg)">
+      <td colspan="7" style="padding:.6rem .875rem">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto auto;gap:.5rem;align-items:end">
+          <div><label class="fl">Metragem (m²)</label><input type="number" step="0.01" id="ct-in-met-${l.id}" value="${ct.metragem||''}" class="fc"/></div>
+          <div><label class="fl">Início do contrato</label><input type="date" id="ct-in-ini-${l.id}" value="${ct.inicio_contrato||''}" class="fc"/></div>
+          <div><label class="fl">Fim do contrato</label><input type="date" id="ct-in-fim-${l.id}" value="${ct.fim_contrato||''}" class="fc"/></div>
+          <button class="btn btn-success btn-sm" onclick="salvarContrato('${l.id}')">✔ Salvar</button>
+          <button class="btn btn-ghost btn-sm" onclick="cancelarEditContrato('${l.id}')">Cancelar</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML=`<div style="overflow:auto;max-height:65vh"><table style="border-collapse:collapse">
+    <thead><tr>
+      <th style="background:#1a3db8;color:#fff;position:sticky;top:0;left:0;z-index:12">LOJA</th>
+      <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;text-align:center">METRAGEM</th>
+      <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;text-align:center">INÍCIO</th>
+      <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;text-align:center">FIM</th>
+      <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;text-align:center">PRAZO</th>
+      <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;text-align:center">STATUS VENCIMENTO</th>
+      <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11"></th>
+    </tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function editarContrato(lojaId){
+  document.getElementById('ct-row-'+lojaId).style.display='none';
+  document.getElementById('ct-edit-'+lojaId).style.display='table-row';
+}
+function cancelarEditContrato(lojaId){
+  document.getElementById('ct-row-'+lojaId).style.display='table-row';
+  document.getElementById('ct-edit-'+lojaId).style.display='none';
+}
+async function salvarContrato(lojaId){
+  const metragem=parseFloat(document.getElementById('ct-in-met-'+lojaId).value)||null;
+  const inicio=document.getElementById('ct-in-ini-'+lojaId).value||null;
+  const fim=document.getElementById('ct-in-fim-'+lojaId).value||null;
+  if(inicio&&fim&&fim<=inicio){toast('⚠️ Fim deve ser após o início');return;}
+  try{
+    await db(`contratos?on_conflict=loja_id`,{
+      method:'POST',
+      headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
+      body:JSON.stringify({loja_id:lojaId,metragem,inicio_contrato:inicio,fim_contrato:fim,updated_at:new Date().toISOString()})
+    });
+    toast('✅ Contrato salvo!');
+    await loadFatData();renderContratos();verificarAlertasContratos();
+  }catch(ex){toast('❌ '+ex.message);}
+}
+
+// ── Alerta em tela: contratos vencendo em até 8 meses ──
+function verificarAlertasContratos(){
+  const criticos=S.contratos.filter(c=>{
+    const st=calcStatusContrato(c.fim_contrato);
+    return st.meses!==null&&st.meses<8;
+  });
+  if(criticos.length&&!sessionStorage.getItem('alertaContratosVisto')){
+    const nomes=criticos.map(c=>c.loja_nome).slice(0,5).join(', ');
+    toast(`⚠️ ${criticos.length} contrato(s) a menos de 8 meses do vencimento: ${nomes}${criticos.length>5?'…':''}`);
+    sessionStorage.setItem('alertaContratosVisto','1');
+  }
+}
+
+// ── E-mails de alerta ──
+async function addEmailAlerta(){
+  const nome=document.getElementById('ea-nome').value.trim();
+  const email=document.getElementById('ea-email').value.trim().toLowerCase();
+  if(!email||!email.includes('@')){toast('⚠️ Informe um e-mail válido');return;}
+  try{
+    await db('emails_alerta',{method:'POST',body:JSON.stringify({nome:nome||null,email})});
+    document.getElementById('ea-nome').value='';document.getElementById('ea-email').value='';
+    toast('✅ E-mail cadastrado!');
+    await loadFatData();renderEmailsAlerta();
+  }catch(ex){toast('❌ '+(ex.message.includes('unique')?'E-mail já cadastrado':ex.message));}
+}
+async function delEmailAlerta(id){
+  if(!confirm('Remover este e-mail?'))return;
+  try{await db(`emails_alerta?id=eq.${id}`,{method:'DELETE'});toast('🗑️ Removido');await loadFatData();renderEmailsAlerta();}
+  catch(ex){toast('❌ '+ex.message);}
+}
+async function toggleEmailAlerta(id,ativo){
+  try{await db(`emails_alerta?id=eq.${id}`,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({ativo:!ativo})});await loadFatData();renderEmailsAlerta();}
+  catch(ex){toast('❌ '+ex.message);}
+}
+function renderEmailsAlerta(){
+  const wrap=document.getElementById('emails-alerta-wrap');
+  if(!wrap)return;
+  if(!S.emailsAlerta.length){wrap.innerHTML='<div class="empty"><div>Nenhum e-mail cadastrado</div></div>';return;}
+  wrap.innerHTML=`<table><thead><tr><th>Nome</th><th>E-mail</th><th>Status</th><th style="text-align:center">Ações</th></tr></thead><tbody>
+  ${S.emailsAlerta.map(e=>`<tr>
+    <td>${e.nome||'—'}</td>
+    <td style="font-weight:600">${e.email}</td>
+    <td><span class="badge ${e.ativo?'bg2':'ba'}">${e.ativo?'Ativo':'Pausado'}</span></td>
+    <td style="text-align:center"><div style="display:flex;gap:4px;justify-content:center">
+      <button class="btn btn-ghost btn-sm" onclick="toggleEmailAlerta('${e.id}',${e.ativo})">${e.ativo?'Pausar':'Ativar'}</button>
+      <button class="btn btn-danger" onclick="delEmailAlerta('${e.id}')">✕</button>
+    </div></td>
+  </tr>`).join('')}</tbody></table>
+  <div style="font-size:11.5px;color:var(--ink3);margin-top:.75rem;line-height:1.5">📬 Os e-mails ativos recebem automaticamente, <b>uma vez por dia</b>, o alerta de contratos a 8 meses ou menos do vencimento, com a contagem de meses e dias restantes de cada loja.</div>`;
+}
 </script>
 </body>
 </html>
