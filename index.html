@@ -568,6 +568,12 @@ tbody tr:hover td{background:var(--bg)}
                     <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
                   </select></div>
                   <div class="fg"><label class="fl">Categoria</label><select class="fc" id="rd-cat" onchange="renderDetalhado()"><option value="">Todas</option></select></div>
+                  <div class="fg"><label class="fl">Mês</label><select class="fc" id="rd-mes" onchange="renderDetalhado()"><option value="">Todos</option>
+                    <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option><option value="MARÇO">Março</option>
+                    <option value="ABRIL">Abril</option><option value="MAIO">Maio</option><option value="JUNHO">Junho</option>
+                    <option value="JULHO">Julho</option><option value="AGOSTO">Agosto</option><option value="SETEMBRO">Setembro</option>
+                    <option value="OUTUBRO">Outubro</option><option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
+                  </select></div>
                   <div class="fg" style="min-width:150px">
                     <label class="fl">Grupo</label>
                     <select class="fc" id="rd-grupo" onchange="renderDetalhado()">
@@ -2748,7 +2754,7 @@ function limparFiltrosRel(){
 }
 
 function limparFiltrosDet(){
-  ['rd-emp','rd-ano-ini','rd-ano-fim','rd-cat','rd-grupo'].forEach(id=>{
+  ['rd-emp','rd-ano-ini','rd-ano-fim','rd-cat','rd-mes','rd-grupo'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.value='';
   });
@@ -2864,9 +2870,10 @@ function renderDetalhado(){
   const anoIni=parseInt(document.getElementById('rd-ano-ini').value);
   const anoFim=parseInt(document.getElementById('rd-ano-fim').value);
   const cat=document.getElementById('rd-cat').value;
+  const mes=document.getElementById('rd-mes')?.value||'';
   if(anoFim<anoIni){toast('Ano final deve ser >= inicial');return;}
   const grupo=document.getElementById('rd-grupo')?.value||'';
-  const d=S.lancamentos.filter(l=>(!emp||l.empresa_nome===emp)&&(!lojas.length||lojas.includes(l.loja_nome))&&(l.ano>=anoIni&&l.ano<=anoFim)&&(!cat||l.cat_nome===cat)&&(!grupo||getGrupoLoja(l.loja_nome)===grupo));
+  const d=S.lancamentos.filter(l=>(!emp||l.empresa_nome===emp)&&(!lojas.length||lojas.includes(l.loja_nome))&&(l.ano>=anoIni&&l.ano<=anoFim)&&(!cat||l.cat_nome===cat)&&(!mes||l.mes===mes)&&(!grupo||getGrupoLoja(l.loja_nome)===grupo));
   const wrap=document.getElementById('det-wrap');
   if(!d.length){wrap.innerHTML='<div class="empty"><div class="empty-icon">📊</div><div>Nenhum dado</div></div>';document.getElementById('btn-det-pdf').style.display='none';return;}
   // Ordem definida das colunas
@@ -2885,7 +2892,7 @@ function renderDetalhado(){
   const lojasU=Object.keys(lojaAcum).sort((a,b)=>lojaAcum[b]-lojaAcum[a]);
   const totalGeral=d.reduce((s,l)=>s+parseFloat(l.valor),0);
   const anos=[];for(let a=anoIni;a<=anoFim;a++)anos.push(a);
-  detState={d,cats,lojasU,anos,totalGeral,emp,lojas,anoIni,anoFim,cat};
+  detState={d,cats,lojasU,anos,totalGeral,emp,lojas,anoIni,anoFim,cat,mes};
   document.getElementById('btn-det-pdf').style.display='inline-flex';
 
   let html=`<div style="padding:.75rem 1.25rem;border-bottom:1px solid var(--border);display:flex;gap:.75rem;flex-wrap:wrap;align-items:center">
@@ -2970,11 +2977,13 @@ function renderDetalhado(){
 }
 
 function exportDetalhadoPDF(){
-  const {d,cats,lojasU,anos,totalGeral,emp,lojas,anoIni,anoFim}=detState;
+  const {d,cats,lojasU,anos,totalGeral,emp,lojas,anoIni,anoFim,cat,mes}=detState;
   if(!lojasU||!lojasU.length){toast('Gere o relatório primeiro');return;}
   const filtros=[];
   if(emp)filtros.push('Empresa: '+emp);
   if(lojas&&lojas.length)filtros.push('Lojas: '+lojas.join(', '));
+  if(cat)filtros.push('Categoria: '+cat);
+  if(mes)filtros.push('Mês: '+mes.charAt(0)+mes.slice(1).toLowerCase());
   filtros.push('Período: '+anoIni+' a '+anoFim);
   const grandCat={};cats.forEach(c=>{grandCat[c]=0;});
   let rows='';let rc=0;
