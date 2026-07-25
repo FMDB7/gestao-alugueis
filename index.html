@@ -840,6 +840,7 @@ tbody tr:hover td{background:var(--bg)}
             </div>
             <div style="display:flex;gap:.75rem;align-items:center;padding-top:1rem;border-top:1px solid var(--border)">
               <button class="btn btn-primary" id="btn-salvar-contrato" onclick="salvarContrato()" style="padding:.6rem 1.5rem;font-size:14px">✔ Salvar Contrato</button>
+              <button class="btn btn-ghost" onclick="limparCamposContrato()" style="padding:.6rem 1rem;color:#c97d0a">🧹 Limpar dados</button>
               <button class="btn btn-ghost" onclick="fecharModalContrato()" style="padding:.6rem 1rem">Cancelar</button>
               <span style="margin-left:auto;font-size:11px;color:var(--ink3)">⚠️ Alerta ativa automaticamente a 8 meses do vencimento</span>
             </div>
@@ -4247,6 +4248,14 @@ function abrirModalContrato(lojaId){
 function fecharModalContrato(){
   document.getElementById('modal-contrato').style.display='none';
   ctModalLojaId=null;
+}
+function limparCamposContrato(){
+  if(!confirm('Limpar os campos deste formulário? (nada será apagado até você clicar em Salvar)'))return;
+  document.getElementById('ctm-met').value='';
+  document.getElementById('ctm-ini').value='';
+  document.getElementById('ctm-fim').value='';
+  toast('🧹 Campos limpos — preencha novamente e salve');
+  document.getElementById('ctm-met')?.focus();
 }
 async function salvarContrato(){
   if(!ctModalLojaId)return;
