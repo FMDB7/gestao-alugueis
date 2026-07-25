@@ -905,6 +905,23 @@ tbody tr:hover td{background:var(--bg)}
               </div>
             </div>
             <div class="card"><div id="list-usr"><div class="empty"><div>Carregando...</div></div></div></div>
+
+            <div class="card" style="margin-top:1rem">
+              <div class="card-hd" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem">
+                <div class="card-title">📋 Permissões por Perfil</div>
+                <select class="fc" id="perm-perfil-sel" style="width:220px" onchange="renderPermissoesPerfil()">
+                  <option value="usuario">Usuário</option>
+                  <option value="visualizador">Visualizador</option>
+                  <option value="admin">Administrador</option>
+                </select>
+              </div>
+              <div class="card-body">
+                <div id="perm-perfil-wrap"><div class="empty"><div>Carregando...</div></div></div>
+                <div style="display:flex;justify-content:flex-end;margin-top:.75rem">
+                  <button class="btn btn-primary" onclick="salvarPermissoesPerfil()">✔ Salvar Permissões</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1202,6 +1219,7 @@ async function processarLoginMicrosoft(msEmail,msNome){
     document.getElementById('app').style.display='block';
     await loadData();
     startAutoRefresh();
+    await loadPermissoesPerfil();
     aplicarRestricaoPerfil(u.perfil);
     toast('✅ Bem-vindo, '+u.nome+'!');
   }catch(ex){
@@ -1346,6 +1364,7 @@ async function fazerLogin(){
     document.getElementById('app').style.display='block';
     await loadData();
     startAutoRefresh();
+    await loadPermissoesPerfil();
     aplicarRestricaoPerfil(u.perfil);
 
   }catch(ex){
@@ -1378,22 +1397,20 @@ function toggleAdminFeatures(isAdmin){
 }
 
 function aplicarRestricaoPerfil(perfil){
-  const lancNav=document.querySelector('.nav-item[onclick*="lancamento"]');
-  const cadNav=document.querySelector('.nav-item[onclick*="cadastros"]');
-  const fatNav=document.querySelector('.nav-item[onclick*="faturamento"]');
-  if(perfil==='visualizador'){
-    if(lancNav)lancNav.style.display='none';
-    if(cadNav)cadNav.style.display='none';
-    if(fatNav)fatNav.style.display='none';
-    // Se o visualizador estiver numa página bloqueada, redireciona para o Dashboard
-    const activePage=document.querySelector('.page.active');
-    if(activePage && (activePage.id==='page-lancamento' || activePage.id==='page-cadastros' || activePage.id==='page-faturamento')){
-      goPage('dashboard', document.querySelector('.nav-item[onclick*="dashboard"]'));
-    }
-  }else{
-    if(lancNav)lancNav.style.display='flex';
-    if(fatNav)fatNav.style.display='flex';
-    toggleAdminFeatures(perfil==='admin');
+  const navMap={dashboard:'.nav-item[onclick*="dashboard"]',relatorio:'.nav-item[onclick*="relatorio"]',lancamento:'.nav-item[onclick*="lancamento"]',faturamento:'.nav-item[onclick*="faturamento"]',cadastros:'.nav-item[onclick*="cadastros"]'};
+  let primeiraPermitida=null;
+  FUNCIONALIDADES_PERFIL.forEach(f=>{
+    const nav=document.querySelector(navMap[f.id]);
+    const pode=perfilPodeAcessar(perfil,f.id);
+    if(nav)nav.style.display=pode?'flex':'none';
+    if(pode&&!primeiraPermitida)primeiraPermitida=f.id;
+  });
+  // Se a página atual não é mais permitida para este perfil, redireciona para a primeira área liberada
+  const activePage=document.querySelector('.page.active');
+  const idAtual=activePage?activePage.id.replace('page-',''):null;
+  if(idAtual && FUNCIONALIDADES_PERFIL.some(f=>f.id===idAtual) && !perfilPodeAcessar(perfil,idAtual)){
+    const navAlvo=document.querySelector(navMap[primeiraPermitida||'dashboard']);
+    if(navAlvo)goPage(primeiraPermitida||'dashboard', navAlvo);
   }
 }
 
@@ -1493,6 +1510,7 @@ async function logout(forced=false){
     } else {
       document.getElementById('uname').textContent = currentUser.nome;
     }
+    await loadPermissoesPerfil();
     aplicarRestricaoPerfil(currentUser.perfil);
     resetInactivityTimer();
     await loadData();
@@ -1584,7 +1602,7 @@ function closeSidebar(){
 }
 
 function goPage(id,btn){
-  if(currentUser && currentUser.perfil==='visualizador' && (id==='lancamento'||id==='cadastros'||id==='faturamento')){
+  if(currentUser && FUNCIONALIDADES_PERFIL.some(f=>f.id===id) && !perfilPodeAcessar(currentUser.perfil,id)){
     toast('⛔ Seu perfil não tem acesso a esta área');
     return;
   }
@@ -3537,6 +3555,7 @@ document.addEventListener('click',e=>{
 
 // ── USUÁRIOS ─────────────────────────────────────
 async function renderUsuarios(){
+  loadPermissoesPerfil().then(renderPermissoesPerfil);
   try{
     const users=await db('usuarios?select=*&order=nome');
     const el=document.getElementById('list-usr');
@@ -3571,6 +3590,44 @@ async function alterarPerfil(id,novoPerfil,nome){
     registrarLog('ALTERAR_PERFIL','usuarios',{usuario_id:id,novo_perfil:novoPerfil});
     renderUsuarios();
   }catch(ex){toast('❌ '+ex.message);renderUsuarios();}
+}
+
+function renderPermissoesPerfil(){
+  const wrap=document.getElementById('perm-perfil-wrap');
+  if(!wrap)return;
+  const perfil=document.getElementById('perm-perfil-sel')?.value||'usuario';
+  const isAdmin=perfil==='admin';
+  wrap.innerHTML=`<table><thead><tr><th>Funcionalidade</th><th style="text-align:center;width:100px">Acessar</th></tr></thead>
+  <tbody>${FUNCIONALIDADES_PERFIL.map(f=>{
+    const pode=isAdmin?true:perfilPodeAcessar(perfil,f.id);
+    return`<tr>
+      <td style="font-weight:600">${f.label}</td>
+      <td style="text-align:center"><input type="checkbox" id="perm-chk-${f.id}" ${pode?'checked':''} ${isAdmin?'disabled':''} style="width:18px;height:18px;cursor:${isAdmin?'not-allowed':'pointer'}"/></td>
+    </tr>`;
+  }).join('')}</tbody></table>
+  ${isAdmin?'<div style="font-size:11.5px;color:var(--ink3);margin-top:.6rem">🔒 O perfil Administrador sempre tem acesso total a todas as áreas — isso não pode ser desativado, para evitar que o sistema fique sem ninguém com acesso de gestão.</div>':'<div style="font-size:11.5px;color:var(--ink3);margin-top:.6rem">Marque as áreas que este perfil pode acessar. Usuários com esse perfil só verão no menu as áreas marcadas aqui.</div>'}`;
+}
+
+async function salvarPermissoesPerfil(){
+  const perfil=document.getElementById('perm-perfil-sel')?.value||'usuario';
+  if(perfil==='admin'){toast('⚠️ Permissões do Administrador não podem ser alteradas');return;}
+  try{
+    const registros=FUNCIONALIDADES_PERFIL.map(f=>({
+      perfil,
+      funcionalidade:f.id,
+      pode_acessar:document.getElementById('perm-chk-'+f.id).checked
+    }));
+    await db('permissoes_perfil?on_conflict=perfil,funcionalidade',{
+      method:'POST',
+      headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
+      body:JSON.stringify(registros)
+    });
+    toast('✅ Permissões salvas!');
+    registrarLog('ALTERAR_PERMISSOES_PERFIL','permissoes_perfil',{perfil,registros});
+    await loadPermissoesPerfil();
+    // Se o usuário logado tiver esse perfil, aplica a mudança na hora
+    if(currentUser && currentUser.perfil===perfil) aplicarRestricaoPerfil(perfil);
+  }catch(ex){toast('❌ '+ex.message);}
 }
 
 function checkNuEmailDominio(){
@@ -3691,6 +3748,27 @@ async function restaurarLancamentos(registros){
 // ═══════════════ MÓDULO FATURAMENTO & CONTRATOS ═══════════════
 const MESES_NUM={JANEIRO:1,FEVEREIRO:2,MARÇO:3,ABRIL:4,MAIO:5,JUNHO:6,JULHO:7,AGOSTO:8,SETEMBRO:9,OUTUBRO:10,NOVEMBRO:11,DEZEMBRO:12};
 S.faturamentos=[];S.contratos=[];S.emailsAlerta=[];
+S.permissoesPerfil=[];
+
+const FUNCIONALIDADES_PERFIL=[
+  {id:'dashboard',label:'Dashboard'},
+  {id:'relatorio',label:'Relatório'},
+  {id:'lancamento',label:'Lançamento'},
+  {id:'faturamento',label:'Faturamento'},
+  {id:'cadastros',label:'Cadastros'}
+];
+
+async function loadPermissoesPerfil(){
+  try{ S.permissoesPerfil = await db('permissoes_perfil?select=*') || []; }
+  catch(ex){ console.log('Erro ao carregar permissões:',ex.message); }
+}
+
+// admin sempre tem acesso total (proteção contra autobloqueio do sistema)
+function perfilPodeAcessar(perfil,funcionalidade){
+  if(perfil==='admin')return true;
+  const p=S.permissoesPerfil.find(x=>x.perfil===perfil&&x.funcionalidade===funcionalidade);
+  return p?p.pode_acessar:true; // sem registro = libera por padrão (não quebra nada)
+}
 
 let fatLoadError=null;
 async function loadFatData(){
