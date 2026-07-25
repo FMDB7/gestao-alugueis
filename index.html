@@ -2710,15 +2710,15 @@ function renderAnual(){
       </div>
       <p style="font-size:12.5px;line-height:1.6;color:rgba(255,255,255,.92);margin:0 0 .6rem">
         O custo total de aluguéis (${cat||'todas categorias'}) apresentou <b>${tendTxt}</b> entre ${primeiro.charAt(0)+primeiro.slice(1).toLowerCase()} e ${ultimo.charAt(0)+ultimo.slice(1).toLowerCase()}/${ano},
-        com variação acumulada de <b>${varAcumPct>=0?'+':''}${varAcumPct.toFixed(1)}%</b> (${fBR(mesTotais[primeiro])} → ${fBR(mesTotais[ultimo])}),
-        e variação média mês a mês de <b>${mediaVar>=0?'+':''}${mediaVar.toFixed(1)}%</b>.
-        O maior salto de custo ocorreu em <b>${maiorAlta.mes.charAt(0)+maiorAlta.mes.slice(1).toLowerCase()}</b> (${maiorAlta.varPct>=0?'+':''}${maiorAlta.varPct.toFixed(1)}%, ${fBR(maiorAlta.var)}),
-        enquanto a maior redução foi em <b>${maiorQueda.mes.charAt(0)+maiorQueda.mes.slice(1).toLowerCase()}</b> (${maiorQueda.varPct.toFixed(1)}%, ${fBR(maiorQueda.var)}).
+        com variação acumulada de ${pctBadge(varAcumPct)} (${fBR(mesTotais[primeiro])} → ${fBR(mesTotais[ultimo])}),
+        e variação média mês a mês de ${pctBadge(mediaVar)}.
+        O maior salto de custo ocorreu em <b>${maiorAlta.mes.charAt(0)+maiorAlta.mes.slice(1).toLowerCase()}</b> (${pctBadge(maiorAlta.varPct)}, ${fBR(maiorAlta.var)}),
+        enquanto a maior redução foi em <b>${maiorQueda.mes.charAt(0)+maiorQueda.mes.slice(1).toLowerCase()}</b> (${pctBadge(maiorQueda.varPct)}, ${fBR(maiorQueda.var)}).
       </p>
       <div style="display:flex;gap:.6rem;flex-wrap:wrap">
-        <span style="background:rgba(255,255,255,.12);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">📈 Maior alta: ${maiorAlta.mes} (${maiorAlta.varPct>=0?'+':''}${maiorAlta.varPct.toFixed(1)}%)</span>
-        <span style="background:rgba(255,255,255,.12);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">📉 Maior queda: ${maiorQueda.mes} (${maiorQueda.varPct.toFixed(1)}%)</span>
-        <span style="background:rgba(255,255,255,.12);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">Σ Acumulado: ${varAcumPct>=0?'+':''}${varAcumPct.toFixed(1)}%</span>
+        <span style="background:rgba(255,255,255,.12);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">Maior alta: ${maiorAlta.mes} ${pctBadge(maiorAlta.varPct)}</span>
+        <span style="background:rgba(255,255,255,.12);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">Maior queda: ${maiorQueda.mes} ${pctBadge(maiorQueda.varPct)}</span>
+        <span style="background:rgba(255,255,255,.12);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">Σ Acumulado: ${pctBadge(varAcumPct)}</span>
       </div>
     </div>
     <div class="card" style="margin:0 1.25rem 1rem">
@@ -2798,7 +2798,7 @@ function renderAnual(){
             if(v.varPct!==null){
               ctx.font='700 13px Arial';
               ctx.fillStyle=v.varPct>=0?'#0d9e6e':'#e0433c';
-              ctx.fillText((v.varPct>=0?'▲ +':'▼ ')+v.varPct.toFixed(1)+'%',x,y-6);
+              ctx.fillText(v.varPct.toFixed(1)+'% '+(v.varPct>=0?'▲':'▼'),x,y-6);
             }
           });
           ctx.restore();
@@ -2823,7 +2823,7 @@ function renderAnual(){
               label:ctx=>{
                 const v=variacoes[ctx.dataIndex];
                 let lbl=' '+fBR(v.valor);
-                if(v.varPct!==null)lbl+=`  (${v.varPct>=0?'+':''}${v.varPct.toFixed(1)}% vs mês anterior)`;
+                if(v.varPct!==null)lbl+=`  (${v.varPct.toFixed(1)}% ${v.varPct>=0?'▲':'▼'} vs mês anterior)`;
                 return lbl;
               }
             }}
@@ -2859,10 +2859,10 @@ function exportAnualPDF(){
       <div style="font-weight:700;font-size:9px;letter-spacing:.03em;margin-bottom:.3rem">💡 INSIGHT EXECUTIVO — VARIAÇÃO DE ALUGUEL</div>
       <div style="font-size:8px;line-height:1.55;color:rgba(255,255,255,.94)">
         O custo total de aluguéis (${cat||'todas categorias'}) apresentou <b>${tendTxt}</b> entre ${primeiro.charAt(0)+primeiro.slice(1).toLowerCase()} e ${ultimo.charAt(0)+ultimo.slice(1).toLowerCase()}/${ano},
-        com variação acumulada de <b>${varAcumPct>=0?'+':''}${varAcumPct.toFixed(1)}%</b> (${fBR(mesTotais[primeiro])} → ${fBR(mesTotais[ultimo])}),
-        e variação média mês a mês de <b>${mediaVar>=0?'+':''}${mediaVar.toFixed(1)}%</b>.
-        Maior alta: <b>${maiorAlta.mes.charAt(0)+maiorAlta.mes.slice(1).toLowerCase()}</b> (${maiorAlta.varPct>=0?'+':''}${maiorAlta.varPct.toFixed(1)}%, ${fBR(maiorAlta.var)}) ·
-        Maior queda: <b>${maiorQueda.mes.charAt(0)+maiorQueda.mes.slice(1).toLowerCase()}</b> (${maiorQueda.varPct.toFixed(1)}%, ${fBR(maiorQueda.var)}).
+        com variação acumulada de ${pctBadge(varAcumPct)} (${fBR(mesTotais[primeiro])} → ${fBR(mesTotais[ultimo])}),
+        e variação média mês a mês de ${pctBadge(mediaVar)}.
+        Maior alta: <b>${maiorAlta.mes.charAt(0)+maiorAlta.mes.slice(1).toLowerCase()}</b> (${pctBadge(maiorAlta.varPct)}, ${fBR(maiorAlta.var)}) ·
+        Maior queda: <b>${maiorQueda.mes.charAt(0)+maiorQueda.mes.slice(1).toLowerCase()}</b> (${pctBadge(maiorQueda.varPct)}, ${fBR(maiorQueda.var)}).
       </div>
     </div>
     ${chartImg?`<div style="border:1px solid #e4e7f4;border-radius:8px;padding:.5rem;margin-bottom:.5rem;text-align:center">
@@ -3023,6 +3023,13 @@ function limparFiltrosLanc(){
 
 function fBR(v){return'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fS(v){return'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+// Badge padrão para variação percentual entre períodos (▲ verde = alta, ▼ vermelho = queda)
+function pctBadge(pct,decimals=1){
+  const up=pct>=0;
+  const cor=up?'#0d9e6e':'#e0433c';
+  const seta=up?'▲':'▼';
+  return `<span style="color:${cor};font-weight:700;white-space:nowrap">${Math.abs(pct).toFixed(decimals)}% ${seta}</span>`;
+}
 
 
 // ── RELATÓRIO DETALHADO ───────────────────────────────────
