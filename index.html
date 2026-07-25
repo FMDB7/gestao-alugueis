@@ -655,8 +655,8 @@ tbody tr:hover td{background:var(--bg)}
         <div class="content">
           <div class="tabs tabs-rel">
             <button class="tab active" onclick="showTab('fat-analise',this);renderFatAnalise()">Faturamento × Aluguel</button>
-            <button class="tab" onclick="showTab('fat-contratos',this);renderContratos()">Contratos</button>
             <button class="tab" onclick="showTab('fat-relatorio',this);renderFatRelatorio()">Relatório</button>
+            <button class="tab" onclick="showTab('fat-contratos',this);renderContratos()">Contratos</button>
             <button class="tab" onclick="showTab('fat-emails',this);renderEmailsAlerta()">E-mails de Alerta</button>
           </div>
 
@@ -802,6 +802,46 @@ tbody tr:hover td{background:var(--bg)}
               <button class="btn btn-primary" id="btn-salvar-fat" onclick="salvarFaturamento()" style="padding:.6rem 1.5rem;font-size:14px">✔ Salvar Faturamento</button>
               <button class="btn btn-ghost" onclick="fecharModalFat()" style="padding:.6rem 1rem">Cancelar</button>
               <span style="margin-left:auto;font-size:11px;color:var(--ink3)">★ campos obrigatórios</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ MODAL EDITAR CONTRATO ══ -->
+      <div id="modal-contrato" style="display:none;position:fixed;inset:0;background:rgba(15,17,23,.6);z-index:300;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(4px)">
+        <div style="background:var(--surface);border-radius:14px;box-shadow:0 24px 64px rgba(0,0,0,.22);width:100%;max-width:640px;max-height:90vh;overflow-y:auto">
+          <div style="padding:1.1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:1;border-radius:14px 14px 0 0">
+            <div style="display:flex;align-items:center;gap:.5rem">
+              <span style="color:var(--blue);font-size:16px">✏️</span>
+              <span style="font-size:15px;font-weight:700;color:var(--ink)">Editar Contrato de Aluguel</span>
+            </div>
+            <button onclick="fecharModalContrato()" style="background:none;border:1px solid var(--border2);border-radius:6px;padding:3px 10px;font-size:11px;color:var(--ink2);cursor:pointer;display:flex;align-items:center;gap:4px">
+              <span style="font-size:10px;opacity:.6">ESC</span> para fechar
+            </button>
+          </div>
+          <div style="padding:1.5rem">
+            <div style="margin-bottom:1rem">
+              <label class="fl">LOJA</label>
+              <div id="ctm-loja" style="padding:.6rem .75rem;background:var(--blue-bg);border-radius:8px;font-weight:700;color:var(--ink);font-size:14px;margin-top:.3rem"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+              <div class="fg">
+                <label class="fl">METRAGEM (M²)</label>
+                <input type="number" step="0.01" class="fc" id="ctm-met" placeholder="0" onkeydown="if(event.key==='Enter')salvarContrato()"/>
+              </div>
+              <div class="fg">
+                <label class="fl">INÍCIO DO CONTRATO</label>
+                <input type="date" class="fc" id="ctm-ini"/>
+              </div>
+              <div class="fg">
+                <label class="fl">FIM DO CONTRATO</label>
+                <input type="date" class="fc" id="ctm-fim" onkeydown="if(event.key==='Enter')salvarContrato()"/>
+              </div>
+            </div>
+            <div style="display:flex;gap:.75rem;align-items:center;padding-top:1rem;border-top:1px solid var(--border)">
+              <button class="btn btn-primary" id="btn-salvar-contrato" onclick="salvarContrato()" style="padding:.6rem 1.5rem;font-size:14px">✔ Salvar Contrato</button>
+              <button class="btn btn-ghost" onclick="fecharModalContrato()" style="padding:.6rem 1rem">Cancelar</button>
+              <span style="margin-left:auto;font-size:11px;color:var(--ink3)">⚠️ Alerta ativa automaticamente a 8 meses do vencimento</span>
             </div>
           </div>
         </div>
@@ -2406,6 +2446,8 @@ document.addEventListener('keydown',e=>{
     if(editModal&&editModal.style.display==='flex') fecharModalEdit();
     const modalFat=document.getElementById('modal-fat');
     if(modalFat&&modalFat.style.display==='flex') fecharModalFat();
+    const modalContrato=document.getElementById('modal-contrato');
+    if(modalContrato&&modalContrato.style.display==='flex') fecharModalContrato();
   }
 });
 
@@ -4175,18 +4217,7 @@ function _renderContratosImpl(){
       <td style="text-align:center">${ct.fim_contrato?new Date(ct.fim_contrato+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
       <td style="text-align:center">${calcPrazoContrato(ct.inicio_contrato,ct.fim_contrato)}</td>
       <td style="text-align:center"><span style="background:${st.bg};color:${st.cor};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap">${st.label}</span></td>
-      <td style="text-align:center"><button class="btn btn-ghost btn-sm" onclick="editarContrato('${l.id}')">✏️ Editar</button></td>
-    </tr>
-    <tr id="ct-edit-${l.id}" style="display:none;background:var(--blue-bg)">
-      <td colspan="7" style="padding:.6rem .875rem">
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto auto;gap:.5rem;align-items:end">
-          <div><label class="fl">Metragem (m²)</label><input type="number" step="0.01" id="ct-in-met-${l.id}" value="${ct.metragem||''}" class="fc"/></div>
-          <div><label class="fl">Início do contrato</label><input type="date" id="ct-in-ini-${l.id}" value="${ct.inicio_contrato||''}" class="fc"/></div>
-          <div><label class="fl">Fim do contrato</label><input type="date" id="ct-in-fim-${l.id}" value="${ct.fim_contrato||''}" class="fc"/></div>
-          <button class="btn btn-success btn-sm" onclick="salvarContrato('${l.id}')">✔ Salvar</button>
-          <button class="btn btn-ghost btn-sm" onclick="cancelarEditContrato('${l.id}')">Cancelar</button>
-        </div>
-      </td>
+      <td style="text-align:center"><button class="btn btn-ghost btn-sm" onclick="abrirModalContrato('${l.id}')">✏️ Editar</button></td>
     </tr>`;
   }).join('');
   wrap.innerHTML=`<div style="overflow:auto;max-height:65vh"><table style="border-collapse:collapse">
@@ -4200,28 +4231,44 @@ function _renderContratosImpl(){
       <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11"></th>
     </tr></thead><tbody>${rows}</tbody></table></div>`;
 }
-function editarContrato(lojaId){
-  document.getElementById('ct-row-'+lojaId).style.display='none';
-  document.getElementById('ct-edit-'+lojaId).style.display='table-row';
+let ctModalLojaId=null;
+function abrirModalContrato(lojaId){
+  const l=S.lojas.find(x=>x.id===lojaId);
+  if(!l)return;
+  const ct=S.contratos.find(c=>c.loja_id===lojaId)||{};
+  ctModalLojaId=lojaId;
+  document.getElementById('ctm-loja').textContent=l.nome;
+  document.getElementById('ctm-met').value=ct.metragem||'';
+  document.getElementById('ctm-ini').value=ct.inicio_contrato||'';
+  document.getElementById('ctm-fim').value=ct.fim_contrato||'';
+  document.getElementById('modal-contrato').style.display='flex';
+  setTimeout(()=>document.getElementById('ctm-met')?.focus(),100);
 }
-function cancelarEditContrato(lojaId){
-  document.getElementById('ct-row-'+lojaId).style.display='table-row';
-  document.getElementById('ct-edit-'+lojaId).style.display='none';
+function fecharModalContrato(){
+  document.getElementById('modal-contrato').style.display='none';
+  ctModalLojaId=null;
 }
-async function salvarContrato(lojaId){
-  const metragem=parseFloat(document.getElementById('ct-in-met-'+lojaId).value)||null;
-  const inicio=document.getElementById('ct-in-ini-'+lojaId).value||null;
-  const fim=document.getElementById('ct-in-fim-'+lojaId).value||null;
+async function salvarContrato(){
+  if(!ctModalLojaId)return;
+  const metragem=parseFloat(document.getElementById('ctm-met').value)||null;
+  const inicio=document.getElementById('ctm-ini').value||null;
+  const fim=document.getElementById('ctm-fim').value||null;
   if(inicio&&fim&&fim<=inicio){toast('⚠️ Fim deve ser após o início');return;}
+  const btn=document.getElementById('btn-salvar-contrato');
+  if(btn){btn.disabled=true;btn.innerHTML='<div class="spinner"></div> Salvando...';}
   try{
     await db(`contratos?on_conflict=loja_id`,{
       method:'POST',
       headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
-      body:JSON.stringify({loja_id:lojaId,metragem,inicio_contrato:inicio,fim_contrato:fim,updated_at:new Date().toISOString()})
+      body:JSON.stringify({loja_id:ctModalLojaId,metragem,inicio_contrato:inicio,fim_contrato:fim,updated_at:new Date().toISOString()})
     });
     toast('✅ Contrato salvo!');
+    fecharModalContrato();
     await loadFatData();renderContratos();verificarAlertasContratos();
-  }catch(ex){toast('❌ '+ex.message);}
+  }catch(ex){toast('❌ '+ex.message);
+  }finally{
+    if(btn){btn.disabled=false;btn.innerHTML='✔ Salvar Contrato';}
+  }
 }
 
 // ── Alerta em tela: contratos vencendo em até 8 meses ──
