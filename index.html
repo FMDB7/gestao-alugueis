@@ -1585,7 +1585,15 @@ async function salvar(){
   try{
     const e=S.empresas.find(x=>x.nome===en),l=S.lojas.find(x=>x.nome===ln),c=S.categorias.find(x=>x.nome===cn);
     if(!e||!l||!c){toast('❌ Cadastro não encontrado');return;}
+    // Fase 2 do roadmap de integridade: avisar (sem bloquear) se já existe lançamento igual
+    const existente=S.lancamentos.find(x=>x.loja_nome===ln&&x.cat_nome===cn&&x.ano===ano&&x.mes===mes);
+    if(existente){
+      const ok=confirm(`⚠️ Já existe um lançamento de ${fBR(existente.valor)} para ${ln} — ${cn} — ${mes}/${ano}.\n\nDeseja adicionar mesmo assim (os dois valores serão somados nos relatórios)?`);
+      if(!ok){btn.disabled=false;btn.innerHTML='+ Salvar';return;}
+    }
     await db('lancamentos',{method:'POST',body:JSON.stringify({empresa_id:e.id,loja_id:l.id,categoria_id:c.id,ano,mes,mes_num:MESES.indexOf(mes)+1,valor:val,obs})});
+    // Fase 1 do roadmap de integridade: log de auditoria (criar)
+    registrarLog('CRIAR_LANCAMENTO','lancamentos',{loja:ln,categoria:cn,ano,mes,valor:val});
     toast('✅ Lançamento salvo!');
     // Manter modal aberto para próximo lançamento
     // Limpar apenas valor e obs, manter empresa/loja/período/categoria
@@ -1708,7 +1716,7 @@ async function salvarEdicao(id){
 async function delL(id){
   if(!confirm('Remover?'))return;
   const registro=S.lancamentos.find(l=>l.id===id);
-  try{await db(`lancamentos?id=eq.${id}`,{method:'DELETE'});await loadData();toastUndo('🗑️ Lançamento removido',registro?[registro]:[]);}
+  try{await db(`lancamentos?id=eq.${id}`,{method:'DELETE'});await loadData();if(registro)registrarLog('EXCLUIR_LANCAMENTO','lancamentos',{loja:registro.loja_nome,categoria:registro.cat_nome,ano:registro.ano,mes:registro.mes,valor:registro.valor});toastUndo('🗑️ Lançamento removido',registro?[registro]:[]);}
   catch(ex){toast('❌ '+ex.message);}
 }
 
@@ -1847,6 +1855,7 @@ async function salvarModalEdit(id){
     });
     const catNome=S.categorias.find(c=>c.id===catId)?.nome||'';
     const lanc=S.lancamentos.find(l=>l.id===id);
+    registrarLog('EDITAR_LANCAMENTO','lancamentos',{loja:lanc?.loja_nome,categoria:catNome,ano:novoAno,mes:novoMes,valor_novo:novoVal,valor_antigo:lanc?.valor});
     if(lanc){lanc.valor=novoVal;lanc.obs=novaObs;lanc.categoria_id=catId;lanc.cat_nome=catNome;lanc.ano=novoAno;lanc.mes=novoMes;lanc.mes_num=novoMesNum;}
     // Update visible cells
     const hval=document.getElementById('hval-'+id);
@@ -1865,6 +1874,7 @@ async function delLH(id){
   try{
     await db(`lancamentos?id=eq.${id}`,{method:'DELETE'});
     S.lancamentos=S.lancamentos.filter(l=>l.id!==id);
+    if(registro)registrarLog('EXCLUIR_LANCAMENTO','lancamentos',{loja:registro.loja_nome,categoria:registro.cat_nome,ano:registro.ano,mes:registro.mes,valor:registro.valor});
     toastUndo('🗑️ Lançamento removido',registro?[registro]:[]);renderHist();
   }catch(ex){toast('❌ '+ex.message);}
 }
@@ -2525,6 +2535,7 @@ async function excluirSelecionados(){
     // Exclusão em lote via filtro IN, escopado exatamente pelos IDs selecionados
     await db(`lancamentos?id=in.(${selecionados.join(',')})`,{method:'DELETE'});
     S.lancamentos=S.lancamentos.filter(l=>!selecionados.includes(l.id));
+    registrarLog('EXCLUIR_LANCAMENTO_LOTE','lancamentos',{quantidade:registros.length,itens:registros.map(r=>({loja:r.loja_nome,categoria:r.cat_nome,ano:r.ano,mes:r.mes,valor:r.valor}))});
     toastUndo(`🗑️ ${selecionados.length} lançamento${selecionados.length>1?'s':''} excluído${selecionados.length>1?'s':''}`,registros);
     renderLtRecentes();
     renderLtKpis();
@@ -2541,6 +2552,7 @@ async function delLReload(id){
   try{
     await db(`lancamentos?id=eq.${id}`,{method:'DELETE'});
     S.lancamentos=S.lancamentos.filter(l=>l.id!==id);
+    if(registro)registrarLog('EXCLUIR_LANCAMENTO','lancamentos',{loja:registro.loja_nome,categoria:registro.cat_nome,ano:registro.ano,mes:registro.mes,valor:registro.valor});
     toastUndo('🗑️ Lançamento removido',registro?[registro]:[]);
     renderLtRecentes();
     renderLtKpis();
