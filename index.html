@@ -3879,7 +3879,7 @@ function exportFatAnalisePDF(){
   if(!fats||!fats.length){toast('⚠️ Gere os dados primeiro');return;}
   const corPct=pct=>pct>15?'#d93b3b':(pct>10?'#c97d0a':'#0d9e6e');
   const statusPct=pct=>pct>15?'Alerta':(pct>10?'Atenção':'Saudável');
-  const tituloGrupo=fGrupo?`ALUGUÉIS — GRUPO ${fGrupo}`:'ALUGUÉIS — TOP Internacional';
+  const tituloGrupo=fGrupo==='ZONA FRANCA'?'GRUPO ZONA FRANCA':(fGrupo==='MERCADO LOCAL'?'GRUPO MERCADO LOCAL':'GRUPO ZONA FRANCA E MERCADO LOCAL');
 
   const filtros=[];
   if(fLoja)filtros.push('Loja: '+fLoja);
@@ -3918,7 +3918,7 @@ function exportFatAnalisePDF(){
     <td style="text-align:center;color:#fff;font-weight:700;font-size:11px">${totAlGeral>0?pctGeral.toFixed(1)+'% · '+statusPct(pctGeral):'—'}</td>
   </tr>`;
 
-  const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/><title>${tituloGrupo} — Faturamento x Aluguel</title>
+  const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/><title>${tituloGrupo}</title>
   <style>
     *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;margin:0;padding:0;box-sizing:border-box}
     body{font-family:Arial,sans-serif;font-size:10px;color:#1a1a2e;padding:1cm}
@@ -3940,7 +3940,7 @@ function exportFatAnalisePDF(){
   </style></head><body>
   <div class="tip">⚠️ Ativar <strong>Gráficos de plano de fundo</strong> para cores<button onclick="window.print()">🖨️ Salvar PDF</button></div>
   <div class="header">
-    <div><div class="logo">🏢 ${tituloGrupo}</div><div class="sub">Relatório • Faturamento × Aluguel</div></div>
+    <div><div class="logo">🏢 ${tituloGrupo}</div><div class="sub">ALUGUÉIS — TOP Internacional • Faturamento × Aluguel</div></div>
     <div class="meta">Gerado em:<br>${new Date().toLocaleString('pt-BR')}</div>
   </div>
   <div class="filtros">📌 ${filtros.join(' · ')}</div>
