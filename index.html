@@ -3649,17 +3649,21 @@ async function restaurarLancamentos(registros){
 const MESES_NUM={JANEIRO:1,FEVEREIRO:2,MARÇO:3,ABRIL:4,MAIO:5,JUNHO:6,JULHO:7,AGOSTO:8,SETEMBRO:9,OUTUBRO:10,NOVEMBRO:11,DEZEMBRO:12};
 S.faturamentos=[];S.contratos=[];S.emailsAlerta=[];
 
+let fatLoadError=null;
 async function loadFatData(){
-  try{
-    const[f,c,e]=await Promise.all([
-      db('faturamentos?select=*,lojas(nome)&order=ano.desc,mes_num.desc'),
-      db('contratos?select=*,lojas(nome)'),
-      db('emails_alerta?select=*&order=email')
-    ]);
-    S.faturamentos=(f||[]).map(x=>({...x,loja_nome:x.lojas?.nome||''}));
-    S.contratos=(c||[]).map(x=>({...x,loja_nome:x.lojas?.nome||''}));
-    S.emailsAlerta=e||[];
-  }catch(ex){console.log('Erro fat:',ex.message);}
+  fatLoadError=null;
+  const[rf,rc,re]=await Promise.allSettled([
+    db('faturamentos?select=*,lojas(nome)&order=ano.desc,mes_num.desc'),
+    db('contratos?select=*,lojas(nome)'),
+    db('emails_alerta?select=*&order=email')
+  ]);
+  if(rf.status==='fulfilled'){S.faturamentos=(rf.value||[]).map(x=>({...x,loja_nome:x.lojas?.nome||''}));}
+  else{console.log('Erro ao carregar faturamentos:',rf.reason?.message);fatLoadError=rf.reason?.message||'Erro ao carregar faturamentos';}
+  if(rc.status==='fulfilled'){S.contratos=(rc.value||[]).map(x=>({...x,loja_nome:x.lojas?.nome||''}));}
+  else{console.log('Erro ao carregar contratos:',rc.reason?.message);fatLoadError=fatLoadError||rc.reason?.message||'Erro ao carregar contratos';}
+  if(re.status==='fulfilled'){S.emailsAlerta=re.value||[];}
+  else{console.log('Erro ao carregar e-mails de alerta:',re.reason?.message);fatLoadError=fatLoadError||re.reason?.message||'Erro ao carregar e-mails de alerta';}
+  if(fatLoadError)toast('⚠️ '+fatLoadError);
 }
 
 function initFatPage(){
@@ -3764,6 +3768,9 @@ async function salvarFaturamentoEdit(id){
 
 let fatAnaliseState={};
 function renderFatAnalise(){
+  try{ _renderFatAnaliseImpl(); }catch(ex){ mostrarErroRender('fat-analise-wrap',ex); }
+}
+function _renderFatAnaliseImpl(){
   const wrap=document.getElementById('fat-analise-wrap');
   if(!wrap)return;
   const fLoja=document.getElementById('fta-loja')?.value||'';
@@ -3974,6 +3981,9 @@ function calcRankingFat(grupo,ano){
   return ranking;
 }
 function renderFatRelatorio(){
+  try{ _renderFatRelatorioImpl(); }catch(ex){ mostrarErroRender('fat-relatorio-wrap',ex); }
+}
+function _renderFatRelatorioImpl(){
   const wrap=document.getElementById('fat-relatorio-wrap');
   if(!wrap)return;
   const grupo=document.getElementById('fr-grupo')?.value||'';
@@ -4140,7 +4150,15 @@ function calcPrazoContrato(ini,fim){
   return meses>0?meses+' meses':'—';
 }
 
+function mostrarErroRender(wrapId,ex){
+  console.log('Erro em '+wrapId+':',ex);
+  const wrap=document.getElementById(wrapId);
+  if(wrap)wrap.innerHTML=`<div class="empty"><div class="empty-icon">⚠️</div><div>Erro ao carregar: ${(ex&&ex.message)||ex}</div><div style="margin-top:.5rem"><button class="btn btn-ghost btn-sm" onclick="loadFatData().then(()=>{renderFatAnalise();renderContratos();renderFatRelatorio();renderEmailsAlerta();})">↻ Tentar novamente</button></div></div>`;
+}
 function renderContratos(){
+  try{ _renderContratosImpl(); }catch(ex){ mostrarErroRender('contratos-wrap',ex); }
+}
+function _renderContratosImpl(){
   const wrap=document.getElementById('contratos-wrap');
   if(!wrap)return;
   const fLoja=document.getElementById('ct-floja')?.value||'';
@@ -4241,6 +4259,9 @@ async function toggleEmailAlerta(id,ativo){
   catch(ex){toast('❌ '+ex.message);}
 }
 function renderEmailsAlerta(){
+  try{ _renderEmailsAlertaImpl(); }catch(ex){ mostrarErroRender('emails-alerta-wrap',ex); }
+}
+function _renderEmailsAlertaImpl(){
   const wrap=document.getElementById('emails-alerta-wrap');
   if(!wrap)return;
   if(!S.emailsAlerta.length){wrap.innerHTML='<div class="empty"><div>Nenhum e-mail cadastrado</div></div>';return;}
