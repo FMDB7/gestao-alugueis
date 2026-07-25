@@ -849,6 +849,42 @@ tbody tr:hover td{background:var(--bg)}
         </div>
       </div>
 
+      <!-- ══ MODAL RESTRIÇÃO POR GRUPO ══ -->
+      <div id="modal-restricao-grupo" style="display:none;position:fixed;inset:0;background:rgba(15,17,23,.6);z-index:300;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(4px)">
+        <div style="background:var(--surface);border-radius:14px;box-shadow:0 24px 64px rgba(0,0,0,.22);width:100%;max-width:560px;max-height:90vh;overflow-y:auto">
+          <div style="padding:1.1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:.5rem">
+              <span style="color:var(--blue);font-size:16px">🔒</span>
+              <span style="font-size:15px;font-weight:700;color:var(--ink)">Restrição de Edição por Grupo</span>
+            </div>
+            <button onclick="fecharModalRestricaoGrupo()" style="background:none;border:1px solid var(--border2);border-radius:6px;padding:3px 10px;font-size:11px;color:var(--ink2);cursor:pointer">ESC para fechar</button>
+          </div>
+          <div style="padding:1.5rem">
+            <div style="margin-bottom:1rem">
+              <label class="fl">USUÁRIO</label>
+              <div id="rg-usuario" style="padding:.6rem .75rem;background:var(--blue-bg);border-radius:8px;font-weight:700;color:var(--ink);font-size:14px;margin-top:.3rem"></div>
+            </div>
+            <div style="font-size:12px;color:var(--ink3);margin-bottom:1rem;line-height:1.5">
+              Por padrão, todo usuário pode editar (lançar, alterar, excluir) dados de qualquer grupo de lojas. Desmarque um grupo abaixo para que este usuário passe a <b>somente visualizar</b> os dados desse grupo — sem poder criar, editar ou excluir lançamentos, faturamento ou contratos de lojas pertencentes a ele.
+            </div>
+            <div style="display:flex;flex-direction:column;gap:.75rem;margin-bottom:1.5rem">
+              <label style="display:flex;align-items:center;gap:.6rem;padding:.75rem .9rem;background:var(--surface2);border-radius:8px;cursor:pointer">
+                <input type="checkbox" id="rg-chk-zona" style="width:18px;height:18px"/>
+                <div><div style="font-weight:700;font-size:13px">ZONA FRANCA</div><div style="font-size:11px;color:var(--ink3)">Marcado = pode editar. Desmarcado = somente visualizar.</div></div>
+              </label>
+              <label style="display:flex;align-items:center;gap:.6rem;padding:.75rem .9rem;background:var(--surface2);border-radius:8px;cursor:pointer">
+                <input type="checkbox" id="rg-chk-mercado" style="width:18px;height:18px"/>
+                <div><div style="font-weight:700;font-size:13px">MERCADO LOCAL</div><div style="font-size:11px;color:var(--ink3)">Marcado = pode editar. Desmarcado = somente visualizar.</div></div>
+              </label>
+            </div>
+            <div style="display:flex;gap:.75rem;align-items:center;padding-top:1rem;border-top:1px solid var(--border)">
+              <button class="btn btn-primary" id="btn-salvar-restricao" onclick="salvarRestricaoGrupo()" style="padding:.6rem 1.5rem;font-size:14px">✔ Salvar Restrição</button>
+              <button class="btn btn-ghost" onclick="fecharModalRestricaoGrupo()" style="padding:.6rem 1rem">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div id="page-cadastros" class="page">
         <div class="topbar"><div class="page-title">Cadastros</div></div>
         <div class="content">
@@ -1221,6 +1257,7 @@ async function processarLoginMicrosoft(msEmail,msNome){
     await loadData();
     startAutoRefresh();
     await loadPermissoesPerfil();
+    u.gruposBloqueados = await carregarRestricoesGrupoUsuario(u.id);
     aplicarRestricaoPerfil(u.perfil);
     toast('✅ Bem-vindo, '+u.nome+'!');
   }catch(ex){
@@ -1366,6 +1403,7 @@ async function fazerLogin(){
     await loadData();
     startAutoRefresh();
     await loadPermissoesPerfil();
+    u.gruposBloqueados = await carregarRestricoesGrupoUsuario(u.id);
     aplicarRestricaoPerfil(u.perfil);
 
   }catch(ex){
@@ -1512,6 +1550,7 @@ async function logout(forced=false){
       document.getElementById('uname').textContent = currentUser.nome;
     }
     await loadPermissoesPerfil();
+    currentUser.gruposBloqueados = await carregarRestricoesGrupoUsuario(currentUser.id);
     aplicarRestricaoPerfil(currentUser.perfil);
     resetInactivityTimer();
     await loadData();
@@ -1666,6 +1705,7 @@ async function salvar(){
   const obs=document.getElementById('f-obs').value;
   if(!en||!ln||!cn){toast('⚠️ Preencha empresa, loja e categoria');return;}
   if(val<=0){toast('⚠️ Informe um valor');return;}
+  if(!checarPermissaoEdicaoLoja(ln))return;
   const btn=document.getElementById('btn-salvar');btn.disabled=true;btn.innerHTML='<div class="spinner"></div>';
   try{
     const e=S.empresas.find(x=>x.nome===en),l=S.lojas.find(x=>x.nome===ln),c=S.categorias.find(x=>x.nome===cn);
@@ -1799,8 +1839,9 @@ async function salvarEdicao(id){
   finally{btn.disabled=false;btn.innerHTML='✔ Salvar';}
 }
 async function delL(id){
-  if(!confirm('Remover?'))return;
   const registro=S.lancamentos.find(l=>l.id===id);
+  if(registro&&!checarPermissaoEdicaoLoja(registro.loja_nome))return;
+  if(!confirm('Remover?'))return;
   try{await db(`lancamentos?id=eq.${id}`,{method:'DELETE'});await loadData();if(registro)registrarLog('EXCLUIR_LANCAMENTO','lancamentos',{loja:registro.loja_nome,categoria:registro.cat_nome,ano:registro.ano,mes:registro.mes,valor:registro.valor});toastUndo('🗑️ Lançamento removido',registro?[registro]:[]);}
   catch(ex){toast('❌ '+ex.message);}
 }
@@ -1930,6 +1971,8 @@ async function salvarModalEdit(id){
   const novoMes=document.getElementById('em-mes').value;
   const novoMesNum=MESES.indexOf(novoMes)+1;
   if(novoVal<=0){toast('⚠️ Informe um valor maior que zero');return;}
+  const lancAtual=S.lancamentos.find(l=>l.id===id);
+  if(lancAtual&&!checarPermissaoEdicaoLoja(lancAtual.loja_nome))return;
   const btn=document.getElementById('em-save-btn');
   btn.disabled=true;btn.innerHTML='<div class="spinner"></div> Salvando...';
   try{
@@ -1954,8 +1997,9 @@ async function salvarModalEdit(id){
 }
 
 async function delLH(id){
-  if(!confirm('Remover este lançamento?'))return;
   const registro=S.lancamentos.find(l=>l.id===id);
+  if(registro&&!checarPermissaoEdicaoLoja(registro.loja_nome))return;
+  if(!confirm('Remover este lançamento?'))return;
   try{
     await db(`lancamentos?id=eq.${id}`,{method:'DELETE'});
     S.lancamentos=S.lancamentos.filter(l=>l.id!==id);
@@ -2468,6 +2512,8 @@ document.addEventListener('keydown',e=>{
     if(modalFat&&modalFat.style.display==='flex') fecharModalFat();
     const modalContrato=document.getElementById('modal-contrato');
     if(modalContrato&&modalContrato.style.display==='flex') fecharModalContrato();
+    const modalRestricao=document.getElementById('modal-restricao-grupo');
+    if(modalRestricao&&modalRestricao.style.display==='flex') fecharModalRestricaoGrupo();
   }
 });
 
@@ -2614,10 +2660,12 @@ function atualizarSelecao(){
 async function excluirSelecionados(){
   const selecionados=[...document.querySelectorAll('.lt-chk:checked')].map(c=>c.dataset.id);
   if(!selecionados.length){toast('⚠️ Nenhum item selecionado');return;}
+  const registros=S.lancamentos.filter(l=>selecionados.includes(l.id));
+  const bloqueado=registros.find(r=>!checarPermissaoEdicaoLoja(r.loja_nome));
+  if(bloqueado)return; // checarPermissaoEdicaoLoja já mostrou o toast de bloqueio
   if(!confirm(`Excluir ${selecionados.length} lançamento${selecionados.length>1?'s':''}?`))return;
   const btn=document.getElementById('btn-del-sel');
   if(btn){btn.disabled=true;btn.innerHTML='<div class="spinner"></div> Excluindo...';}
-  const registros=S.lancamentos.filter(l=>selecionados.includes(l.id));
   try{
     // Exclusão em lote via filtro IN, escopado exatamente pelos IDs selecionados
     await db(`lancamentos?id=in.(${selecionados.join(',')})`,{method:'DELETE'});
@@ -2634,8 +2682,9 @@ async function excluirSelecionados(){
 }
 
 async function delLReload(id){
-  if(!confirm('Remover este lançamento?'))return;
   const registro=S.lancamentos.find(l=>l.id===id);
+  if(registro&&!checarPermissaoEdicaoLoja(registro.loja_nome))return;
+  if(!confirm('Remover este lançamento?'))return;
   try{
     await db(`lancamentos?id=eq.${id}`,{method:'DELETE'});
     S.lancamentos=S.lancamentos.filter(l=>l.id!==id);
@@ -3577,6 +3626,7 @@ async function renderUsuarios(){
       <td><div style="display:flex;gap:4px">
         <button class="btn btn-ghost btn-sm" onclick="toggleUsuario('${u.id}',${u.ativo})">${u.ativo?'Desativar':'Ativar'}</button>
         ${isCorpEmail(u.email)?'':`<button class="btn btn-ghost btn-sm" onclick="resetSenha('${u.id}')">🔑 Senha</button>`}
+        <button class="btn btn-ghost btn-sm" onclick="abrirModalRestricaoGrupo('${u.id}','${(u.nome||'').replace(/'/g,"\\'")}','${u.email}')">🔒 Grupos</button>
         ${u.id!==currentUser?.id?`<button class="btn btn-danger" onclick="delUsuario('${u.id}')">✕</button>`:''}
       </div></td>
     </tr>`).join('')}</tbody></table>`;
@@ -3591,6 +3641,53 @@ async function alterarPerfil(id,novoPerfil,nome){
     registrarLog('ALTERAR_PERFIL','usuarios',{usuario_id:id,novo_perfil:novoPerfil});
     renderUsuarios();
   }catch(ex){toast('❌ '+ex.message);renderUsuarios();}
+}
+
+let rgUsuarioId=null;
+async function abrirModalRestricaoGrupo(usuarioId,nome,email){
+  rgUsuarioId=usuarioId;
+  document.getElementById('rg-usuario').textContent=`${nome} (${email})`;
+  document.getElementById('rg-chk-zona').checked=true;
+  document.getElementById('rg-chk-mercado').checked=true;
+  document.getElementById('modal-restricao-grupo').style.display='flex';
+  try{
+    const rows=await db(`restricoes_grupo_usuario?usuario_id=eq.${usuarioId}&select=*`)||[];
+    const zona=rows.find(r=>r.grupo==='ZONA FRANCA');
+    const mercado=rows.find(r=>r.grupo==='MERCADO LOCAL');
+    document.getElementById('rg-chk-zona').checked=zona?zona.pode_editar:true;
+    document.getElementById('rg-chk-mercado').checked=mercado?mercado.pode_editar:true;
+  }catch(ex){toast('❌ '+ex.message);}
+}
+function fecharModalRestricaoGrupo(){
+  document.getElementById('modal-restricao-grupo').style.display='none';
+  rgUsuarioId=null;
+}
+async function salvarRestricaoGrupo(){
+  if(!rgUsuarioId)return;
+  const podeZona=document.getElementById('rg-chk-zona').checked;
+  const podeMercado=document.getElementById('rg-chk-mercado').checked;
+  const btn=document.getElementById('btn-salvar-restricao');
+  if(btn){btn.disabled=true;btn.innerHTML='<div class="spinner"></div> Salvando...';}
+  try{
+    await db('restricoes_grupo_usuario?on_conflict=usuario_id,grupo',{
+      method:'POST',
+      headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
+      body:JSON.stringify([
+        {usuario_id:rgUsuarioId,grupo:'ZONA FRANCA',pode_editar:podeZona},
+        {usuario_id:rgUsuarioId,grupo:'MERCADO LOCAL',pode_editar:podeMercado}
+      ])
+    });
+    toast('✅ Restrição salva!');
+    registrarLog('ALTERAR_RESTRICAO_GRUPO','restricoes_grupo_usuario',{usuario_id:rgUsuarioId,zonaFranca:podeZona,mercadoLocal:podeMercado});
+    fecharModalRestricaoGrupo();
+    // Se o usuário logado é o que teve a restrição alterada, aplica na hora
+    if(currentUser && currentUser.id===rgUsuarioId){
+      currentUser.gruposBloqueados=await carregarRestricoesGrupoUsuario(rgUsuarioId);
+    }
+  }catch(ex){toast('❌ '+ex.message);
+  }finally{
+    if(btn){btn.disabled=false;btn.innerHTML='✔ Salvar Restrição';}
+  }
 }
 
 function renderPermissoesPerfil(){
@@ -3751,6 +3848,26 @@ const MESES_NUM={JANEIRO:1,FEVEREIRO:2,MARÇO:3,ABRIL:4,MAIO:5,JUNHO:6,JULHO:7,A
 S.faturamentos=[];S.contratos=[];S.emailsAlerta=[];
 S.permissoesPerfil=[];
 
+// ── Restrição de edição por Grupo (por usuário individual) ──
+// currentUser.gruposBloqueados = lista de grupos ('ZONA FRANCA'/'MERCADO LOCAL') em que o usuário logado só pode visualizar.
+async function carregarRestricoesGrupoUsuario(usuarioId){
+  try{
+    const rows=await db(`restricoes_grupo_usuario?usuario_id=eq.${usuarioId}&select=*`)||[];
+    return rows.filter(r=>!r.pode_editar).map(r=>r.grupo);
+  }catch(ex){ console.log('Erro ao carregar restrições de grupo:',ex.message); return []; }
+}
+// Retorna true se o usuário logado PODE editar dados da loja informada; mostra toast e retorna false se não puder.
+function checarPermissaoEdicaoLoja(lojaNome){
+  if(!currentUser)return true;
+  if(currentUser.perfil==='admin')return true; // admin nunca é restringido por grupo
+  const grupo=getGrupoLoja(lojaNome);
+  if(currentUser.gruposBloqueados && currentUser.gruposBloqueados.includes(grupo)){
+    toast(`⛔ Seu acesso ao grupo ${grupo} é somente leitura — você não pode editar "${lojaNome}"`);
+    return false;
+  }
+  return true;
+}
+
 const FUNCIONALIDADES_PERFIL=[
   {id:'dashboard',label:'Dashboard'},
   {id:'relatorio',label:'Relatório'},
@@ -3837,6 +3954,7 @@ async function salvarFaturamento(){
   if(!lojaNome||!valor||valor<=0){toast('⚠️ Preencha loja e valor');return;}
   const loja=S.lojas.find(l=>l.nome===lojaNome);
   if(!loja){toast('⚠️ Selecione uma loja válida da lista');return;}
+  if(!checarPermissaoEdicaoLoja(lojaNome))return;
   const btn=document.getElementById('btn-salvar-fat');
   if(btn){btn.disabled=true;btn.innerHTML='<div class="spinner"></div> Salvando...';}
   try{
@@ -3859,6 +3977,8 @@ async function salvarFaturamento(){
 }
 
 async function delFaturamento(id){
+  const f=S.faturamentos.find(x=>x.id===id);
+  if(f&&!checarPermissaoEdicaoLoja(f.loja_nome))return;
   if(!confirm('Remover este faturamento?'))return;
   try{await db(`faturamentos?id=eq.${id}`,{method:'DELETE'});toast('🗑️ Removido');await loadFatData();renderFatAnalise();}
   catch(ex){toast('❌ '+ex.message);}
@@ -3881,6 +4001,8 @@ async function salvarFaturamentoEdit(id){
   const valorStr=document.getElementById('fat-in-valor-'+id).value.replace(/\./g,'').replace(',','.');
   const valor=parseFloat(valorStr);
   if(!valor||valor<=0){toast('⚠️ Informe um valor válido');return;}
+  const f=S.faturamentos.find(x=>x.id===id);
+  if(f&&!checarPermissaoEdicaoLoja(f.loja_nome))return;
   try{
     await db(`faturamentos?id=eq.${id}`,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({valor})});
     toast('✅ Faturamento atualizado!');
@@ -4338,6 +4460,8 @@ function limparCamposContrato(){
 }
 async function salvarContrato(){
   if(!ctModalLojaId)return;
+  const lojaCt=S.lojas.find(l=>l.id===ctModalLojaId);
+  if(lojaCt&&!checarPermissaoEdicaoLoja(lojaCt.nome))return;
   const metragem=parseFloat(document.getElementById('ctm-met').value)||null;
   const inicio=document.getElementById('ctm-ini').value||null;
   const fim=document.getElementById('ctm-fim').value||null;
