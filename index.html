@@ -218,12 +218,12 @@ tbody tr:hover td{background:var(--bg)}
         <div class="nav-item nav-item-featured" onclick="goPage('relatorio',this)">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Relatório
         </div>
+        <div class="nav-item nav-item-featured" onclick="goPage('faturamento',this)">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Faturamento
+        </div>
         <div class="nav-section">Operação</div>
         <div class="nav-item" onclick="goPage('lancamento',this)">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Lançamento
-        </div>
-        <div class="nav-item" onclick="goPage('faturamento',this)">
-          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Faturamento
         </div>
         <div class="nav-section">Config</div>
         <div class="nav-item" onclick="goPage('cadastros',this)">
@@ -3940,7 +3940,7 @@ function exportFatAnalisePDF(){
   </style></head><body>
   <div class="tip">⚠️ Ativar <strong>Gráficos de plano de fundo</strong> para cores<button onclick="window.print()">🖨️ Salvar PDF</button></div>
   <div class="header">
-    <div><div class="logo">🏢 ${tituloGrupo}</div><div class="sub">ALUGUÉIS — TOP Internacional • Faturamento × Aluguel</div></div>
+    <div><div class="logo">🏢 ${tituloGrupo}</div><div class="sub">ALUGUÉIS — Faturamento × Aluguel</div></div>
     <div class="meta">Gerado em:<br>${new Date().toLocaleString('pt-BR')}</div>
   </div>
   <div class="filtros">📌 ${filtros.join(' · ')}</div>
