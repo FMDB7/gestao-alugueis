@@ -3753,6 +3753,7 @@ function renderFatAnalise(){
   let totFatGeral=0,totAlGeral=0,linhas=0;
 
   const corPct=pct=>pct>15?'#d93b3b':(pct>10?'#c97d0a':'#0d9e6e');
+  const insightPct=pct=>pct>15?'Alerta':(pct>10?'Atenção':'Saudável');
 
   const blocos=lojasU.map(loja=>{
     const linhasLoja=fats.filter(f=>f.loja_nome===loja);
@@ -3767,7 +3768,7 @@ function renderFatAnalise(){
         <td style="padding:9px 12px;font-size:13.5px">${f.mes.charAt(0)+f.mes.slice(1).toLowerCase()}</td>
         <td class="tn" style="padding:9px 12px;font-size:13.5px">${fBR(f.valor)}</td>
         <td class="tn" style="padding:9px 12px;font-size:13.5px">${aluguel>0?fBR(aluguel):'—'}</td>
-        <td style="padding:9px 12px;font-size:13.5px;text-align:center;font-weight:700;color:${aluguel>0?corPct(pct):'#c3c7dd'}">${aluguel>0?pct.toFixed(1)+'%':'—'}</td>
+        <td style="padding:9px 12px;font-size:13.5px;text-align:center;font-weight:700;color:${aluguel>0?corPct(pct):'#c3c7dd'}">${aluguel>0?`${pct.toFixed(1)}% <span style="font-weight:600;font-size:11px;opacity:.85">· ${insightPct(pct)}</span>`:'—'}</td>
         <td style="padding:9px 12px;text-align:center;white-space:nowrap">
           <button class="btn btn-ghost btn-sm" style="padding:3px 8px;font-size:12px" onclick="editarFaturamento('${f.id}')">✏️</button>
           <button class="btn btn-danger" style="padding:3px 9px;font-size:12px" onclick="delFaturamento('${f.id}')">✕</button>
@@ -3832,10 +3833,10 @@ function renderFatAnalise(){
       <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;padding:10px 12px;font-size:12px;letter-spacing:.02em">MÊS</th>
       <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;text-align:right;padding:10px 12px;font-size:12px;letter-spacing:.02em">FATURAMENTO</th>
       <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;text-align:right;padding:10px 12px;font-size:12px;letter-spacing:.02em">ALUGUEL</th>
-      <th style="background:#0d9e6e;color:#fff;position:sticky;top:0;z-index:11;text-align:center;padding:10px 12px;font-size:12px;letter-spacing:.02em">% ALUGUEL/FAT</th>
+      <th style="background:#0d9e6e;color:#fff;position:sticky;top:0;z-index:11;text-align:center;padding:10px 12px;font-size:12px;letter-spacing:.02em" title="Percentual do aluguel sobre o faturamento da loja no mês.&#10;🟢 até 10% = Saudável&#10;🟡 10–15% = Atenção&#10;🔴 acima de 15% = Alerta (custo de ocupação elevado)">% ALUGUEL/FAT ⓘ</th>
       <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;min-width:40px;padding:10px 12px"></th>
     </tr></thead><tbody>${blocos}${totalGeralRow}</tbody></table></div>
-  <div style="font-size:11px;color:var(--ink3);margin-top:.5rem">🟢 até 10% · 🟡 10–15% · 🔴 acima de 15% — o valor do aluguel é somado automaticamente de todos os lançamentos da loja no mês.</div>`;
+  <div style="font-size:11px;color:var(--ink3);margin-top:.5rem">🟢 até 10% Saudável · 🟡 10–15% Atenção · 🔴 acima de 15% Alerta (custo de ocupação elevado, pode indicar necessidade de renegociação) — o valor do aluguel é somado automaticamente de todos os lançamentos da loja no mês.</div>`;
 }
 
 // ── Contratos ──
