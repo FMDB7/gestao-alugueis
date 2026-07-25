@@ -733,7 +733,7 @@ tbody tr:hover td{background:var(--bg)}
 
           <!-- ══ ABA 4: E-MAILS DE ALERTA ══ -->
           <div id="fat-emails" style="display:none">
-            <div class="card" style="margin-bottom:1rem">
+            <div class="card" id="card-add-email-alerta" style="margin-bottom:1rem">
               <div class="card-body">
                 <div style="font-weight:700;font-size:13px;margin-bottom:.75rem">📧 Cadastrar e-mail para receber alertas de vencimento</div>
                 <div class="filters">
@@ -743,6 +743,7 @@ tbody tr:hover td{background:var(--bg)}
                 </div>
               </div>
             </div>
+            <div id="aviso-email-alerta-readonly" style="display:none;margin-bottom:1rem;padding:.6rem .9rem;background:var(--blue-bg);border-radius:8px;font-size:12px;color:var(--ink2)">🔒 Somente o perfil <b>Administrador</b> pode adicionar, pausar ou remover e-mails de alerta. Você pode visualizar a lista abaixo.</div>
             <div class="card">
               <div class="card-body">
                 <div style="font-weight:700;font-size:13px;margin-bottom:.75rem">E-mails autorizados</div>
@@ -4373,6 +4374,7 @@ function verificarAlertasContratos(){
 
 // ── E-mails de alerta ──
 async function addEmailAlerta(){
+  if(currentUser?.perfil!=='admin'){toast('⛔ Somente o Administrador pode gerenciar e-mails de alerta');return;}
   const nome=document.getElementById('ea-nome').value.trim();
   const email=document.getElementById('ea-email').value.trim().toLowerCase();
   if(!email||!email.includes('@')){toast('⚠️ Informe um e-mail válido');return;}
@@ -4384,11 +4386,13 @@ async function addEmailAlerta(){
   }catch(ex){toast('❌ '+(ex.message.includes('unique')?'E-mail já cadastrado':ex.message));}
 }
 async function delEmailAlerta(id){
+  if(currentUser?.perfil!=='admin'){toast('⛔ Somente o Administrador pode gerenciar e-mails de alerta');return;}
   if(!confirm('Remover este e-mail?'))return;
   try{await db(`emails_alerta?id=eq.${id}`,{method:'DELETE'});toast('🗑️ Removido');await loadFatData();renderEmailsAlerta();}
   catch(ex){toast('❌ '+ex.message);}
 }
 async function toggleEmailAlerta(id,ativo){
+  if(currentUser?.perfil!=='admin'){toast('⛔ Somente o Administrador pode gerenciar e-mails de alerta');return;}
   try{await db(`emails_alerta?id=eq.${id}`,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({ativo:!ativo})});await loadFatData();renderEmailsAlerta();}
   catch(ex){toast('❌ '+ex.message);}
 }
@@ -4398,16 +4402,21 @@ function renderEmailsAlerta(){
 function _renderEmailsAlertaImpl(){
   const wrap=document.getElementById('emails-alerta-wrap');
   if(!wrap)return;
+  const isAdmin=currentUser?.perfil==='admin';
+  const addCard=document.getElementById('card-add-email-alerta');
+  const avisoRO=document.getElementById('aviso-email-alerta-readonly');
+  if(addCard)addCard.style.display=isAdmin?'block':'none';
+  if(avisoRO)avisoRO.style.display=isAdmin?'none':'block';
   if(!S.emailsAlerta.length){wrap.innerHTML='<div class="empty"><div>Nenhum e-mail cadastrado</div></div>';return;}
-  wrap.innerHTML=`<table><thead><tr><th>Nome</th><th>E-mail</th><th>Status</th><th style="text-align:center">Ações</th></tr></thead><tbody>
+  wrap.innerHTML=`<table><thead><tr><th>Nome</th><th>E-mail</th><th>Status</th>${isAdmin?'<th style="text-align:center">Ações</th>':''}</tr></thead><tbody>
   ${S.emailsAlerta.map(e=>`<tr>
     <td>${e.nome||'—'}</td>
     <td style="font-weight:600">${e.email}</td>
     <td><span class="badge ${e.ativo?'bg2':'ba'}">${e.ativo?'Ativo':'Pausado'}</span></td>
-    <td style="text-align:center"><div style="display:flex;gap:4px;justify-content:center">
+    ${isAdmin?`<td style="text-align:center"><div style="display:flex;gap:4px;justify-content:center">
       <button class="btn btn-ghost btn-sm" onclick="toggleEmailAlerta('${e.id}',${e.ativo})">${e.ativo?'Pausar':'Ativar'}</button>
       <button class="btn btn-danger" onclick="delEmailAlerta('${e.id}')">✕</button>
-    </div></td>
+    </div></td>`:''}
   </tr>`).join('')}</tbody></table>
   <div style="font-size:11.5px;color:var(--ink3);margin-top:.75rem;line-height:1.5">📬 Os e-mails ativos recebem automaticamente, <b>uma vez por dia</b>, o alerta de contratos a 8 meses ou menos do vencimento, com a contagem de meses e dias restantes de cada loja.</div>`;
 }
