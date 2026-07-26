@@ -1230,11 +1230,11 @@ async function processarLoginMicrosoft(msEmail,msNome){
   try{
     const emailLower=msEmail.toLowerCase();
     // Buscar usuário no banco
-    let res=await db(`usuarios?email=eq.${encodeURIComponent(emailLower)}&ativo=eq.true&select=*`);
+    let res=await db(`usuarios?email=eq.${encodeURIComponent(emailLower)}&ativo=eq.true&select=id,nome,email,perfil,ativo`);
     // Se não existe, criar automaticamente como usuário
     if(!res||!res.length){
       const nomeFormatado=msNome||msEmail.split('@')[0];
-      const novoUser=await db('usuarios',{
+      const novoUser=await db('usuarios?select=id,nome,email,perfil,ativo',{
         method:'POST',
         body:JSON.stringify({
           nome:nomeFormatado,
@@ -1380,19 +1380,14 @@ async function fazerLogin(){
     // Pequeno delay para dificultar timing attacks
     await new Promise(r=>setTimeout(r,300+Math.random()*200));
 
-    const res=await db(`usuarios?email=eq.${encodeURIComponent(email)}&select=*`);
+    // Verificação feita DENTRO do banco — o hash da senha nunca trafega de volta ao navegador
+    const res=await db('rpc/verificar_login_local',{method:'POST',body:JSON.stringify({p_email:email,p_senha_hash:senhaHash})});
     if(!res||!res.length){
       registerFailedAttempt(email);
       erro.textContent='E-mail ou senha incorretos.'; // mensagem genérica
       return;
     }
     const u=res[0];
-    if(!u.ativo){erro.textContent='Conta desativada. Contate o administrador.';return;}
-    if(u.senha_hash!==senhaHash){
-      registerFailedAttempt(email);
-      erro.textContent='E-mail ou senha incorretos.';
-      return;
-    }
 
     // Login bem-sucedido
     clearAttempts(email);
@@ -3622,7 +3617,7 @@ document.addEventListener('click',e=>{
 async function renderUsuarios(){
   loadPermissoesPerfil().then(renderPermissoesPerfil);
   try{
-    const users=await db('usuarios?select=*&order=nome');
+    const users=await db('usuarios?select=id,nome,email,perfil,ativo,ultimo_acesso&order=nome');
     const el=document.getElementById('list-usr');
     if(!users||!users.length){el.innerHTML='<div class="empty"><div>Nenhum usuário</div></div>';return;}
     el.innerHTML=`<table><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Último acesso</th><th>Status</th><th></th></tr></thead>
@@ -3828,7 +3823,7 @@ async function addUsuario(){
   try{
     // E-mails do domínio corporativo entram via Microsoft SSO — não usam senha local
     const senha_hash=isCorp?'microsoft_sso_no_password':await sha256(senha);
-    await db('usuarios',{method:'POST',body:JSON.stringify({nome,email,senha_hash,perfil})});
+    await db('usuarios',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({nome,email,senha_hash,perfil})});
     document.getElementById('nu-nome').value='';
     document.getElementById('nu-email').value='';
     document.getElementById('nu-senha').value='';
