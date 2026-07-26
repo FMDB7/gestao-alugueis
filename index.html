@@ -1771,50 +1771,15 @@ async function salvar(){
     document.getElementById('f-obs').value='';
     document.getElementById('f-cat').value='';
     // Atualizar lista de recentes em background
-    renderLtRecentes();
-    renderLtKpis();
-    // Focus na categoria para próximo lançamento
     setTimeout(()=>document.getElementById('f-cat')?.focus(),100);
     await loadData();
+    refreshViewsLancamentos();
   }catch(ex){toast('❌ '+ex.message);}
   finally{btn.disabled=false;btn.innerHTML='+ Salvar';}
 }
 // ── LANÇAMENTO — NAVEGAÇÃO DINÂMICA ──────────────────
-function switchLtTab(tab){
-  // Update button styles
-  ['novo','grade','hist'].forEach(t=>{
-    const btn=document.getElementById('lt-tab-'+t);
-    if(btn){
-      if(t===tab){
-        btn.style.fontWeight='700';
-        btn.style.color='var(--blue)';
-        btn.style.borderColor='var(--blue)';
-        btn.style.background='var(--blue-bg)';
-      } else {
-        btn.style.fontWeight='500';
-        btn.style.color='var(--ink2)';
-        btn.style.borderColor='var(--border2)';
-        btn.style.background='transparent';
-      }
-    }
-  });
-  // Show/hide content areas
-  const panels={
-    novo:'lt-form',
-    grade:'lt-grade',
-    hist:'lt-hist'
-  };
-  Object.entries(panels).forEach(([t,id])=>{
-    const el=document.getElementById(id);
-    if(el) el.style.display = t===tab ? 'block' : 'none';
-  });
-  // Auto-focus no valor se tiver loja selecionada
-  if(tab==='novo'){
-    const loja=document.getElementById('f-loja')?.value;
-    if(loja) setTimeout(()=>document.getElementById('f-val')?.focus(),100);
-  }
-}
-
+// (versão obsoleta de switchLtTab removida — referenciava painéis que não existem mais
+// no layout atual e sobrescrevia silenciosamente a versão correta definida adiante)
 function atualizarCtxResumo(){
   const emp=document.getElementById('f-emp')?.value;
   const loja=document.getElementById('f-loja')?.value;
@@ -1887,7 +1852,7 @@ async function delL(id){
   const registro=S.lancamentos.find(l=>l.id===id);
   if(registro&&!checarPermissaoEdicaoLoja(registro.loja_nome))return;
   if(!confirm('Remover?'))return;
-  try{await db(`lancamentos?id=eq.${id}`,{method:'DELETE'});await loadData();if(registro)registrarLog('EXCLUIR_LANCAMENTO','lancamentos',{loja:registro.loja_nome,categoria:registro.cat_nome,ano:registro.ano,mes:registro.mes,valor:registro.valor});toastUndo('🗑️ Lançamento removido',registro?[registro]:[]);}
+  try{await db(`lancamentos?id=eq.${id}`,{method:'DELETE'});await loadData();if(registro)registrarLog('EXCLUIR_LANCAMENTO','lancamentos',{loja:registro.loja_nome,categoria:registro.cat_nome,ano:registro.ano,mes:registro.mes,valor:registro.valor});toastUndo('🗑️ Lançamento removido',registro?[registro]:[]);refreshViewsLancamentos();}
   catch(ex){toast('❌ '+ex.message);}
 }
 
@@ -2064,6 +2029,8 @@ async function salvarModalEdit(id){
     if(hobs)hobs.textContent=novaObs||'—';
     fecharModalEdit();
     toast('✅ Lançamento atualizado!');
+    await loadData(); // recarrega do banco em vez de alterar só a cópia local
+    refreshViewsLancamentos();
   }catch(ex){toast('❌ '+ex.message);}
   finally{btn.disabled=false;btn.innerHTML='✔ Salvar alterações';}
 }
@@ -2076,7 +2043,7 @@ async function delLH(id){
     await db(`lancamentos?id=eq.${id}`,{method:'DELETE'});
     await loadData(); // recarrega do banco — garante que a tela nunca fique dessincronizada
     if(registro)registrarLog('EXCLUIR_LANCAMENTO','lancamentos',{loja:registro.loja_nome,categoria:registro.cat_nome,ano:registro.ano,mes:registro.mes,valor:registro.valor});
-    toastUndo('🗑️ Lançamento removido',registro?[registro]:[]);renderHist();
+    toastUndo('🗑️ Lançamento removido',registro?[registro]:[]);refreshViewsLancamentos();
   }catch(ex){toast('❌ '+ex.message);}
 }
 
@@ -2609,6 +2576,11 @@ function switchLtTab(tab){
     else{btn.style.background='transparent';btn.style.color='var(--ink2)';btn.style.borderColor='var(--border2)';}
   });
   if(tab==='main') renderLtRecentes();
+  // As abas Grade e Histórico também precisam ser re-renderizadas ao serem abertas —
+  // caso contrário exibem o estado de quando foram carregadas pela última vez,
+  // ignorando lançamentos/edições feitos depois disso na aba principal.
+  if(tab==='grade') carregarGrade();
+  if(tab==='hist') renderHist();
 }
 
 // ── TELA INICIAL DO LANÇAMENTO ──────────────────────────
@@ -2750,12 +2722,11 @@ async function excluirSelecionados(){
   if(btn){btn.disabled=true;btn.innerHTML='<div class="spinner"></div> Excluindo...';}
   try{
     // Exclusão em lote via filtro IN, escopado exatamente pelos IDs selecionados
-    await db(`lancamentos?id=in.(${selecionados.join(',')})`,{method:'DELETE'});
+    await excluirLancamentosEmLote(selecionados);
     await loadData(); // recarrega do banco — garante que a tela nunca fique dessincronizada
     registrarLog('EXCLUIR_LANCAMENTO_LOTE','lancamentos',{quantidade:registros.length,itens:registros.map(r=>({loja:r.loja_nome,categoria:r.cat_nome,ano:r.ano,mes:r.mes,valor:r.valor}))});
     toastUndo(`🗑️ ${selecionados.length} lançamento${selecionados.length>1?'s':''} excluído${selecionados.length>1?'s':''}`,registros);
-    renderLtRecentes();
-    renderLtKpis();
+    refreshViewsLancamentos();
   }catch(ex){
     toast('❌ '+ex.message);
   }finally{
@@ -2773,8 +2744,7 @@ async function delLReload(id){
     await loadData(); // recarrega do banco — garante que a tela nunca fique dessincronizada
     if(registro)registrarLog('EXCLUIR_LANCAMENTO','lancamentos',{loja:registro.loja_nome,categoria:registro.cat_nome,ano:registro.ano,mes:registro.mes,valor:registro.valor});
     toastUndo('🗑️ Lançamento removido',registro?[registro]:[]);
-    renderLtRecentes();
-    renderLtKpis();
+    refreshViewsLancamentos();
   }catch(ex){toast('❌ '+ex.message);}
 }
 
@@ -3805,6 +3775,16 @@ function ehDuplicidadeExata(g){
   const primeiro=parseFloat(g[0].valor);
   return g.every(x=>parseFloat(x.valor)===primeiro);
 }
+// Exclui lançamentos em blocos. O filtro id=in.(...) vai na URL, e cada UUID
+// ocupa ~37 caracteres — com centenas de IDs a URL estoura o limite do servidor
+// e a exclusão falharia. Dividir em blocos de 50 mantém a URL sempre segura.
+async function excluirLancamentosEmLote(ids){
+  const BLOCO=50;
+  for(let i=0;i<ids.length;i+=BLOCO){
+    const parte=ids.slice(i,i+BLOCO);
+    await db(`lancamentos?id=in.(${parte.join(',')})`,{method:'DELETE'});
+  }
+}
 async function limparDuplicidadesExatas(){
   const dups=calcDuplicidades().filter(ehDuplicidadeExata);
   if(!dups.length){toast('✅ Nenhuma duplicidade exata para limpar');return;}
@@ -3817,8 +3797,8 @@ async function limparDuplicidadesExatas(){
   if(!confirm(`Isso vai remover ${aRemover.length} lançamento(s) redundante(s) de ${dups.length} grupo(s) — apenas os que têm valor 100% idêntico ao original. O lançamento mais antigo de cada grupo é mantido.\n\nDeseja continuar?`))return;
   try{
     const ids=aRemover.map(x=>x.id);
-    await db(`lancamentos?id=in.(${ids.join(',')})`,{method:'DELETE'});
-    S.lancamentos=S.lancamentos.filter(l=>!ids.includes(l.id));
+    await excluirLancamentosEmLote(ids);
+    await loadData(); // recarrega do banco — mantém todas as telas consistentes
     registrarLog('LIMPEZA_AUTOMATICA_DUPLICIDADE','lancamentos',{quantidade:aRemover.length,grupos:dups.length});
     toastUndo(`🧹 ${aRemover.length} lançamento(s) duplicado(s) removido(s)`,aRemover);
     renderIntegridadeDados();
@@ -4015,6 +3995,40 @@ function toastUndo(msg, registrosExcluidos, segundos=8){
   };
   ttUndo=setTimeout(()=>t.classList.remove('show'),segundos*1000);
 }
+// Atualiza TODA tela atualmente visível que dependa da lista de lançamentos.
+// Usada após qualquer criação/edição/exclusão, para eliminar o padrão antigo em
+// que cada função atualizava apenas algumas telas — origem de vários casos de
+// "o dado sumiu" que na verdade eram telas exibindo estado antigo.
+function refreshViewsLancamentos(){
+  try{
+  const ativa=document.querySelector('.page.active')?.id;
+  if(ativa==='page-lancamento'){
+    const grade=document.getElementById('lt-grade');
+    const hist=document.getElementById('lt-hist');
+    if(grade&&grade.style.display!=='none')carregarGrade?.();
+    else if(hist&&hist.style.display!=='none')renderHist?.();
+    else {renderLtRecentes?.();renderLtKpis?.();}
+  }
+  if(ativa==='page-dashboard')renderDash?.();
+  if(ativa==='page-cadastros'){
+    const integ=document.getElementById('cad-integridade');
+    if(integ&&integ.style.display!=='none')renderIntegridadeDados?.();
+  }
+  if(ativa==='page-relatorio'){
+    const det=document.getElementById('rel-detalhado');
+    const anu=document.getElementById('rel-anual');
+    const agr=document.getElementById('rel-agrupado');
+    if(det&&det.style.display!=='none')renderDetalhado?.();
+    else if(anu&&anu.style.display!=='none')renderAnual?.();
+    else if(agr&&agr.style.display!=='none')renderRel?.();
+  }
+  if(ativa==='page-faturamento'){
+    const an=document.getElementById('fat-analise');
+    if(an&&an.style.display!=='none')renderFatAnalise?.();
+  }
+  }catch(ex){console.log('refreshViewsLancamentos:',ex.message);}
+}
+
 async function restaurarLancamentos(registros){
   if(!registros||!registros.length)return;
   try{
@@ -4025,9 +4039,7 @@ async function restaurarLancamentos(registros){
     await db('lancamentos',{method:'POST',body:JSON.stringify(payload)});
     toast(`✅ ${registros.length>1?registros.length+' lançamentos restaurados!':'Lançamento restaurado!'}`);
     await loadData();
-    // Atualiza qualquer view visível que dependa da lista de lançamentos
-    if(document.getElementById('page-lancamento')?.classList.contains('active')){renderLtRecentes?.();renderLtKpis?.();}
-    if(document.getElementById('page-dashboard')?.classList.contains('active'))renderDash();
+    refreshViewsLancamentos();
   }catch(ex){toast('❌ Não foi possível restaurar: '+ex.message);}
 }
 
