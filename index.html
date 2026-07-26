@@ -809,6 +809,30 @@ tbody tr:hover td{background:var(--bg)}
       </div>
 
       <!-- ══ MODAL EDITAR CONTRATO ══ -->
+      <!-- ══ MODAL: JÁ EXISTE LANÇAMENTO — CORRIGIR OU ADICIONAR? ══ -->
+      <div id="modal-dup-escolha" style="display:none;position:fixed;inset:0;background:rgba(15,17,23,.6);z-index:400;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(4px)">
+        <div style="background:var(--surface);border-radius:14px;box-shadow:0 24px 64px rgba(0,0,0,.22);width:100%;max-width:600px">
+          <div style="padding:1.1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem">
+            <span style="font-size:18px">❓</span>
+            <span style="font-size:15px;font-weight:700;color:var(--ink)">Já existe um lançamento para este mês</span>
+          </div>
+          <div style="padding:1.25rem 1.5rem">
+            <div id="dup-contexto" style="font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:1.25rem"></div>
+            <div style="display:flex;flex-direction:column;gap:.6rem">
+              <button onclick="resolverDupEscolha('adicionar')" style="text-align:left;background:var(--blue-bg);border:2px solid var(--blue);border-radius:10px;padding:.85rem 1rem;cursor:pointer;font-family:var(--font)">
+                <div style="font-weight:700;font-size:13.5px;color:var(--blue);margin-bottom:.2rem">➕ Adicionar como lançamento SEPARADO</div>
+                <div style="font-size:11.5px;color:var(--ink2);line-height:1.5">O valor existente é mantido e este novo é somado a ele no relatório.<br/><b>Use quando for um valor a mais de verdade</b> (ex: loja temporária, cobrança extra, complemento).</div>
+              </button>
+              <button onclick="resolverDupEscolha('atualizar')" style="text-align:left;background:var(--surface2);border:2px solid var(--border2);border-radius:10px;padding:.85rem 1rem;cursor:pointer;font-family:var(--font)">
+                <div style="font-weight:700;font-size:13.5px;color:var(--ink);margin-bottom:.2rem">✏️ Corrigir o valor existente (substituir)</div>
+                <div style="font-size:11.5px;color:var(--ink2);line-height:1.5">O valor antigo é <b>substituído</b> por este novo.<br/>Use quando o valor anterior estava errado e você está corrigindo.</div>
+              </button>
+              <button onclick="resolverDupEscolha('cancelar')" style="text-align:center;background:transparent;border:1px solid var(--border2);border-radius:10px;padding:.6rem 1rem;cursor:pointer;font-family:var(--font);font-size:13px;color:var(--ink2)">Cancelar — não salvar nada</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div id="modal-contrato" style="display:none;position:fixed;inset:0;background:rgba(15,17,23,.6);z-index:300;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(4px)">
         <div style="background:var(--surface);border-radius:14px;box-shadow:0 24px 64px rgba(0,0,0,.22);width:100%;max-width:640px;max-height:90vh;overflow-y:auto">
           <div style="padding:1.1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:1;border-radius:14px 14px 0 0">
@@ -1743,24 +1767,26 @@ async function salvar(){
     // A gravação real, abaixo, é sempre atômica e segura contra duplicidade,
     // independente deste aviso.
     const existenteLocal=S.lancamentos.find(x=>x.loja_nome===ln&&x.cat_nome===cn&&x.ano===ano&&x.mes===mes);
+    let forcarNovo=false;
     if(existenteLocal){
-      const mesmoValor=parseFloat(existenteLocal.valor)===val;
-      const msg=mesmoValor
-        ? `Já existe um lançamento de ${fBR(existenteLocal.valor)} para ${ln} — ${cn} — ${mes}/${ano} (mesmo valor). Continuar mesmo assim?`
-        : `Já existe um lançamento de ${fBR(existenteLocal.valor)} para ${ln} — ${cn} — ${mes}/${ano}.\n\nEsse valor será ATUALIZADO para ${fBR(val)} (o sistema nunca cria duplicidade — mesmo com vários usuários lançando ao mesmo tempo). Confirmar?`;
-      if(!confirm(msg))return;
+      const escolha=await perguntarDuplicidade({loja:ln,cat:cn,mes,ano,valorExistente:existenteLocal.valor,valorNovo:val,obs});
+      if(escolha==='cancelar'){btn.disabled=false;btn.innerHTML='+ Salvar';return;}
+      forcarNovo=(escolha==='adicionar');
     }
     // Gravação atômica no banco: trava a linha correspondente durante a transação,
     // então decide criar ou atualizar. Segura mesmo com múltiplos usuários
     // salvando exatamente a mesma loja/categoria/mês ao mesmo tempo.
     const resp=await db('rpc/upsert_lancamento_seguro',{method:'POST',body:JSON.stringify({
       p_empresa_id:e.id,p_loja_id:l.id,p_categoria_id:c.id,
-      p_ano:ano,p_mes:mes,p_mes_num:MESES.indexOf(mes)+1,p_valor:val,p_obs:obs
+      p_ano:ano,p_mes:mes,p_mes_num:MESES.indexOf(mes)+1,p_valor:val,p_obs:obs,p_forcar_novo:forcarNovo
     })});
     const resultado=Array.isArray(resp)?resp[0]:resp;
     if(resultado?.acao==='atualizado'){
       registrarLog('EDITAR_LANCAMENTO','lancamentos',{loja:ln,categoria:cn,ano,mes,valor_novo:val,valor_antigo:resultado.valor_anterior});
-      toast('✅ Lançamento atualizado (sem duplicar)!');
+      toast('✅ Valor corrigido (substituiu o anterior)!');
+    }else if(resultado?.acao==='adicionado'){
+      registrarLog('CRIAR_LANCAMENTO','lancamentos',{loja:ln,categoria:cn,ano,mes,valor:val,adicional:true});
+      toast('✅ Lançamento adicional salvo (o anterior foi mantido)!');
     }else{
       registrarLog('CRIAR_LANCAMENTO','lancamentos',{loja:ln,categoria:cn,ano,mes,valor:val});
       toast('✅ Lançamento salvo!');
@@ -4027,6 +4053,27 @@ function refreshViewsLancamentos(){
     if(an&&an.style.display!=='none')renderFatAnalise?.();
   }
   }catch(ex){console.log('refreshViewsLancamentos:',ex.message);}
+}
+
+// Mostra o modal de escolha quando já existe lançamento para a mesma
+// loja/categoria/mês e devolve a decisão do usuário:
+// 'adicionar' (novo lançamento separado), 'atualizar' (corrigir) ou 'cancelar'.
+let _dupResolve=null;
+function perguntarDuplicidade({loja,cat,mes,ano,valorExistente,valorNovo,obs}){
+  const mesFmt=mes.charAt(0)+mes.slice(1).toLowerCase();
+  document.getElementById('dup-contexto').innerHTML=
+    `<b>${loja}</b> · ${cat} · ${mesFmt}/${ano}<br/><br/>`+
+    `Valor já registrado: <b>${fBR(valorExistente)}</b><br/>`+
+    `Valor que você está lançando: <b>${fBR(valorNovo)}</b>`+
+    (obs?`<br/>Observação: <i>${obs}</i>`:'')+
+    `<br/><br/>Se as duas opções somadas fizerem sentido (ex: <i>loja temporária</i>), escolha <b>Adicionar</b>. `+
+    `Se você está corrigindo um valor errado, escolha <b>Corrigir</b>.`;
+  document.getElementById('modal-dup-escolha').style.display='flex';
+  return new Promise(res=>{_dupResolve=res;});
+}
+function resolverDupEscolha(op){
+  document.getElementById('modal-dup-escolha').style.display='none';
+  if(_dupResolve){_dupResolve(op);_dupResolve=null;}
 }
 
 async function restaurarLancamentos(registros){
