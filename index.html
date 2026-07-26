@@ -284,7 +284,6 @@ tbody tr:hover td{background:var(--bg)}
           </div>
         </div>
         <div class="content">
-          <div id="dash-integridade-alerta"></div>
           <div class="kpi-grid" id="d-kpis"></div>
           <div class="charts-grid" style="margin-bottom:1rem">
             <div class="card" style="grid-column:1/-1;margin-bottom:0">
@@ -2084,7 +2083,6 @@ async function delLH(id){
 let CH={};
 function dC(id){if(CH[id]){CH[id].destroy();delete CH[id];}}
 function renderDash(){
-  renderAlertaIntegridadeDash();
   const a=document.getElementById('d-ano').value,m=document.getElementById('d-mes').value,e=document.getElementById('d-emp').value;
   const lf=document.getElementById('d-loja').value;
   const gf=document.getElementById('d-grupo')?.value||'';
@@ -3823,7 +3821,7 @@ async function limparDuplicidadesExatas(){
     S.lancamentos=S.lancamentos.filter(l=>!ids.includes(l.id));
     registrarLog('LIMPEZA_AUTOMATICA_DUPLICIDADE','lancamentos',{quantidade:aRemover.length,grupos:dups.length});
     toastUndo(`🧹 ${aRemover.length} lançamento(s) duplicado(s) removido(s)`,aRemover);
-    renderIntegridadeDados();renderAlertaIntegridadeDash();
+    renderIntegridadeDados();
   }catch(ex){toast('❌ '+ex.message);}
 }
 function renderIntegridadeDados(){
