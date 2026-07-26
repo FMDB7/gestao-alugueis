@@ -1719,32 +1719,33 @@ async function salvar(){
   try{
     const e=S.empresas.find(x=>x.nome===en),l=S.lojas.find(x=>x.nome===ln),c=S.categorias.find(x=>x.nome===cn);
     if(!e||!l||!c){toast('❌ Cadastro não encontrado');return;}
-    // Se já existe lançamento para essa loja/categoria/mês, por padrão ATUALIZA o valor
-    // existente em vez de criar um segundo registro que seria somado no relatório
-    // (essa era a causa real dos valores "dobrados" em Fev/Mar/Mai).
-    const existente=S.lancamentos.find(x=>x.loja_nome===ln&&x.cat_nome===cn&&x.ano===ano&&x.mes===mes);
-    if(existente){
-      const mesmoValor=parseFloat(existente.valor)===val;
+    // Aviso de UX (baseado na cópia local — pode estar levemente desatualizada
+    // se outro usuário salvou há poucos segundos, o que é normal em uso simultâneo).
+    // A gravação real, abaixo, é sempre atômica e segura contra duplicidade,
+    // independente deste aviso.
+    const existenteLocal=S.lancamentos.find(x=>x.loja_nome===ln&&x.cat_nome===cn&&x.ano===ano&&x.mes===mes);
+    if(existenteLocal){
+      const mesmoValor=parseFloat(existenteLocal.valor)===val;
       const msg=mesmoValor
-        ? `Já existe um lançamento de ${fBR(existente.valor)} para ${ln} — ${cn} — ${mes}/${ano} (mesmo valor). Nada a fazer — clique OK para não duplicar, ou Cancelar para criar um lançamento extra mesmo assim (raro, use só se for um valor adicional de verdade).`
-        : `Já existe um lançamento de ${fBR(existente.valor)} para ${ln} — ${cn} — ${mes}/${ano}.\n\nClique OK para ATUALIZAR esse lançamento para ${fBR(val)} (recomendado), ou Cancelar para criar um SEGUNDO lançamento separado (os dois serão somados no relatório — use só se for um valor adicional de verdade, não uma correção).`;
-      const atualizar=confirm(msg);
-      if(atualizar){
-        await db(`lancamentos?id=eq.${existente.id}`,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({valor:val,obs})});
-        registrarLog('EDITAR_LANCAMENTO','lancamentos',{loja:ln,categoria:cn,ano,mes,valor_novo:val,valor_antigo:existente.valor});
-        toast('✅ Lançamento atualizado (não duplicado)!');
-        document.getElementById('f-val').value='';document.getElementById('f-obs').value='';document.getElementById('f-cat').value='';
-        renderLtRecentes();renderLtKpis();
-        setTimeout(()=>document.getElementById('f-cat')?.focus(),100);
-        await loadData();
-        return;
-      }
-      // Cancelar aqui = seguir e criar um segundo lançamento de propósito
+        ? `Já existe um lançamento de ${fBR(existenteLocal.valor)} para ${ln} — ${cn} — ${mes}/${ano} (mesmo valor). Continuar mesmo assim?`
+        : `Já existe um lançamento de ${fBR(existenteLocal.valor)} para ${ln} — ${cn} — ${mes}/${ano}.\n\nEsse valor será ATUALIZADO para ${fBR(val)} (o sistema nunca cria duplicidade — mesmo com vários usuários lançando ao mesmo tempo). Confirmar?`;
+      if(!confirm(msg))return;
     }
-    await db('lancamentos',{method:'POST',body:JSON.stringify({empresa_id:e.id,loja_id:l.id,categoria_id:c.id,ano,mes,mes_num:MESES.indexOf(mes)+1,valor:val,obs})});
-    // Fase 1 do roadmap de integridade: log de auditoria (criar)
-    registrarLog('CRIAR_LANCAMENTO','lancamentos',{loja:ln,categoria:cn,ano,mes,valor:val});
-    toast('✅ Lançamento salvo!');
+    // Gravação atômica no banco: trava a linha correspondente durante a transação,
+    // então decide criar ou atualizar. Segura mesmo com múltiplos usuários
+    // salvando exatamente a mesma loja/categoria/mês ao mesmo tempo.
+    const resp=await db('rpc/upsert_lancamento_seguro',{method:'POST',body:JSON.stringify({
+      p_empresa_id:e.id,p_loja_id:l.id,p_categoria_id:c.id,
+      p_ano:ano,p_mes:mes,p_mes_num:MESES.indexOf(mes)+1,p_valor:val,p_obs:obs
+    })});
+    const resultado=Array.isArray(resp)?resp[0]:resp;
+    if(resultado?.acao==='atualizado'){
+      registrarLog('EDITAR_LANCAMENTO','lancamentos',{loja:ln,categoria:cn,ano,mes,valor_novo:val,valor_antigo:resultado.valor_anterior});
+      toast('✅ Lançamento atualizado (sem duplicar)!');
+    }else{
+      registrarLog('CRIAR_LANCAMENTO','lancamentos',{loja:ln,categoria:cn,ano,mes,valor:val});
+      toast('✅ Lançamento salvo!');
+    }
     // Manter modal aberto para próximo lançamento
     // Limpar apenas valor e obs, manter empresa/loja/período/categoria
     document.getElementById('f-val').value='';
@@ -1754,7 +1755,7 @@ async function salvar(){
     renderLtRecentes();
     renderLtKpis();
     // Focus na categoria para próximo lançamento
-    setTimeout(()=>document.getElementById('f-cat')?.focus(),100);document.getElementById('f-val').value='';document.getElementById('f-obs').value='';
+    setTimeout(()=>document.getElementById('f-cat')?.focus(),100);
     await loadData();
   }catch(ex){toast('❌ '+ex.message);}
   finally{btn.disabled=false;btn.innerHTML='+ Salvar';}
@@ -1907,24 +1908,26 @@ async function salvarGrade(){
   const cats=S.categorias.map(c=>c.nome).sort();
   const btn=document.getElementById('btn-grade');btn.disabled=true;btn.innerHTML='<div class="spinner"></div>';
   try{
-    const ins=[],upd=[];let puladosPorDuplicidade=0;
+    const celulas=[];let puladosPorDuplicidade=0;
     gd.forEach(row=>{cats.forEach(c=>{
       const v=row[c]||0;
       if(row[c+'_dup']){ if(v!==row[c+'_orig']) puladosPorDuplicidade++; return; } // nunca mexe em célula duplicada pela grade
       const co=S.categorias.find(x=>x.nome===c),eo=S.empresas.find(x=>x.nome===row.enome);
-      if(row[c+'_id']){
-        // já existe um único lançamento — atualiza só se o valor foi alterado
-        if(v!==row[c+'_orig']&&v>=0) upd.push({id:row[c+'_id'],valor:v});
-      }else if(v>0&&co&&eo){
-        ins.push({empresa_id:eo.id,loja_id:row.lid,categoria_id:co.id,ano,mes,mes_num:MESES.indexOf(mes)+1,valor:v,obs:''});
-      }
+      const mudou=v!==row[c+'_orig'];
+      const novaEVazia=!row[c+'_id']&&v<=0;
+      if(!mudou||novaEVazia||!co||!eo)return;
+      celulas.push({empresa_id:eo.id,loja_id:row.lid,categoria_id:co.id,valor:v});
     });});
-    if(ins.length)await db('lancamentos',{method:'POST',body:JSON.stringify(ins)});
-    for(const u of upd){
-      await db(`lancamentos?id=eq.${u.id}`,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({valor:u.valor})});
-    }
-    if(ins.length||upd.length)registrarLog('SALVAR_GRADE','lancamentos',{ano,mes,inseridos:ins.length,atualizados:upd.length});
-    let msg=`✅ ${ins.length} lançamento${ins.length!==1?'s':''} novo${ins.length!==1?'s':''}, ${upd.length} atualizado${upd.length!==1?'s':''}`;
+    // Cada célula é salva pela função atômica do banco — segura contra
+    // duplicidade mesmo se outro usuário estiver lançando ao mesmo tempo.
+    let criados=0,atualizados=0;
+    const resultados=await Promise.all(celulas.map(cel=>db('rpc/upsert_lancamento_seguro',{
+      method:'POST',
+      body:JSON.stringify({p_empresa_id:cel.empresa_id,p_loja_id:cel.loja_id,p_categoria_id:cel.categoria_id,p_ano:ano,p_mes:mes,p_mes_num:MESES.indexOf(mes)+1,p_valor:cel.valor,p_obs:''})
+    })));
+    resultados.forEach(r=>{const res=Array.isArray(r)?r[0]:r; if(res?.acao==='atualizado')atualizados++; else criados++;});
+    if(celulas.length)registrarLog('SALVAR_GRADE','lancamentos',{ano,mes,inseridos:criados,atualizados});
+    let msg=`✅ ${criados} lançamento${criados!==1?'s':''} novo${criados!==1?'s':''}, ${atualizados} atualizado${atualizados!==1?'s':''}`;
     if(puladosPorDuplicidade>0)msg+=` — ⚠️ ${puladosPorDuplicidade} célula(s) com duplicidade não foram alteradas (resolva em Integridade de Dados)`;
     toast(msg);
     await loadData();
