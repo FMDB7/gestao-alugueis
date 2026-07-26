@@ -541,7 +541,7 @@ tbody tr:hover td{background:var(--bg)}
                                   </select>
               </div>
               <div style="display:flex;align-items:flex-end;gap:.5rem;flex-wrap:wrap">
-                <button class="btn btn-primary" onclick="renderRel()">Gerar</button>
+                <button class="btn btn-primary" onclick="gerarRelAgrupado()">Gerar</button>
                 <button class="btn btn-ghost" onclick="exportPDF()" id="btn-pdf" style="display:none">⬇ PDF</button>
                 <button class="btn btn-ghost btn-sm" onclick="limparFiltrosRel()" style="color:var(--red);border-color:var(--red)">✕ Limpar</button>
               </div>
@@ -592,7 +592,7 @@ tbody tr:hover td{background:var(--bg)}
                                           </select>
                   </div>
                   <div style="display:flex;align-items:flex-end;gap:.5rem;flex-wrap:wrap">
-                    <button class="btn btn-primary" onclick="renderDetalhado()">Gerar</button>
+                    <button class="btn btn-primary" onclick="gerarRelDetalhado()">Gerar</button>
                     <button class="btn btn-ghost" id="btn-det-pdf" onclick="exportDetalhadoPDF()" style="display:none">⬇ PDF</button>
                     <button class="btn btn-ghost btn-sm" onclick="limparFiltrosDet()" style="color:var(--red);border-color:var(--red)">✕ Limpar</button>
                   </div>
@@ -638,7 +638,7 @@ tbody tr:hover td{background:var(--bg)}
                                           </select>
                   </div>
                   <div style="display:flex;align-items:flex-end;gap:.5rem;flex-wrap:wrap">
-                    <button class="btn btn-primary" onclick="renderAnual()">Gerar</button>
+                    <button class="btn btn-primary" onclick="gerarRelAnual()">Gerar</button>
                     <button class="btn btn-ghost" id="btn-anual-pdf" onclick="exportAnualPDF()" style="display:none">⬇ PDF</button>
                     <button class="btn btn-ghost btn-sm" onclick="limparFiltrosAnual()" style="color:var(--red);border-color:var(--red)">✕ Limpar</button>
                   </div>
@@ -1664,11 +1664,11 @@ function goPage(id,btn){
   if(id==='cadastros')renderCads();
   if(id==='faturamento')initFatPage();
   if(id==='relatorio'){
-    // Aba padrão (Detalhado por Mês) já pré-carrega Ano 2026 + Zona Franca
+    // Aba padrão (Detalhado por Mês) já pré-carrega Ano 2026 + Zona Franca, com dados frescos do banco
     const ini=document.getElementById('rd-ano-ini');if(ini)ini.value='2026';
     const fim=document.getElementById('rd-ano-fim');if(fim)fim.value='2026';
     const grp=document.getElementById('rd-grupo');if(grp)grp.value='ZONA FRANCA';
-    renderDetalhado();
+    loadData().then(()=>renderDetalhado());
   }
   if(id==='lancamento'){
     // Reset to main tab
@@ -1689,8 +1689,9 @@ function showTab(id,btn){
 
 // Abas de Relatório: além de trocar a visualização, já pré-carrega
 // Ano 2026 + Grupo Zona Franca como padrão e gera o relatório automaticamente.
-function showRelTab(id,btn,tipo){
+async function showRelTab(id,btn,tipo){
   showTab(id,btn);
+  await loadData(); // sempre busca dados frescos do banco antes de gerar o relatório
   if(tipo==='detalhado'){
     const ini=document.getElementById('rd-ano-ini');if(ini)ini.value='2026';
     const fim=document.getElementById('rd-ano-fim');if(fim)fim.value='2026';
@@ -1706,6 +1707,9 @@ function showRelTab(id,btn,tipo){
     renderRel();
   }
 }
+async function gerarRelDetalhado(){await loadData();renderDetalhado();}
+async function gerarRelAnual(){await loadData();renderAnual();}
+async function gerarRelAgrupado(){await loadData();renderRel();}
 
 async function salvar(){
   const en=document.getElementById('f-emp').value,ln=document.getElementById('f-loja').value;
