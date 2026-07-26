@@ -2055,7 +2055,7 @@ async function delLH(id){
   if(!confirm('Remover este lançamento?'))return;
   try{
     await db(`lancamentos?id=eq.${id}`,{method:'DELETE'});
-    S.lancamentos=S.lancamentos.filter(l=>l.id!==id);
+    await loadData(); // recarrega do banco — garante que a tela nunca fique dessincronizada
     if(registro)registrarLog('EXCLUIR_LANCAMENTO','lancamentos',{loja:registro.loja_nome,categoria:registro.cat_nome,ano:registro.ano,mes:registro.mes,valor:registro.valor});
     toastUndo('🗑️ Lançamento removido',registro?[registro]:[]);renderHist();
   }catch(ex){toast('❌ '+ex.message);}
@@ -2733,7 +2733,7 @@ async function excluirSelecionados(){
   try{
     // Exclusão em lote via filtro IN, escopado exatamente pelos IDs selecionados
     await db(`lancamentos?id=in.(${selecionados.join(',')})`,{method:'DELETE'});
-    S.lancamentos=S.lancamentos.filter(l=>!selecionados.includes(l.id));
+    await loadData(); // recarrega do banco — garante que a tela nunca fique dessincronizada
     registrarLog('EXCLUIR_LANCAMENTO_LOTE','lancamentos',{quantidade:registros.length,itens:registros.map(r=>({loja:r.loja_nome,categoria:r.cat_nome,ano:r.ano,mes:r.mes,valor:r.valor}))});
     toastUndo(`🗑️ ${selecionados.length} lançamento${selecionados.length>1?'s':''} excluído${selecionados.length>1?'s':''}`,registros);
     renderLtRecentes();
@@ -2752,7 +2752,7 @@ async function delLReload(id){
   if(!confirm('Remover este lançamento?'+detalhe))return;
   try{
     await db(`lancamentos?id=eq.${id}`,{method:'DELETE'});
-    S.lancamentos=S.lancamentos.filter(l=>l.id!==id);
+    await loadData(); // recarrega do banco — garante que a tela nunca fique dessincronizada
     if(registro)registrarLog('EXCLUIR_LANCAMENTO','lancamentos',{loja:registro.loja_nome,categoria:registro.cat_nome,ano:registro.ano,mes:registro.mes,valor:registro.valor});
     toastUndo('🗑️ Lançamento removido',registro?[registro]:[]);
     renderLtRecentes();
