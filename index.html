@@ -1719,11 +1719,27 @@ async function salvar(){
   try{
     const e=S.empresas.find(x=>x.nome===en),l=S.lojas.find(x=>x.nome===ln),c=S.categorias.find(x=>x.nome===cn);
     if(!e||!l||!c){toast('❌ Cadastro não encontrado');return;}
-    // Fase 2 do roadmap de integridade: avisar (sem bloquear) se já existe lançamento igual
+    // Se já existe lançamento para essa loja/categoria/mês, por padrão ATUALIZA o valor
+    // existente em vez de criar um segundo registro que seria somado no relatório
+    // (essa era a causa real dos valores "dobrados" em Fev/Mar/Mai).
     const existente=S.lancamentos.find(x=>x.loja_nome===ln&&x.cat_nome===cn&&x.ano===ano&&x.mes===mes);
     if(existente){
-      const ok=confirm(`⚠️ Já existe um lançamento de ${fBR(existente.valor)} para ${ln} — ${cn} — ${mes}/${ano}.\n\nDeseja adicionar mesmo assim (os dois valores serão somados nos relatórios)?`);
-      if(!ok){btn.disabled=false;btn.innerHTML='+ Salvar';return;}
+      const mesmoValor=parseFloat(existente.valor)===val;
+      const msg=mesmoValor
+        ? `Já existe um lançamento de ${fBR(existente.valor)} para ${ln} — ${cn} — ${mes}/${ano} (mesmo valor). Nada a fazer — clique OK para não duplicar, ou Cancelar para criar um lançamento extra mesmo assim (raro, use só se for um valor adicional de verdade).`
+        : `Já existe um lançamento de ${fBR(existente.valor)} para ${ln} — ${cn} — ${mes}/${ano}.\n\nClique OK para ATUALIZAR esse lançamento para ${fBR(val)} (recomendado), ou Cancelar para criar um SEGUNDO lançamento separado (os dois serão somados no relatório — use só se for um valor adicional de verdade, não uma correção).`;
+      const atualizar=confirm(msg);
+      if(atualizar){
+        await db(`lancamentos?id=eq.${existente.id}`,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({valor:val,obs})});
+        registrarLog('EDITAR_LANCAMENTO','lancamentos',{loja:ln,categoria:cn,ano,mes,valor_novo:val,valor_antigo:existente.valor});
+        toast('✅ Lançamento atualizado (não duplicado)!');
+        document.getElementById('f-val').value='';document.getElementById('f-obs').value='';document.getElementById('f-cat').value='';
+        renderLtRecentes();renderLtKpis();
+        setTimeout(()=>document.getElementById('f-cat')?.focus(),100);
+        await loadData();
+        return;
+      }
+      // Cancelar aqui = seguir e criar um segundo lançamento de propósito
     }
     await db('lancamentos',{method:'POST',body:JSON.stringify({empresa_id:e.id,loja_id:l.id,categoria_id:c.id,ano,mes,mes_num:MESES.indexOf(mes)+1,valor:val,obs})});
     // Fase 1 do roadmap de integridade: log de auditoria (criar)
@@ -1864,7 +1880,14 @@ function carregarGrade(){
   if(!lojas.length){w.innerHTML='<div class="empty"><div>Nenhuma loja</div></div>';return;}
   gd=lojas.map(loja=>{
     const row={lid:loja.id,lnome:loja.nome,enome:loja.empresa_nome};
-    cats.forEach(c=>{const l=S.lancamentos.find(x=>x.loja_id===loja.id&&x.ano===ano&&x.mes===mes&&x.cat_nome===c);row[c]=l?parseFloat(l.valor):0;row[c+'_id']=l?l.id:null;});
+    cats.forEach(c=>{
+      const existentes=S.lancamentos.filter(x=>x.loja_id===loja.id&&x.ano===ano&&x.mes===mes&&x.cat_nome===c);
+      const soma=existentes.reduce((s,x)=>s+parseFloat(x.valor),0);
+      row[c]=soma;
+      row[c+'_orig']=soma;
+      row[c+'_id']=existentes.length===1?existentes[0].id:null;
+      row[c+'_dup']=existentes.length>1;
+    });
     return row;
   });
   w.innerHTML=`<div style="overflow-x:auto"><table><thead><tr>
@@ -1874,7 +1897,7 @@ function carregarGrade(){
   ${gd.map((row,ri)=>{
     const tot=cats.reduce((s,c)=>s+(row[c]||0),0);
     return `<tr><td><strong style="font-size:12px">${row.lnome}</strong><br><span style="font-size:10px;color:var(--ink3)">${row.enome}</span></td>
-    ${cats.map(c=>`<td><input type="number" class="grade-input" step="0.01" min="0" data-ri="${ri}" data-cat="${c}" value="${(row[c]||0).toFixed(2)}" onchange="gchg(this)"/></td>`).join('')}
+    ${cats.map(c=>`<td><input type="number" class="grade-input" step="0.01" min="0" data-ri="${ri}" data-cat="${c}" value="${(row[c]||0).toFixed(2)}" onchange="gchg(this)" ${row[c+'_dup']?'style="border-color:#d93b3b;background:#fff5f5" title="⚠️ Duplicidade detectada — resolva em Cadastros → Integridade de Dados antes de editar aqui"':''}/></td>`).join('')}
     <td id="gt-${ri}" class="tn" style="font-size:12px">${fBR(tot)}</td></tr>`;
   }).join('')}</tbody></table></div>`;
 }
@@ -1884,10 +1907,28 @@ async function salvarGrade(){
   const cats=S.categorias.map(c=>c.nome).sort();
   const btn=document.getElementById('btn-grade');btn.disabled=true;btn.innerHTML='<div class="spinner"></div>';
   try{
-    const ins=[];
-    gd.forEach(row=>{cats.forEach(c=>{const v=row[c]||0;if(v<=0||row[c+'_id'])return;const co=S.categorias.find(x=>x.nome===c),eo=S.empresas.find(x=>x.nome===row.enome);if(co&&eo)ins.push({empresa_id:eo.id,loja_id:row.lid,categoria_id:co.id,ano,mes,mes_num:MESES.indexOf(mes)+1,valor:v,obs:''});});});
+    const ins=[],upd=[];let puladosPorDuplicidade=0;
+    gd.forEach(row=>{cats.forEach(c=>{
+      const v=row[c]||0;
+      if(row[c+'_dup']){ if(v!==row[c+'_orig']) puladosPorDuplicidade++; return; } // nunca mexe em célula duplicada pela grade
+      const co=S.categorias.find(x=>x.nome===c),eo=S.empresas.find(x=>x.nome===row.enome);
+      if(row[c+'_id']){
+        // já existe um único lançamento — atualiza só se o valor foi alterado
+        if(v!==row[c+'_orig']&&v>=0) upd.push({id:row[c+'_id'],valor:v});
+      }else if(v>0&&co&&eo){
+        ins.push({empresa_id:eo.id,loja_id:row.lid,categoria_id:co.id,ano,mes,mes_num:MESES.indexOf(mes)+1,valor:v,obs:''});
+      }
+    });});
     if(ins.length)await db('lancamentos',{method:'POST',body:JSON.stringify(ins)});
-    toast(`✅ ${ins.length} lançamentos salvos!`);await loadData();
+    for(const u of upd){
+      await db(`lancamentos?id=eq.${u.id}`,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({valor:u.valor})});
+    }
+    if(ins.length||upd.length)registrarLog('SALVAR_GRADE','lancamentos',{ano,mes,inseridos:ins.length,atualizados:upd.length});
+    let msg=`✅ ${ins.length} lançamento${ins.length!==1?'s':''} novo${ins.length!==1?'s':''}, ${upd.length} atualizado${upd.length!==1?'s':''}`;
+    if(puladosPorDuplicidade>0)msg+=` — ⚠️ ${puladosPorDuplicidade} célula(s) com duplicidade não foram alteradas (resolva em Integridade de Dados)`;
+    toast(msg);
+    await loadData();
+    carregarGrade();
   }catch(ex){toast('❌ '+ex.message);}
   finally{btn.disabled=false;btn.innerHTML='💾 Salvar grade';}
 }
@@ -3737,17 +3778,46 @@ function calcDuplicidades(){
     return somaB-somaA;
   });
 }
+// Duplicidade EXATA = todos os lançamentos do grupo têm o mesmo valor (100% seguro remover os extras).
+// Grupo com valores DIFERENTES pode ser um caso legítimo (ex: reajuste no mês) — nunca remover automaticamente.
+function ehDuplicidadeExata(g){
+  const primeiro=parseFloat(g[0].valor);
+  return g.every(x=>parseFloat(x.valor)===primeiro);
+}
+async function limparDuplicidadesExatas(){
+  const dups=calcDuplicidades().filter(ehDuplicidadeExata);
+  if(!dups.length){toast('✅ Nenhuma duplicidade exata para limpar');return;}
+  // Mantém o lançamento mais ANTIGO de cada grupo (o "original"), remove os demais
+  const aRemover=[];
+  dups.forEach(g=>{
+    const ordenado=[...g].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+    aRemover.push(...ordenado.slice(1));
+  });
+  if(!confirm(`Isso vai remover ${aRemover.length} lançamento(s) redundante(s) de ${dups.length} grupo(s) — apenas os que têm valor 100% idêntico ao original. O lançamento mais antigo de cada grupo é mantido.\n\nDeseja continuar?`))return;
+  try{
+    const ids=aRemover.map(x=>x.id);
+    await db(`lancamentos?id=in.(${ids.join(',')})`,{method:'DELETE'});
+    S.lancamentos=S.lancamentos.filter(l=>!ids.includes(l.id));
+    registrarLog('LIMPEZA_AUTOMATICA_DUPLICIDADE','lancamentos',{quantidade:aRemover.length,grupos:dups.length});
+    toastUndo(`🧹 ${aRemover.length} lançamento(s) duplicado(s) removido(s)`,aRemover);
+    renderIntegridadeDados();renderAlertaIntegridadeDash();
+  }catch(ex){toast('❌ '+ex.message);}
+}
 function renderIntegridadeDados(){
   const wrap=document.getElementById('integridade-wrap');
   if(!wrap)return;
   try{
-    const dups=calcDuplicidades();
-    if(!dups.length){
+    const todos=calcDuplicidades();
+    if(!todos.length){
       wrap.innerHTML='<div class="empty"><div class="empty-icon">✅</div><div>Nenhuma duplicidade encontrada — dados íntegros!</div></div>';
       return;
     }
-    const impactoTotal=dups.reduce((s,g)=>s+(g.reduce((s2,x)=>s2+parseFloat(x.valor),0)-Math.min(...g.map(x=>parseFloat(x.valor)))),0);
-    const html=dups.map(g=>{
+    const exatas=todos.filter(ehDuplicidadeExata);
+    const revisar=todos.filter(g=>!ehDuplicidadeExata(g));
+    const qtdRemoveExatas=exatas.reduce((s,g)=>s+g.length-1,0);
+    const impactoTotal=todos.reduce((s,g)=>s+(g.reduce((s2,x)=>s2+parseFloat(x.valor),0)-Math.min(...g.map(x=>parseFloat(x.valor)))),0);
+
+    const renderGrupo=g=>{
       const loja=g[0].loja_nome,cat=g[0].cat_nome,ano=g[0].ano,mes=g[0].mes;
       const impacto=g.reduce((s,x)=>s+parseFloat(x.valor),0)-Math.min(...g.map(x=>parseFloat(x.valor)));
       return`<div style="border:1px solid #f5d8d8;background:#fff8f8;border-radius:8px;padding:.75rem 1rem;margin-bottom:.6rem">
@@ -3764,13 +3834,28 @@ function renderIntegridadeDados(){
           </tr>`).join('')}
         </tbody></table>
       </div>`;
-    }).join('');
+    };
+
     wrap.innerHTML=`
       <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem">
-        <span class="badge" style="background:#fbe2e2;color:#a32d2d">${dups.length} grupo${dups.length>1?'s':''} com duplicidade</span>
+        <span class="badge" style="background:#fbe2e2;color:#a32d2d">${todos.length} grupo${todos.length>1?'s':''} com duplicidade</span>
         <span class="badge" style="background:#fbe2e2;color:#a32d2d">Impacto total: ${fBR(impactoTotal)}</span>
       </div>
-      ${html}`;
+
+      ${exatas.length?`
+      <div style="background:#e8f8f3;border:1px solid #b8e6d3;border-radius:8px;padding:.85rem 1rem;margin-bottom:1.25rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem">
+        <div style="font-size:12.5px;color:#0d6e4e">
+          <b>✅ ${exatas.length} grupo(s) são duplicidade exata</b> (mesmo valor repetido — 100% seguro limpar automaticamente, mantendo o lançamento mais antigo de cada). Total: ${qtdRemoveExatas} lançamento(s) extra(s).
+        </div>
+        <button class="btn btn-primary" onclick="limparDuplicidadesExatas()">🧹 Limpar automaticamente (${qtdRemoveExatas})</button>
+      </div>`:''}
+
+      ${revisar.length?`
+      <div style="font-size:12px;color:var(--ink3);margin-bottom:.6rem">⚠️ <b>${revisar.length} grupo(s) têm valores diferentes entre si</b> — podem ser lançamentos legítimos (ex: reajuste no mesmo mês), não duplicidade real. Revise um a um antes de excluir qualquer um.</div>
+      ${revisar.map(renderGrupo).join('')}`:''}
+
+      ${exatas.length?`<div style="font-size:12px;color:var(--ink3);margin:1rem 0 .5rem">Duplicidades exatas (detalhe):</div>${exatas.map(renderGrupo).join('')}`:''}
+    `;
   }catch(ex){ mostrarErroRender('integridade-wrap',ex); }
 }
 
