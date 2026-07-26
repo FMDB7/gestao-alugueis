@@ -1579,7 +1579,7 @@ async function loadData(){
       db('empresas?select=*&order=nome'),
       db('lojas?select=*,empresas(nome)&order=nome'),
       db('categorias?select=*&order=nome'),
-      db('lancamentos?select=*,empresas(nome),lojas(nome,cidade,uf),categorias(nome)&order=created_at.desc&limit=10000')
+      fetchAllLancamentos()
     ]);
     S.empresas=e||[];
     S.lojas=(l||[]).map(x=>({...x,empresa_nome:x.empresas?.nome||''}));
@@ -1591,6 +1591,20 @@ async function loadData(){
   startCountdown();
     populateSels();renderDash();renderCads();
   }catch(ex){ss('err','Erro: '+ex.message);toast('❌ '+ex.message);}
+}
+// Busca TODOS os lançamentos em páginas de 1000 — o Supabase limita cada
+// requisição a no máximo 1000 linhas por padrão, mesmo pedindo mais via
+// "limit". Sem paginação, os registros mais antigos ficavam de fora
+// silenciosamente sempre que a base passava de 1000 lançamentos.
+async function fetchAllLancamentos(){
+  const PAGE=1000;
+  let offset=0,todos=[],pagina;
+  do{
+    pagina=await db(`lancamentos?select=*,empresas(nome),lojas(nome,cidade,uf),categorias(nome)&order=created_at.desc&limit=${PAGE}&offset=${offset}`)||[];
+    todos=todos.concat(pagina);
+    offset+=PAGE;
+  }while(pagina.length===PAGE);
+  return todos;
 }
 function ss(t,m){const d=document.getElementById('sdot');d.className='s-dot '+t;document.getElementById('stxt').textContent=m;}
 
