@@ -284,6 +284,7 @@ tbody tr:hover td{background:var(--bg)}
           </div>
         </div>
         <div class="content">
+          <div id="dash-integridade-alerta"></div>
           <div class="kpi-grid" id="d-kpis"></div>
           <div class="charts-grid" style="margin-bottom:1rem">
             <div class="card" style="grid-column:1/-1;margin-bottom:0">
@@ -893,6 +894,7 @@ tbody tr:hover td{background:var(--bg)}
             <button class="tab" onclick="showTab('cad-loja',this)">Lojas</button>
             <button class="tab" onclick="showTab('cad-cat',this)">Categorias</button>
             <button class="tab" onclick="showTab('cad-usr',this);renderUsuarios()">Usuários</button>
+            <button class="tab" onclick="showTab('cad-integridade',this);renderIntegridadeDados()">🛡️ Integridade de Dados</button>
           </div>
           <div id="cad-emp">
             <div class="card"><div class="card-hd"><div class="card-title">Nova empresa</div></div>
@@ -959,6 +961,18 @@ tbody tr:hover td{background:var(--bg)}
                 </div>
               </div>
             </div>
+          </div>
+
+          <div id="cad-integridade" style="display:none">
+            <div class="card" style="margin-bottom:1rem">
+              <div class="card-body">
+                <div style="font-weight:700;font-size:13px;margin-bottom:.5rem">🛡️ Verificação de Lançamentos Duplicados</div>
+                <div style="font-size:12px;color:var(--ink3);line-height:1.5">
+                  Detecta automaticamente quando existe mais de um lançamento para a mesma <b>Loja + Categoria + Ano + Mês</b> — a causa mais comum de valores "dobrados" nos relatórios. Revise cada grupo e remova manualmente o(s) lançamento(s) extra(s) (o botão "Desfazer" fica disponível por alguns segundos após excluir, caso remova o errado).
+                </div>
+              </div>
+            </div>
+            <div id="integridade-wrap"><div class="empty"><div>Carregando...</div></div></div>
           </div>
         </div>
       </div>
@@ -2011,6 +2025,7 @@ async function delLH(id){
 let CH={};
 function dC(id){if(CH[id]){CH[id].destroy();delete CH[id];}}
 function renderDash(){
+  renderAlertaIntegridadeDash();
   const a=document.getElementById('d-ano').value,m=document.getElementById('d-mes').value,e=document.getElementById('d-emp').value;
   const lf=document.getElementById('d-loja').value;
   const gf=document.getElementById('d-grupo')?.value||'';
@@ -3688,6 +3703,69 @@ async function salvarRestricaoGrupo(){
   }finally{
     if(btn){btn.disabled=false;btn.innerHTML='✔ Salvar Restrição';}
   }
+}
+
+// ── Painel de Integridade de Dados: detecção de lançamentos duplicados ──
+function renderAlertaIntegridadeDash(){
+  const el=document.getElementById('dash-integridade-alerta');
+  if(!el)return;
+  if(currentUser?.perfil!=='admin'){el.innerHTML='';return;} // só incomoda quem pode agir
+  const dups=calcDuplicidades();
+  if(!dups.length){el.innerHTML='';return;}
+  const impactoTotal=dups.reduce((s,g)=>s+(g.reduce((s2,x)=>s2+parseFloat(x.valor),0)-Math.min(...g.map(x=>parseFloat(x.valor)))),0);
+  el.innerHTML=`<div style="background:#fff4e0;border:1px solid #f0c97a;border-radius:8px;padding:.7rem 1rem;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem">
+    <div style="font-size:12.5px;color:#7a5c00"><b>⚠️ ${dups.length} grupo${dups.length>1?'s':''} de lançamentos duplicados detectado${dups.length>1?'s':''}</b> — impacto de ${fBR(impactoTotal)} inflando os relatórios.</div>
+    <button class="btn btn-ghost btn-sm" onclick="goPage('cadastros',document.querySelector('.nav-item[onclick*=cadastros]'));showTab('cad-integridade',document.querySelector('[onclick*=cad-integridade]'));renderIntegridadeDados()" style="background:#fff;border-color:#f0c97a;color:#7a5c00">Revisar agora →</button>
+  </div>`;
+}
+function calcDuplicidades(){
+  const grupos={};
+  S.lancamentos.forEach(l=>{
+    const chave=`${l.loja_nome}|||${l.cat_nome}|||${l.ano}|||${l.mes}`;
+    if(!grupos[chave])grupos[chave]=[];
+    grupos[chave].push(l);
+  });
+  return Object.values(grupos).filter(g=>g.length>1).sort((a,b)=>{
+    const somaA=a.reduce((s,x)=>s+parseFloat(x.valor),0)-Math.min(...a.map(x=>parseFloat(x.valor)));
+    const somaB=b.reduce((s,x)=>s+parseFloat(x.valor),0)-Math.min(...b.map(x=>parseFloat(x.valor)));
+    return somaB-somaA;
+  });
+}
+function renderIntegridadeDados(){
+  const wrap=document.getElementById('integridade-wrap');
+  if(!wrap)return;
+  try{
+    const dups=calcDuplicidades();
+    if(!dups.length){
+      wrap.innerHTML='<div class="empty"><div class="empty-icon">✅</div><div>Nenhuma duplicidade encontrada — dados íntegros!</div></div>';
+      return;
+    }
+    const impactoTotal=dups.reduce((s,g)=>s+(g.reduce((s2,x)=>s2+parseFloat(x.valor),0)-Math.min(...g.map(x=>parseFloat(x.valor)))),0);
+    const html=dups.map(g=>{
+      const loja=g[0].loja_nome,cat=g[0].cat_nome,ano=g[0].ano,mes=g[0].mes;
+      const impacto=g.reduce((s,x)=>s+parseFloat(x.valor),0)-Math.min(...g.map(x=>parseFloat(x.valor)));
+      return`<div style="border:1px solid #f5d8d8;background:#fff8f8;border-radius:8px;padding:.75rem 1rem;margin-bottom:.6rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.4rem;margin-bottom:.5rem">
+          <div style="font-weight:700;font-size:13px">${loja} <span style="font-weight:400;color:var(--ink3)">·</span> ${cat} <span style="font-weight:400;color:var(--ink3)">·</span> ${mes.charAt(0)+mes.slice(1).toLowerCase()}/${ano}</div>
+          <span class="badge" style="background:#fbe2e2;color:#a32d2d">${g.length} lançamentos · excesso de ${fBR(impacto)}</span>
+        </div>
+        <table style="width:100%;font-size:12px"><tbody>
+          ${g.map(x=>`<tr>
+            <td style="padding:3px 6px;color:var(--ink3)">${new Date(x.created_at).toLocaleString('pt-BR')}</td>
+            <td style="padding:3px 6px;text-align:right;font-weight:700">${fBR(x.valor)}</td>
+            <td style="padding:3px 6px;color:var(--ink3)">${x.obs||'—'}</td>
+            <td style="padding:3px 6px;text-align:center"><button class="btn btn-danger" style="padding:2px 9px;font-size:11px" onclick="delLReload('${x.id}')">✕ Excluir este</button></td>
+          </tr>`).join('')}
+        </tbody></table>
+      </div>`;
+    }).join('');
+    wrap.innerHTML=`
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem">
+        <span class="badge" style="background:#fbe2e2;color:#a32d2d">${dups.length} grupo${dups.length>1?'s':''} com duplicidade</span>
+        <span class="badge" style="background:#fbe2e2;color:#a32d2d">Impacto total: ${fBR(impactoTotal)}</span>
+      </div>
+      ${html}`;
+  }catch(ex){ mostrarErroRender('integridade-wrap',ex); }
 }
 
 function renderPermissoesPerfil(){
