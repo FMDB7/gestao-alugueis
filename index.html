@@ -1074,7 +1074,9 @@ async function db(path,opts={}){
     'Prefer':opts.prefer||(opts.method==='POST'?'return=representation':'count=none'),
     ...(opts.headers||{})
   };
-  const r=await fetch(`${SB}/rest/v1/${path}`,{...opts,headers});
+  // Nunca deixa o navegador usar cache local para chamadas ao banco — garante
+  // que toda leitura reflita o estado real e atual dos dados no Supabase.
+  const r=await fetch(`${SB}/rest/v1/${path}`,{...opts,headers,cache:'no-store'});
   if(!r.ok){
     const e=await r.json().catch(()=>({}));
     const msg=e.message||e.hint||e.details||`HTTP ${r.status}`;
