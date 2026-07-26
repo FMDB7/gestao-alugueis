@@ -2671,9 +2671,19 @@ async function excluirSelecionados(){
   const selecionados=[...document.querySelectorAll('.lt-chk:checked')].map(c=>c.dataset.id);
   if(!selecionados.length){toast('⚠️ Nenhum item selecionado');return;}
   const registros=S.lancamentos.filter(l=>selecionados.includes(l.id));
+  // Validação de integridade: a quantidade de checkboxes marcados tem que bater
+  // exatamente com a quantidade de registros encontrados — se não bater, aborta
+  // em vez de seguir com uma lista possivelmente errada.
+  if(registros.length!==selecionados.length){
+    toast('❌ Divergência na seleção detectada — nada foi excluído. Atualize a página e tente novamente.');
+    console.error('excluirSelecionados: selecionados.length',selecionados.length,'!== registros.length',registros.length,selecionados);
+    return;
+  }
   const bloqueado=registros.find(r=>!checarPermissaoEdicaoLoja(r.loja_nome));
   if(bloqueado)return; // checarPermissaoEdicaoLoja já mostrou o toast de bloqueio
-  if(!confirm(`Excluir ${selecionados.length} lançamento${selecionados.length>1?'s':''}?`))return;
+  // Confirmação mostrando a lista exata do que será excluído (evita excluir o item errado por engano)
+  const listaConfirm=registros.map(r=>`• ${r.loja_nome} — ${r.cat_nome} — ${r.mes}/${r.ano} — ${fBR(r.valor)}`).join('\n');
+  if(!confirm(`Confirma a exclusão de ${selecionados.length} lançamento${selecionados.length>1?'s':''}?\n\n${listaConfirm}`))return;
   const btn=document.getElementById('btn-del-sel');
   if(btn){btn.disabled=true;btn.innerHTML='<div class="spinner"></div> Excluindo...';}
   try{
@@ -2694,7 +2704,8 @@ async function excluirSelecionados(){
 async function delLReload(id){
   const registro=S.lancamentos.find(l=>l.id===id);
   if(registro&&!checarPermissaoEdicaoLoja(registro.loja_nome))return;
-  if(!confirm('Remover este lançamento?'))return;
+  const detalhe=registro?`\n\n${registro.loja_nome} — ${registro.cat_nome} — ${registro.mes}/${registro.ano} — ${fBR(registro.valor)}`:'';
+  if(!confirm('Remover este lançamento?'+detalhe))return;
   try{
     await db(`lancamentos?id=eq.${id}`,{method:'DELETE'});
     S.lancamentos=S.lancamentos.filter(l=>l.id!==id);
