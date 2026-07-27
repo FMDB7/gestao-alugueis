@@ -668,7 +668,7 @@ tbody tr:hover td{background:var(--bg)}
           <!-- ══ ABA 1: FATURAMENTO × ALUGUEL ══ -->
           <div id="fat-analise">
             <div style="margin-bottom:1rem">
-              <button class="btn btn-primary" onclick="abrirModalFat()">+ Lançar Faturamento Mensal</button>
+              <button class="btn btn-primary" id="btn-lancar-fat" onclick="abrirModalFat()">+ Lançar Faturamento Mensal</button>
             </div>
             <div class="card">
               <div class="card-body">
@@ -966,7 +966,7 @@ tbody tr:hover td{background:var(--bg)}
                   <div class="fg" id="nu-sso-note" style="display:none;align-self:flex-end;padding-bottom:.5rem">
                     <span class="badge bg2" style="font-size:11px">🔐 Acesso via Microsoft 365 — sem necessidade de senha</span>
                   </div>
-                  <div class="fg"><label class="fl">Perfil</label><select class="fc" id="nu-perfil"><option value="usuario">Usuário</option><option value="visualizador">Visualizador (Dashboard + Relatório)</option><option value="admin">Administrador</option></select></div>
+                  <div class="fg"><label class="fl">Perfil</label><select class="fc" id="nu-perfil"><option value="usuario">Usuário</option><option value="visualizador">Visualizador (Dashboard + Relatório + Faturamento)</option><option value="admin">Administrador</option></select></div>
                 </div>
                 <button class="btn btn-primary" onclick="addUsuario()">Adicionar usuário</button>
               </div>
@@ -3702,7 +3702,7 @@ async function renderUsuarios(){
       <td>
         <select class="fc" style="font-size:11px;padding:3px 6px;width:auto;min-width:150px" onchange="alterarPerfil('${u.id}',this.value,'${(u.nome||'').replace(/'/g,"\\'")}')" ${u.id===currentUser?.id?'disabled title="Você não pode alterar seu próprio perfil"':''}>
           <option value="usuario" ${u.perfil==='usuario'?'selected':''}>Usuário</option>
-          <option value="visualizador" ${u.perfil==='visualizador'?'selected':''}>Visualizador (Dashboard + Relatório)</option>
+          <option value="visualizador" ${u.perfil==='visualizador'?'selected':''}>Visualizador (Dashboard + Relatório + Faturamento)</option>
           <option value="admin" ${u.perfil==='admin'?'selected':''}>Administrador</option>
         </select>
       </td>
@@ -4177,6 +4177,18 @@ function initFatPage(){
 }
 // Troca de aba em Faturamento: reaplica o padrão (ZONA FRANCA + 2026) e já
 // exibe os dados, sem exigir clique em "Gerar".
+// O perfil "visualizador" acessa Faturamento apenas para consulta:
+// vê todos os dados, mas não pode criar, editar nem excluir nada.
+function podeEditarFat(){
+  return currentUser?.perfil!=='visualizador';
+}
+function bloquearSeVisualizador(){
+  if(!podeEditarFat()){
+    toast('👁️ Seu perfil é somente leitura — consulta liberada, edição bloqueada');
+    return true;
+  }
+  return false;
+}
 function showFatTab(id,btn){
   showTab(id,btn);
   aplicarPadraoFat();
@@ -4186,6 +4198,9 @@ function showFatTab(id,btn){
   else if(id==='fat-emails')renderEmailsAlerta();
 }
 function aplicarPadraoFat(){
+  // Perfil somente leitura: esconde o botão de lançar faturamento
+  const btnLancar=document.getElementById('btn-lancar-fat');
+  if(btnLancar)btnLancar.style.display=podeEditarFat()?'inline-flex':'none';
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
   set('fta-grupo','ZONA FRANCA'); set('fta-ano','2026');   // Faturamento × Aluguel
   set('fr-grupo','ZONA FRANCA');  set('fr-ano','2026');    // Relatório
@@ -4206,6 +4221,7 @@ function onFtLojaChange(){
 
 // ── Faturamento mensal ──
 function abrirModalFat(){
+  if(bloquearSeVisualizador())return;
   const modal=document.getElementById('modal-fat');
   modal.style.display='flex';
   const now=new Date();
@@ -4224,6 +4240,7 @@ function fecharModalFat(){
 }
 
 async function salvarFaturamento(){
+  if(bloquearSeVisualizador())return;
   const lojaNome=document.getElementById('ft-loja').value;
   const ano=parseInt(document.getElementById('ft-ano').value);
   const mes=document.getElementById('ft-mes').value;
@@ -4255,6 +4272,7 @@ async function salvarFaturamento(){
 }
 
 async function delFaturamento(id){
+  if(bloquearSeVisualizador())return;
   const f=S.faturamentos.find(x=>x.id===id);
   if(f&&!checarPermissaoEdicaoLoja(f.loja_nome))return;
   if(!confirm('Remover este faturamento?'))return;
@@ -4263,6 +4281,7 @@ async function delFaturamento(id){
 }
 
 function editarFaturamento(id){
+  if(bloquearSeVisualizador())return;
   const row=document.getElementById('fat-row-'+id);
   const edit=document.getElementById('fat-edit-'+id);
   if(row)row.style.display='none';
@@ -4276,6 +4295,7 @@ function cancelarEditFaturamento(id){
   if(edit)edit.style.display='none';
 }
 async function salvarFaturamentoEdit(id){
+  if(bloquearSeVisualizador())return;
   const valorStr=document.getElementById('fat-in-valor-'+id).value.replace(/\./g,'').replace(',','.');
   const valor=parseFloat(valorStr);
   if(!valor||valor<=0){toast('⚠️ Informe um valor válido');return;}
@@ -4325,8 +4345,8 @@ function _renderFatAnaliseImpl(){
         <td class="tn" style="padding:9px 12px;font-size:13.5px">${aluguel>0?fBR(aluguel):'—'}</td>
         <td style="padding:9px 12px;font-size:13.5px;text-align:center;font-weight:700;color:${aluguel>0?corPct(pct):'#c3c7dd'}">${aluguel>0?`${pct.toFixed(1)}% <span style="font-weight:600;font-size:11px;opacity:.85">· ${insightPct(pct)}</span>`:'—'}</td>
         <td style="padding:9px 12px;text-align:center;white-space:nowrap">
-          <button class="btn btn-ghost btn-sm" style="padding:3px 8px;font-size:12px" onclick="editarFaturamento('${f.id}')">✏️</button>
-          <button class="btn btn-danger" style="padding:3px 9px;font-size:12px" onclick="delFaturamento('${f.id}')">✕</button>
+          ${podeEditarFat()?`<button class="btn btn-ghost btn-sm" style="padding:3px 8px;font-size:12px" onclick="editarFaturamento('${f.id}')">✏️</button>
+          <button class="btn btn-danger" style="padding:3px 9px;font-size:12px" onclick="delFaturamento('${f.id}')">✕</button>`:'<span style="color:var(--ink3);font-size:11px">—</span>'}
         </td>
       </tr>
       <tr id="fat-edit-${f.id}" style="display:none;background:var(--blue-bg)">
@@ -4697,7 +4717,7 @@ function _renderContratosImpl(){
       <td style="text-align:center">${ct.fim_contrato?new Date(ct.fim_contrato+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
       <td style="text-align:center">${calcPrazoContrato(ct.inicio_contrato,ct.fim_contrato)}</td>
       <td style="text-align:center"><span style="background:${st.bg};color:${st.cor};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap">${st.label}</span></td>
-      <td style="text-align:center"><button class="btn btn-ghost btn-sm" onclick="abrirModalContrato('${l.id}')">✏️ Editar</button></td>
+      <td style="text-align:center">${podeEditarFat()?`<button class="btn btn-ghost btn-sm" onclick="abrirModalContrato('${l.id}')">✏️ Editar</button>`:'<span style="color:var(--ink3);font-size:11px">somente leitura</span>'}</td>
     </tr>`;
   }).join('');
   wrap.innerHTML=`<div style="overflow:auto;max-height:65vh"><table style="border-collapse:collapse">
@@ -4713,6 +4733,7 @@ function _renderContratosImpl(){
 }
 let ctModalLojaId=null;
 function abrirModalContrato(lojaId){
+  if(bloquearSeVisualizador())return;
   const l=S.lojas.find(x=>x.id===lojaId);
   if(!l)return;
   const ct=S.contratos.find(c=>c.loja_id===lojaId)||{};
@@ -4737,6 +4758,7 @@ function limparCamposContrato(){
   document.getElementById('ctm-met')?.focus();
 }
 async function salvarContrato(){
+  if(bloquearSeVisualizador())return;
   if(!ctModalLojaId)return;
   const lojaCt=S.lojas.find(l=>l.id===ctModalLojaId);
   if(lojaCt&&!checarPermissaoEdicaoLoja(lojaCt.nome))return;
