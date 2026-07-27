@@ -322,6 +322,11 @@ tbody tr:hover td{background:var(--bg)}
             <div class="card-hd">
               <div class="card-title">Lançamentos recentes</div>
               <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+                <select class="fc" id="lt-filter-grupo" onchange="renderLtRecentes()" style="font-size:12px;padding:4px 8px;width:150px">
+                  <option value="">Todos os grupos</option>
+                  <option value="ZONA FRANCA">ZONA FRANCA</option>
+                  <option value="MERCADO LOCAL">MERCADO LOCAL</option>
+                </select>
                 <select class="fc" id="lt-filter-emp" onchange="updateLtLojas();renderLtRecentes()" style="font-size:12px;padding:4px 8px;width:145px"><option value="">Todas empresas</option></select>
                 <select class="fc" id="lt-filter-loja" onchange="renderLtRecentes()" style="font-size:12px;padding:4px 8px;width:145px"><option value="">Todas as lojas</option></select>
                 <select class="fc" id="lt-filter-mes" onchange="renderLtRecentes()" style="font-size:12px;padding:4px 8px;width:120px">
@@ -2640,8 +2645,9 @@ function renderLtRecentes(){
   const loja=document.getElementById('lt-filter-loja')?.value||'';
   const mes=document.getElementById('lt-filter-mes')?.value||'';
   const ano=document.getElementById('lt-filter-ano')?.value||'';
+  const grupo=document.getElementById('lt-filter-grupo')?.value||'';
   const d=S.lancamentos
-    .filter(l=>(!emp||l.empresa_nome===emp)&&(!loja||l.loja_nome===loja)&&(!mes||l.mes===mes)&&(!ano||String(l.ano)===ano))
+    .filter(l=>(!grupo||getGrupoLoja(l.loja_nome)===grupo)&&(!emp||l.empresa_nome===emp)&&(!loja||l.loja_nome===loja)&&(!mes||l.mes===mes)&&(!ano||String(l.ano)===ano))
     .slice(0,200);
   if(!d.length){
     wrap.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div>Nenhum lançamento encontrado</div></div>';
@@ -3238,7 +3244,7 @@ function limparFiltrosAnual(){
 }
 
 function limparFiltrosLanc(){
-  ['lt-filter-emp','lt-filter-loja','lt-filter-mes','lt-filter-ano'].forEach(id=>{
+  ['lt-filter-grupo','lt-filter-emp','lt-filter-loja','lt-filter-mes','lt-filter-ano'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.value='';
   });
