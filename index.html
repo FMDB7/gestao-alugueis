@@ -654,10 +654,10 @@ tbody tr:hover td{background:var(--bg)}
         <div class="topbar"><div class="page-title">Faturamento & Contratos</div></div>
         <div class="content">
           <div class="tabs tabs-rel">
-            <button class="tab active" onclick="showTab('fat-analise',this);renderFatAnalise()">Faturamento × Aluguel</button>
-            <button class="tab" onclick="showTab('fat-relatorio',this);renderFatRelatorio()">Relatório</button>
-            <button class="tab" onclick="showTab('fat-contratos',this);renderContratos()">Contratos</button>
-            <button class="tab" onclick="showTab('fat-emails',this);renderEmailsAlerta()">E-mails de Alerta</button>
+            <button class="tab active" onclick="showFatTab('fat-analise',this)">Faturamento × Aluguel</button>
+            <button class="tab" onclick="showFatTab('fat-relatorio',this)">Relatório</button>
+            <button class="tab" onclick="showFatTab('fat-contratos',this)">Contratos</button>
+            <button class="tab" onclick="showFatTab('fat-emails',this)">E-mails de Alerta</button>
           </div>
 
           <!-- ══ ABA 1: FATURAMENTO × ALUGUEL ══ -->
@@ -4160,7 +4160,30 @@ function initFatPage(){
   if(dl)dl.innerHTML=lojasOrd.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">`).join('');
   fs('fta-loja',lojasOrd,'Todas');
   fs('ct-floja',lojasOrd,'Todas');
-  loadFatData().then(()=>{renderFatAnalise();verificarAlertasContratos();});
+  // Padrão de abertura: Grupo ZONA FRANCA + Ano 2026 em todas as abas,
+  // com os dados já exibidos automaticamente (sem precisar clicar em Gerar).
+  aplicarPadraoFat();
+  loadFatData().then(()=>{
+    aplicarPadraoFat();
+    renderFatAnalise();
+    verificarAlertasContratos();
+  });
+}
+// Troca de aba em Faturamento: reaplica o padrão (ZONA FRANCA + 2026) e já
+// exibe os dados, sem exigir clique em "Gerar".
+function showFatTab(id,btn){
+  showTab(id,btn);
+  aplicarPadraoFat();
+  if(id==='fat-analise')renderFatAnalise();
+  else if(id==='fat-relatorio')renderFatRelatorio();
+  else if(id==='fat-contratos')renderContratos();
+  else if(id==='fat-emails')renderEmailsAlerta();
+}
+function aplicarPadraoFat(){
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+  set('fta-grupo','ZONA FRANCA'); set('fta-ano','2026');   // Faturamento × Aluguel
+  set('fr-grupo','ZONA FRANCA');  set('fr-ano','2026');    // Relatório
+  set('ct-fgrupo','ZONA FRANCA');                          // Contratos
 }
 
 // Mostra instantaneamente empresa, cidade/UF e último faturamento lançado ao selecionar a loja
