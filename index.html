@@ -684,7 +684,7 @@ tbody tr:hover td{background:var(--bg)}
                     <div class="fg"><label class="fl">Ano</label><select class="fc" id="fta-ano" onchange="renderFatAnalise()">
                       <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
                     </select></div>
-                    <div style="display:flex;align-items:flex-end"><button class="btn btn-ghost" id="btn-fta-pdf" onclick="exportFatAnalisePDF()" style="display:none">⬇ PDF</button></div>
+                    <div style="display:flex;align-items:flex-end;gap:.4rem"><button class="btn btn-ghost" id="btn-fta-pdf" onclick="exportFatAnalisePDF()" style="display:none">⬇ PDF</button><button class="btn btn-ghost" onclick="limparFiltrosFat('analise')" style="color:#c0392b">✕ Limpar</button></div>
                   </div>
                 </div>
                 <div id="fat-analise-wrap"><div class="empty"><div class="empty-icon">📊</div><div>Sem dados de faturamento</div></div></div>
@@ -705,6 +705,7 @@ tbody tr:hover td{background:var(--bg)}
                       <option value="ZONA FRANCA">ZONA FRANCA</option>
                       <option value="MERCADO LOCAL">MERCADO LOCAL</option>
                     </select></div>
+                    <div style="display:flex;align-items:flex-end"><button class="btn btn-ghost" onclick="limparFiltrosFat('contratos')" style="color:#c0392b">✕ Limpar</button></div>
                   </div>
                 </div>
                 <div style="font-size:11.5px;color:var(--ink3);margin-bottom:.75rem">⚠️ Contratos a <b>8 meses ou menos</b> do vencimento aparecem com alerta vermelho. Clique em ✏️ para preencher metragem e datas de cada loja.</div>
@@ -728,7 +729,7 @@ tbody tr:hover td{background:var(--bg)}
                     <div class="fg"><label class="fl">Ano</label><select class="fc" id="fr-ano" onchange="renderFatRelatorio()">
                       <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
                     </select></div>
-                    <div style="display:flex;align-items:flex-end"><button class="btn btn-ghost" id="btn-fr-pdf" onclick="exportFatRelatorioPDF()" style="display:none">⬇ PDF</button></div>
+                    <div style="display:flex;align-items:flex-end;gap:.4rem"><button class="btn btn-ghost" id="btn-fr-pdf" onclick="exportFatRelatorioPDF()" style="display:none">⬇ PDF</button><button class="btn btn-ghost" onclick="limparFiltrosFat('relatorio')" style="color:#c0392b">✕ Limpar</button></div>
                   </div>
                 </div>
               </div>
@@ -4279,6 +4280,22 @@ function showFatTab(id,btn){
   else if(id==='fat-relatorio')renderFatRelatorio();
   else if(id==='fat-contratos')renderContratos();
   else if(id==='fat-emails')renderEmailsAlerta();
+}
+// Limpa os filtros da aba indicada (volta a exibir todos os grupos e lojas,
+// mantendo o ano corrente) e regenera a visualização automaticamente.
+function limparFiltrosFat(aba){
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+  if(aba==='analise'){
+    set('fta-loja','');set('fta-grupo','');set('fta-ano','2026');
+    renderFatAnalise();
+  }else if(aba==='relatorio'){
+    set('fr-grupo','');set('fr-ano','2026');
+    renderFatRelatorio();
+  }else if(aba==='contratos'){
+    set('ct-floja','');set('ct-fgrupo','');
+    renderContratos();
+  }
+  toast('✅ Filtros limpos');
 }
 function aplicarPadraoFat(){
   // Perfil somente leitura: esconde o botão de lançar faturamento
