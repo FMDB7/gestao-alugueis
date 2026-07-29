@@ -659,7 +659,7 @@ tbody tr:hover td{background:var(--bg)}
         <div class="topbar"><div class="page-title">Faturamento & Contratos</div></div>
         <div class="content">
           <div class="tabs tabs-rel">
-            <button class="tab active" onclick="showFatTab('fat-analise',this)">Faturamento × Aluguel</button>
+            <button class="tab active" id="fattab-analise" onclick="showFatTab('fat-analise',this)">Faturamento × Aluguel</button>
             <button class="tab" id="fattab-relatorio" onclick="showFatTab('fat-relatorio',this)">Relatório</button>
             <button class="tab" id="fattab-contratos" onclick="showFatTab('fat-contratos',this)">Contratos</button>
             <button class="tab" id="fattab-emails" onclick="showFatTab('fat-emails',this)">E-mails de Alerta</button>
@@ -977,7 +977,7 @@ tbody tr:hover td{background:var(--bg)}
                   <div class="fg" id="nu-sso-note" style="display:none;align-self:flex-end;padding-bottom:.5rem">
                     <span class="badge bg2" style="font-size:11px">🔐 Acesso via Microsoft 365 — sem necessidade de senha</span>
                   </div>
-                  <div class="fg"><label class="fl">Perfil</label><select class="fc" id="nu-perfil"><option value="usuario">Usuário</option><option value="visualizador">Visualizador (Dashboard + Relatório + Faturamento)</option><option value="faturamento">Usuário I (Somente Faturamento)</option><option value="admin">Administrador</option></select></div>
+                  <div class="fg"><label class="fl">Perfil</label><select class="fc" id="nu-perfil"><option value="usuario">Usuário</option><option value="visualizador">Visualizador (Dashboard + Relatório + Faturamento)</option><option value="faturamento">Usuário I (Somente Faturamento)</option><option value="contratos">Usuário II (Somente Contratos)</option><option value="admin">Administrador</option></select></div>
                 </div>
                 <button class="btn btn-primary" onclick="addUsuario()">Adicionar usuário</button>
               </div>
@@ -991,6 +991,7 @@ tbody tr:hover td{background:var(--bg)}
                   <option value="usuario">Usuário</option>
                   <option value="visualizador">Visualizador</option>
                   <option value="faturamento">Usuário I (Somente Faturamento)</option>
+                  <option value="contratos">Usuário II (Somente Contratos)</option>
                   <option value="admin">Administrador</option>
                 </select>
               </div>
@@ -3789,6 +3790,7 @@ async function renderUsuarios(){
           <option value="usuario" ${u.perfil==='usuario'?'selected':''}>Usuário</option>
           <option value="visualizador" ${u.perfil==='visualizador'?'selected':''}>Visualizador (Dashboard + Relatório + Faturamento)</option>
           <option value="faturamento" ${u.perfil==='faturamento'?'selected':''}>Usuário I (Somente Faturamento)</option>
+          <option value="contratos" ${u.perfil==='contratos'?'selected':''}>Usuário II (Somente Contratos)</option>
           <option value="admin" ${u.perfil==='admin'?'selected':''}>Administrador</option>
         </select>
       </td>
@@ -4257,7 +4259,10 @@ function initFatPage(){
   aplicarPadraoFat();
   loadFatData().then(()=>{
     aplicarPadraoFat();
-    renderFatAnalise();
+    const permitidas=subAbasFatPermitidas();
+    // Renderiza a sub-aba que o perfil realmente pode ver
+    if(!permitidas||permitidas.includes('fat-analise'))renderFatAnalise();
+    if(permitidas&&permitidas.includes('fat-contratos'))renderContratos();
     verificarAlertasContratos();
   });
 }
@@ -4275,19 +4280,34 @@ function bloquearSeVisualizador(){
   }
   return false;
 }
-// Perfil "faturamento" (Usuário I): acessa somente a sub-aba Faturamento × Aluguel,
-// podendo lançar e editar. Relatório, Contratos e E-mails ficam ocultos e bloqueados.
+// Perfis com acesso restrito a sub-abas específicas dentro de Faturamento:
+//   faturamento (Usuário I) → apenas "Faturamento × Aluguel" (lança e edita)
+//   contratos   (Usuário II) → apenas "Contratos" (edita contratos por loja)
+// Os demais perfis enxergam todas as sub-abas (null = sem restrição).
+const SUBABAS_FAT_POR_PERFIL={
+  faturamento:['fat-analise'],
+  contratos:['fat-contratos']
+};
 function subAbasFatPermitidas(){
-  return currentUser?.perfil==='faturamento' ? ['fat-analise'] : null; // null = todas
+  return SUBABAS_FAT_POR_PERFIL[currentUser?.perfil]||null;
 }
 function aplicarRestricaoSubAbasFat(){
   const permitidas=subAbasFatPermitidas();
-  [['fattab-relatorio','fat-relatorio'],['fattab-contratos','fat-contratos'],['fattab-emails','fat-emails']]
+  [['fattab-analise','fat-analise'],['fattab-relatorio','fat-relatorio'],['fattab-contratos','fat-contratos'],['fattab-emails','fat-emails']]
     .forEach(([btnId,painelId])=>{
       const btn=document.getElementById(btnId);
       const liberada=!permitidas||permitidas.includes(painelId);
       if(btn)btn.style.display=liberada?'inline-block':'none';
     });
+  // Se a sub-aba atualmente aberta não é permitida, abre automaticamente a primeira liberada
+  if(permitidas){
+    const alvo=permitidas[0];
+    const painelAlvo=document.getElementById(alvo);
+    if(painelAlvo&&painelAlvo.style.display==='none'){
+      const btnAlvo=document.getElementById('fattab-'+alvo.replace('fat-',''));
+      if(btnAlvo)showFatTab(alvo,btnAlvo);
+    }
+  }
 }
 function showFatTab(id,btn){
   const permitidas=subAbasFatPermitidas();
