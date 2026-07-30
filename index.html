@@ -855,7 +855,22 @@ tbody tr:hover td{background:var(--bg)}
               <label class="fl">LOJA</label>
               <div id="ctm-loja" style="padding:.6rem .75rem;background:var(--blue-bg);border-radius:8px;font-weight:700;color:var(--ink);font-size:14px;margin-top:.3rem"></div>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+
+            <div style="margin-bottom:1rem">
+              <label class="fl">TIPO DE PRAZO</label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.3rem">
+                <label id="ctm-tipo-det-lbl" onclick="setTipoPrazoContrato('determinado')" style="cursor:pointer;display:flex;align-items:center;gap:.5rem;padding:.65rem .8rem;border:2px solid var(--blue);border-radius:8px;background:var(--blue-bg)">
+                  <input type="radio" name="ctm-tipo" id="ctm-tipo-det" value="determinado" style="width:16px;height:16px;accent-color:var(--blue)"/>
+                  <div><div style="font-weight:700;font-size:13px">📅 Determinado</div><div style="font-size:10.5px;color:var(--ink3)">Com data de fim</div></div>
+                </label>
+                <label id="ctm-tipo-ind-lbl" onclick="setTipoPrazoContrato('indeterminado')" style="cursor:pointer;display:flex;align-items:center;gap:.5rem;padding:.65rem .8rem;border:2px solid var(--border2);border-radius:8px">
+                  <input type="radio" name="ctm-tipo" id="ctm-tipo-ind" value="indeterminado" style="width:16px;height:16px;accent-color:var(--blue)"/>
+                  <div><div style="font-weight:700;font-size:13px">♾️ Indeterminado</div><div style="font-size:10.5px;color:var(--ink3)">Sem data de fim</div></div>
+                </label>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1rem">
               <div class="fg">
                 <label class="fl">METRAGEM (M²)</label>
                 <input type="number" step="0.01" class="fc" id="ctm-met" placeholder="0" onkeydown="if(event.key==='Enter')salvarContrato()"/>
@@ -864,11 +879,17 @@ tbody tr:hover td{background:var(--bg)}
                 <label class="fl">INÍCIO DO CONTRATO</label>
                 <input type="date" class="fc" id="ctm-ini"/>
               </div>
-              <div class="fg">
+              <div class="fg" id="ctm-fim-wrap">
                 <label class="fl">FIM DO CONTRATO</label>
                 <input type="date" class="fc" id="ctm-fim" onkeydown="if(event.key==='Enter')salvarContrato()"/>
               </div>
             </div>
+
+            <div class="fg" style="margin-bottom:1.5rem">
+              <label class="fl">OBSERVAÇÕES</label>
+              <textarea class="fc" id="ctm-obs" rows="2" placeholder="Informações adicionais sobre o contrato..." style="resize:vertical;font-family:var(--font)"></textarea>
+            </div>
+
             <div style="display:flex;gap:.75rem;align-items:center;padding-top:1rem;border-top:1px solid var(--border)">
               <button class="btn btn-primary" id="btn-salvar-contrato" onclick="salvarContrato()" style="padding:.6rem 1.5rem;font-size:14px">✔ Salvar Contrato</button>
               <button class="btn btn-ghost" onclick="limparCamposContrato()" style="padding:.6rem 1rem;color:#c97d0a">🧹 Limpar dados</button>
@@ -4334,10 +4355,11 @@ function exportContratosPDF(){
 
   const linhas=lojas.map(l=>{
     const ct=S.contratos.find(c=>c.loja_id===l.id)||{};
-    const st=calcStatusContrato(ct.fim_contrato,l.nome);
-    return{loja:l.nome,grupo:getGrupoLoja(l.nome),ct,st};
+    const indeterminado=ct.tipo_prazo==='indeterminado';
+    const st=indeterminado?{label:'Sem vencimento',dias:null,meses:null}:calcStatusContrato(ct.fim_contrato,l.nome);
+    return{loja:l.nome,grupo:getGrupoLoja(l.nome),ct,st,indeterminado};
   }).sort((a,b)=>{
-    // sem data vai para o fim; entre os demais, menor prazo restante primeiro
+    // sem data (incluindo indeterminado) vai para o fim; entre os demais, menor prazo restante primeiro
     if(a.st.dias===null)return 1; if(b.st.dias===null)return -1;
     return a.st.dias-b.st.dias;
   });
@@ -4345,21 +4367,24 @@ function exportContratosPDF(){
   const titulo=fGrupo==='ZONA FRANCA'?'GRUPO ZONA FRANCA'
     :(fGrupo==='MERCADO LOCAL'?'GRUPO MERCADO LOCAL':'GRUPO ZONA FRANCA E MERCADO LOCAL');
 
-  const criticos=linhas.filter(x=>x.st.meses!==null&&x.st.meses<8).length;
-  const semData=linhas.filter(x=>x.st.dias===null).length;
+  const criticos=linhas.filter(x=>!x.indeterminado&&x.st.meses!==null&&x.st.meses<(x.st.limiar||8)).length;
+  const semData=linhas.filter(x=>!x.indeterminado&&x.st.dias===null).length;
+  const indet=linhas.filter(x=>x.indeterminado).length;
 
   const rows=linhas.map((x,i)=>{
     const c=x.ct,st=x.st;
-    const corTxt=st.dias===null?'#9399b8':(st.meses<8?'#a32d2d':(st.meses<12?'#7a5c00':'#0d6e4e'));
-    const bgLinha=st.dias!==null&&st.meses<8?'#fff5f5':(i%2===1?'#f8f9ff':'#fff');
+    const corTxt=x.indeterminado?'#2d5be3':(st.dias===null?'#9399b8':(st.meses<(st.limiar||8)?'#a32d2d':(st.meses<(st.limiar||8)+4?'#7a5c00':'#0d6e4e')));
+    const bgLinha=(!x.indeterminado&&st.dias!==null&&st.meses<(st.limiar||8))?'#fff5f5':(i%2===1?'#f8f9ff':'#fff');
+    const obsResumo=(c.observacoes||'—').toString();
     return`<tr style="background-color:${bgLinha}">
       <td style="font-weight:600">${x.loja}</td>
       <td style="text-align:center;font-size:8px">${x.grupo}</td>
       <td style="text-align:center">${c.metragem?parseFloat(c.metragem).toLocaleString('pt-BR')+' m²':'—'}</td>
       <td style="text-align:center">${c.inicio_contrato?new Date(c.inicio_contrato+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
-      <td style="text-align:center">${c.fim_contrato?new Date(c.fim_contrato+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
-      <td style="text-align:center">${calcPrazoContrato(c.inicio_contrato,c.fim_contrato)}</td>
+      <td style="text-align:center">${x.indeterminado?'—':(c.fim_contrato?new Date(c.fim_contrato+'T00:00:00').toLocaleDateString('pt-BR'):'—')}</td>
+      <td style="text-align:center">${x.indeterminado?'♾️ Indeterminado':calcPrazoContrato(c.inicio_contrato,c.fim_contrato)}</td>
       <td style="text-align:center;font-weight:700;color:${corTxt}">${st.label}</td>
+      <td style="font-size:8px">${obsResumo}</td>
     </tr>`;
   }).join('');
 
@@ -4390,19 +4415,21 @@ function exportContratosPDF(){
   </div>
   <div class="badges">
     <span class="badge bb">${linhas.length} loja${linhas.length>1?'s':''}</span>
-    ${criticos?`<span class="badge br">${criticos} contrato(s) a vencer em até 8 meses</span>`:''}
+    ${criticos?`<span class="badge br">${criticos} contrato(s) a vencer em breve</span>`:''}
+    ${indet?`<span class="badge bb">${indet} com prazo indeterminado</span>`:''}
     ${semData?`<span class="badge bg">${semData} sem data cadastrada</span>`:''}
   </div>
-  ${criticos?`<div class="aviso">⚠️ <b>Atenção:</b> ${criticos} contrato(s) estão a 8 meses ou menos do vencimento (destacados em vermelho) e demandam ação de renegociação ou renovação.</div>`:''}
+  ${criticos?`<div class="aviso">⚠️ <b>Atenção:</b> ${criticos} contrato(s) estão dentro do prazo de alerta de vencimento (destacados em vermelho) e demandam ação de renegociação ou renovação.</div>`:''}
   <table>
     <thead><tr>
-      <th style="min-width:130px">LOJA</th>
+      <th style="min-width:120px">LOJA</th>
       <th style="text-align:center">GRUPO</th>
       <th style="text-align:center">METRAGEM</th>
       <th style="text-align:center">INÍCIO</th>
       <th style="text-align:center">FIM</th>
       <th style="text-align:center">PRAZO</th>
-      <th style="text-align:center;min-width:130px">STATUS VENCIMENTO</th>
+      <th style="text-align:center;min-width:110px">STATUS VENCIMENTO</th>
+      <th style="min-width:140px">OBSERVAÇÕES</th>
     </tr></thead>
     <tbody>${rows}</tbody>
   </table>
@@ -4974,14 +5001,17 @@ function _renderContratosImpl(){
   if(!lojas.length){wrap.innerHTML='<div class="empty"><div>Nenhuma loja</div></div>';return;}
   const rows=lojas.map(l=>{
     const ct=S.contratos.find(c=>c.loja_id===l.id)||{};
-    const st=calcStatusContrato(ct.fim_contrato,l.nome);
+    const indeterminado=ct.tipo_prazo==='indeterminado';
+    const st=indeterminado?null:calcStatusContrato(ct.fim_contrato,l.nome);
+    const obsResumo=(ct.observacoes||'').trim();
     return`<tr id="ct-row-${l.id}">
       <td style="font-weight:600;position:sticky;left:0;background:#fff;border-right:2px solid #2d5be3">${l.nome}</td>
       <td style="text-align:center">${ct.metragem?parseFloat(ct.metragem).toLocaleString('pt-BR')+' m²':'—'}</td>
       <td style="text-align:center">${ct.inicio_contrato?new Date(ct.inicio_contrato+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
-      <td style="text-align:center">${ct.fim_contrato?new Date(ct.fim_contrato+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
-      <td style="text-align:center">${calcPrazoContrato(ct.inicio_contrato,ct.fim_contrato)}</td>
-      <td style="text-align:center"><span style="background:${st.bg};color:${st.cor};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap">${st.label}</span></td>
+      <td style="text-align:center">${indeterminado?'<span style="color:var(--ink3)">—</span>':(ct.fim_contrato?new Date(ct.fim_contrato+'T00:00:00').toLocaleDateString('pt-BR'):'—')}</td>
+      <td style="text-align:center">${indeterminado?'<span style="background:#eef2fd;color:#2d5be3;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700">♾️ Indeterminado</span>':calcPrazoContrato(ct.inicio_contrato,ct.fim_contrato)}</td>
+      <td style="text-align:center">${indeterminado?'<span style="background:#f0f1f7;color:#555;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap">Sem vencimento</span>':`<span style="background:${st.bg};color:${st.cor};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap">${st.label}</span>`}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--ink2)" title="${obsResumo.replace(/"/g,'&quot;')}">${obsResumo||'<span style="color:var(--ink3)">—</span>'}</td>
       <td style="text-align:center">${podeEditarFat()?`<button class="btn btn-ghost btn-sm" onclick="abrirModalContrato('${l.id}')">✏️ Editar</button>`:'<span style="color:var(--ink3);font-size:11px">somente leitura</span>'}</td>
     </tr>`;
   }).join('');
@@ -4993,10 +5023,24 @@ function _renderContratosImpl(){
       <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;text-align:center">FIM</th>
       <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;text-align:center">PRAZO</th>
       <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;text-align:center">STATUS VENCIMENTO</th>
+      <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11;min-width:150px">OBSERVAÇÕES</th>
       <th style="background:#2d5be3;color:#fff;position:sticky;top:0;z-index:11"></th>
     </tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 let ctModalLojaId=null;
+// Alterna visualmente entre Determinado (mostra campo Fim) e Indeterminado (esconde e limpa o Fim)
+function setTipoPrazoContrato(tipo){
+  const det=document.getElementById('ctm-tipo-det'),ind=document.getElementById('ctm-tipo-ind');
+  const detLbl=document.getElementById('ctm-tipo-det-lbl'),indLbl=document.getElementById('ctm-tipo-ind-lbl');
+  const fimWrap=document.getElementById('ctm-fim-wrap');
+  det.checked=(tipo==='determinado');ind.checked=(tipo==='indeterminado');
+  detLbl.style.borderColor=det.checked?'var(--blue)':'var(--border2)';
+  detLbl.style.background=det.checked?'var(--blue-bg)':'transparent';
+  indLbl.style.borderColor=ind.checked?'var(--blue)':'var(--border2)';
+  indLbl.style.background=ind.checked?'var(--blue-bg)':'transparent';
+  fimWrap.style.display=tipo==='indeterminado'?'none':'block';
+  if(tipo==='indeterminado')document.getElementById('ctm-fim').value='';
+}
 function abrirModalContrato(lojaId){
   if(bloquearSeVisualizador())return;
   const l=S.lojas.find(x=>x.id===lojaId);
@@ -5007,6 +5051,8 @@ function abrirModalContrato(lojaId){
   document.getElementById('ctm-met').value=ct.metragem||'';
   document.getElementById('ctm-ini').value=ct.inicio_contrato||'';
   document.getElementById('ctm-fim').value=ct.fim_contrato||'';
+  document.getElementById('ctm-obs').value=ct.observacoes||'';
+  setTipoPrazoContrato(ct.tipo_prazo==='indeterminado'?'indeterminado':'determinado');
   document.getElementById('modal-contrato').style.display='flex';
   setTimeout(()=>document.getElementById('ctm-met')?.focus(),100);
 }
@@ -5019,6 +5065,8 @@ function limparCamposContrato(){
   document.getElementById('ctm-met').value='';
   document.getElementById('ctm-ini').value='';
   document.getElementById('ctm-fim').value='';
+  document.getElementById('ctm-obs').value='';
+  setTipoPrazoContrato('determinado');
   toast('🧹 Campos limpos — preencha novamente e salve');
   document.getElementById('ctm-met')?.focus();
 }
@@ -5027,17 +5075,19 @@ async function salvarContrato(){
   if(!ctModalLojaId)return;
   const lojaCt=S.lojas.find(l=>l.id===ctModalLojaId);
   if(lojaCt&&!checarPermissaoEdicaoLoja(lojaCt.nome))return;
+  const tipoPrazo=document.getElementById('ctm-tipo-ind').checked?'indeterminado':'determinado';
   const metragem=parseFloat(document.getElementById('ctm-met').value)||null;
   const inicio=document.getElementById('ctm-ini').value||null;
-  const fim=document.getElementById('ctm-fim').value||null;
-  if(inicio&&fim&&fim<=inicio){toast('⚠️ Fim deve ser após o início');return;}
+  const fim=tipoPrazo==='indeterminado'?null:(document.getElementById('ctm-fim').value||null);
+  const observacoes=document.getElementById('ctm-obs').value.trim()||null;
+  if(tipoPrazo==='determinado'&&inicio&&fim&&fim<=inicio){toast('⚠️ Fim deve ser após o início');return;}
   const btn=document.getElementById('btn-salvar-contrato');
   if(btn){btn.disabled=true;btn.innerHTML='<div class="spinner"></div> Salvando...';}
   try{
     await db(`contratos?on_conflict=loja_id`,{
       method:'POST',
       headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
-      body:JSON.stringify({loja_id:ctModalLojaId,metragem,inicio_contrato:inicio,fim_contrato:fim,updated_at:new Date().toISOString()})
+      body:JSON.stringify({loja_id:ctModalLojaId,metragem,inicio_contrato:inicio,fim_contrato:fim,tipo_prazo:tipoPrazo,observacoes,updated_at:new Date().toISOString()})
     });
     toast('✅ Contrato salvo!');
     fecharModalContrato();
@@ -5051,6 +5101,7 @@ async function salvarContrato(){
 // ── Alerta em tela: contratos vencendo em até 8 meses ──
 function verificarAlertasContratos(){
   const criticos=S.contratos.filter(c=>{
+    if(c.tipo_prazo==='indeterminado')return false; // sem data de fim, não há o que alertar
     const st=calcStatusContrato(c.fim_contrato,c.loja_nome);
     return st.meses!==null&&st.meses<st.limiar;
   });
