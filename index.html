@@ -708,7 +708,7 @@ tbody tr:hover td{background:var(--bg)}
                     <div style="display:flex;align-items:flex-end;gap:.4rem"><button class="btn btn-ghost" onclick="exportContratosPDF()">⬇ PDF</button><button class="btn btn-ghost" onclick="limparFiltrosFat('contratos')" style="color:#c0392b">✕ Limpar</button></div>
                   </div>
                 </div>
-                <div style="font-size:11.5px;color:var(--ink3);margin-bottom:.75rem">⚠️ Contratos a <b>8 meses ou menos</b> do vencimento aparecem com alerta vermelho. Clique em ✏️ para preencher metragem e datas de cada loja.</div>
+                <div style="font-size:11.5px;color:var(--ink3);margin-bottom:.75rem">⚠️ Contratos a <b>8 meses ou menos</b> do vencimento aparecem com alerta vermelho (<b>14 meses</b> para Amazonas Shopping-JMS, Manauara Castanheira, Manauara Tucumã, Ponta Negra Shoping, Quiosque Via Norte, Quiosque Manauara, Quiosque Pátio Roraima e Sumaúma). Clique em ✏️ para preencher metragem e datas de cada loja.</div>
                 <div id="contratos-wrap"></div>
               </div>
             </div>
@@ -873,7 +873,7 @@ tbody tr:hover td{background:var(--bg)}
               <button class="btn btn-primary" id="btn-salvar-contrato" onclick="salvarContrato()" style="padding:.6rem 1.5rem;font-size:14px">✔ Salvar Contrato</button>
               <button class="btn btn-ghost" onclick="limparCamposContrato()" style="padding:.6rem 1rem;color:#c97d0a">🧹 Limpar dados</button>
               <button class="btn btn-ghost" onclick="fecharModalContrato()" style="padding:.6rem 1rem">Cancelar</button>
-              <span style="margin-left:auto;font-size:11px;color:var(--ink3)">⚠️ Alerta ativa automaticamente a 8 meses do vencimento</span>
+              <span style="margin-left:auto;font-size:11px;color:var(--ink3)">⚠️ Alerta ativa automaticamente a 8 meses do vencimento (14 meses para lojas com prazo estendido)</span>
             </div>
           </div>
         </div>
@@ -4334,7 +4334,7 @@ function exportContratosPDF(){
 
   const linhas=lojas.map(l=>{
     const ct=S.contratos.find(c=>c.loja_id===l.id)||{};
-    const st=calcStatusContrato(ct.fim_contrato);
+    const st=calcStatusContrato(ct.fim_contrato,l.nome);
     return{loja:l.nome,grupo:getGrupoLoja(l.nome),ct,st};
   }).sort((a,b)=>{
     // sem data vai para o fim; entre os demais, menor prazo restante primeiro
@@ -4925,18 +4925,30 @@ function exportFatRelatorioPDF(){
 }
 
 // ── Contratos ──
-function calcStatusContrato(fim){
+// Lojas com prazo de renovação mais longo/complexo: o alerta de vencimento
+// deve disparar 14 meses antes (em vez do padrão de 8 meses) para dar tempo
+// hábil de negociação.
+const LOJAS_ALERTA_14_MESES=[
+  'Amazonas Shopping-JMS','Manauara Castanheira','Manauara Tucumã','Ponta Negra Shoping',
+  'Quiosque  Via Norte','Quiosque Manauara','Quiosque Patio Roraima e Deposito','Sumauma'
+];
+function limiarAlertaMeses(lojaNome){
+  const norm=s=>(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase().replace(/\s+/g,' ');
+  return LOJAS_ALERTA_14_MESES.some(n=>norm(n)===norm(lojaNome))?14:8;
+}
+function calcStatusContrato(fim,lojaNome){
   if(!fim)return{label:'Sem data',cor:'#9399b8',bg:'#f0f1f7',dias:null,meses:null};
+  const limiar=limiarAlertaMeses(lojaNome);
   const hoje=new Date();hoje.setHours(0,0,0,0);
   const dtFim=new Date(fim+'T00:00:00');
   const diffMs=dtFim-hoje;
   const dias=Math.ceil(diffMs/(1000*60*60*24));
   const meses=Math.floor(dias/30.44);
   const diasResto=Math.max(0,Math.round(dias-meses*30.44));
-  if(dias<0)return{label:'VENCIDO há '+Math.abs(dias)+' dia(s)',cor:'#fff',bg:'#d93b3b',dias,meses};
-  if(meses<8)return{label:`⚠️ Vence em ${meses}m ${diasResto}d`,cor:'#fff',bg:'#d93b3b',dias,meses};
-  if(meses<12)return{label:`Vence em ${meses}m ${diasResto}d`,cor:'#7a5c00',bg:'#fdf5d6',dias,meses};
-  return{label:`OK — ${meses}m restantes`,cor:'#0d6e4e',bg:'#e8f8f3',dias,meses};
+  if(dias<0)return{label:'VENCIDO há '+Math.abs(dias)+' dia(s)',cor:'#fff',bg:'#d93b3b',dias,meses,limiar};
+  if(meses<limiar)return{label:`⚠️ Vence em ${meses}m ${diasResto}d`,cor:'#fff',bg:'#d93b3b',dias,meses,limiar};
+  if(meses<limiar+4)return{label:`Vence em ${meses}m ${diasResto}d`,cor:'#7a5c00',bg:'#fdf5d6',dias,meses,limiar};
+  return{label:`OK — ${meses}m restantes`,cor:'#0d6e4e',bg:'#e8f8f3',dias,meses,limiar};
 }
 function calcPrazoContrato(ini,fim){
   if(!ini||!fim)return'—';
@@ -4962,7 +4974,7 @@ function _renderContratosImpl(){
   if(!lojas.length){wrap.innerHTML='<div class="empty"><div>Nenhuma loja</div></div>';return;}
   const rows=lojas.map(l=>{
     const ct=S.contratos.find(c=>c.loja_id===l.id)||{};
-    const st=calcStatusContrato(ct.fim_contrato);
+    const st=calcStatusContrato(ct.fim_contrato,l.nome);
     return`<tr id="ct-row-${l.id}">
       <td style="font-weight:600;position:sticky;left:0;background:#fff;border-right:2px solid #2d5be3">${l.nome}</td>
       <td style="text-align:center">${ct.metragem?parseFloat(ct.metragem).toLocaleString('pt-BR')+' m²':'—'}</td>
@@ -5039,8 +5051,8 @@ async function salvarContrato(){
 // ── Alerta em tela: contratos vencendo em até 8 meses ──
 function verificarAlertasContratos(){
   const criticos=S.contratos.filter(c=>{
-    const st=calcStatusContrato(c.fim_contrato);
-    return st.meses!==null&&st.meses<8;
+    const st=calcStatusContrato(c.fim_contrato,c.loja_nome);
+    return st.meses!==null&&st.meses<st.limiar;
   });
   if(criticos.length&&!sessionStorage.getItem('alertaContratosVisto')){
     const nomes=criticos.map(c=>c.loja_nome).slice(0,5).join(', ');
