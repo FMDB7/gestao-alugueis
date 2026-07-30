@@ -705,7 +705,7 @@ tbody tr:hover td{background:var(--bg)}
                       <option value="ZONA FRANCA">ZONA FRANCA</option>
                       <option value="MERCADO LOCAL">MERCADO LOCAL</option>
                     </select></div>
-                    <div style="display:flex;align-items:flex-end"><button class="btn btn-ghost" onclick="limparFiltrosFat('contratos')" style="color:#c0392b">✕ Limpar</button></div>
+                    <div style="display:flex;align-items:flex-end;gap:.4rem"><button class="btn btn-ghost" onclick="exportContratosPDF()">⬇ PDF</button><button class="btn btn-ghost" onclick="limparFiltrosFat('contratos')" style="color:#c0392b">✕ Limpar</button></div>
                   </div>
                 </div>
                 <div style="font-size:11.5px;color:var(--ink3);margin-bottom:.75rem">⚠️ Contratos a <b>8 meses ou menos</b> do vencimento aparecem com alerta vermelho. Clique em ✏️ para preencher metragem e datas de cada loja.</div>
@@ -4324,6 +4324,93 @@ function showFatTab(id,btn){
 }
 // Limpa os filtros da aba indicada (volta a exibir todos os grupos e lojas,
 // mantendo o ano corrente) e regenera a visualização automaticamente.
+// Relatório de contratos de aluguel, respeitando os filtros de Loja e Grupo da tela.
+// Ordena por urgência (vencidos e mais próximos do vencimento primeiro).
+function exportContratosPDF(){
+  const fLoja=document.getElementById('ct-floja')?.value||'';
+  const fGrupo=document.getElementById('ct-fgrupo')?.value||'';
+  const lojas=S.lojas.filter(l=>(!fLoja||l.nome===fLoja)&&(!fGrupo||getGrupoLoja(l.nome)===fGrupo));
+  if(!lojas.length){toast('⚠️ Nenhuma loja para os filtros');return;}
+
+  const linhas=lojas.map(l=>{
+    const ct=S.contratos.find(c=>c.loja_id===l.id)||{};
+    const st=calcStatusContrato(ct.fim_contrato);
+    return{loja:l.nome,grupo:getGrupoLoja(l.nome),ct,st};
+  }).sort((a,b)=>{
+    // sem data vai para o fim; entre os demais, menor prazo restante primeiro
+    if(a.st.dias===null)return 1; if(b.st.dias===null)return -1;
+    return a.st.dias-b.st.dias;
+  });
+
+  const titulo=fGrupo==='ZONA FRANCA'?'GRUPO ZONA FRANCA'
+    :(fGrupo==='MERCADO LOCAL'?'GRUPO MERCADO LOCAL':'GRUPO ZONA FRANCA E MERCADO LOCAL');
+
+  const criticos=linhas.filter(x=>x.st.meses!==null&&x.st.meses<8).length;
+  const semData=linhas.filter(x=>x.st.dias===null).length;
+
+  const rows=linhas.map((x,i)=>{
+    const c=x.ct,st=x.st;
+    const corTxt=st.dias===null?'#9399b8':(st.meses<8?'#a32d2d':(st.meses<12?'#7a5c00':'#0d6e4e'));
+    const bgLinha=st.dias!==null&&st.meses<8?'#fff5f5':(i%2===1?'#f8f9ff':'#fff');
+    return`<tr style="background-color:${bgLinha}">
+      <td style="font-weight:600">${x.loja}</td>
+      <td style="text-align:center;font-size:8px">${x.grupo}</td>
+      <td style="text-align:center">${c.metragem?parseFloat(c.metragem).toLocaleString('pt-BR')+' m²':'—'}</td>
+      <td style="text-align:center">${c.inicio_contrato?new Date(c.inicio_contrato+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
+      <td style="text-align:center">${c.fim_contrato?new Date(c.fim_contrato+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
+      <td style="text-align:center">${calcPrazoContrato(c.inicio_contrato,c.fim_contrato)}</td>
+      <td style="text-align:center;font-weight:700;color:${corTxt}">${st.label}</td>
+    </tr>`;
+  }).join('');
+
+  const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/><title>${titulo} — Contratos</title>
+  <style>
+    *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Arial,sans-serif;font-size:10px;color:#1a1a2e;padding:1cm}
+    .tip{background:#fffbe6;border:1px solid #f0c000;padding:.35rem .6rem;border-radius:4px;margin-bottom:.6rem;display:flex;justify-content:space-between;align-items:center;font-size:9px;color:#7a5c00}
+    .tip button{background:#2d5be3;color:#fff;border:none;padding:3px 10px;border-radius:3px;cursor:pointer;font-size:9px;font-weight:700}
+    .header{border-bottom:2px solid #2d5be3;padding-bottom:.5rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:flex-start}
+    .logo{font-size:14px;font-weight:700;color:#2d5be3}.sub{font-size:9px;color:#555}
+    .meta{font-size:9px;color:#888;text-align:right}
+    .badges{display:flex;gap:.35rem;margin-bottom:.6rem;flex-wrap:wrap}
+    .badge{padding:2px 8px;border-radius:20px;font-size:9px;font-weight:700}
+    .bb{background:#eef2fd;color:#2d5be3}.br{background:#fbe2e2;color:#a32d2d}.bg{background:#f0f1f7;color:#555}
+    .aviso{background:#fff4e0;border:1px solid #f0c97a;border-radius:6px;padding:.5rem .75rem;margin-bottom:.6rem;font-size:9px;color:#7a5c00}
+    table{width:100%;border-collapse:collapse}
+    th{padding:5px 6px;font-weight:700;font-size:8.5px;text-align:left;background:#1a3db8;color:#fff}
+    td{padding:4px 6px;border-bottom:1px solid #e4e7f4;font-size:9px}
+    .footer{margin-top:.75rem;font-size:8px;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:.3rem}
+    @page{margin:.7cm;size:A4 landscape}
+    @media print{.tip{display:none!important}}
+  </style></head><body>
+  <div class="tip">⚠️ Ativar <strong>Gráficos de plano de fundo</strong> para cores<button onclick="window.print()">🖨️ Salvar PDF</button></div>
+  <div class="header">
+    <div><div class="logo">🏢 ${titulo}</div><div class="sub">ALUGUÉIS — Contratos de Aluguel por Loja</div></div>
+    <div class="meta">Gerado em:<br>${new Date().toLocaleString('pt-BR')}</div>
+  </div>
+  <div class="badges">
+    <span class="badge bb">${linhas.length} loja${linhas.length>1?'s':''}</span>
+    ${criticos?`<span class="badge br">${criticos} contrato(s) a vencer em até 8 meses</span>`:''}
+    ${semData?`<span class="badge bg">${semData} sem data cadastrada</span>`:''}
+  </div>
+  ${criticos?`<div class="aviso">⚠️ <b>Atenção:</b> ${criticos} contrato(s) estão a 8 meses ou menos do vencimento (destacados em vermelho) e demandam ação de renegociação ou renovação.</div>`:''}
+  <table>
+    <thead><tr>
+      <th style="min-width:130px">LOJA</th>
+      <th style="text-align:center">GRUPO</th>
+      <th style="text-align:center">METRAGEM</th>
+      <th style="text-align:center">INÍCIO</th>
+      <th style="text-align:center">FIM</th>
+      <th style="text-align:center">PRAZO</th>
+      <th style="text-align:center;min-width:130px">STATUS VENCIMENTO</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+  <div class="footer">Ordenado por urgência de vencimento · ALUGUÉIS — TOP Internacional · gestao-alugueis-pi.vercel.app · ${new Date().toLocaleDateString('pt-BR')}</div>
+  </body></html>`;
+  const win=window.open('','_blank');win.document.write(html);win.document.close();
+}
+
 function limparFiltrosFat(aba){
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
   if(aba==='analise'){
