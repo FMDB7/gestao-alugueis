@@ -221,6 +221,9 @@ tbody tr:hover td{background:var(--bg)}
         <div class="nav-item nav-item-featured" onclick="goPage('faturamento',this)">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>% Aluguel/Faturamento
         </div>
+        <div class="nav-item nav-item-featured" onclick="goPage('contratos',this)">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg>Contratos
+        </div>
         <div class="nav-section">Operação</div>
         <div class="nav-item" onclick="goPage('lancamento',this)">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Lançamento
@@ -662,13 +665,11 @@ tbody tr:hover td{background:var(--bg)}
       </div>
 
       <div id="page-faturamento" class="page">
-        <div class="topbar"><div class="page-title">Faturamento & Contratos</div></div>
+        <div class="topbar"><div class="page-title">% Aluguel/Faturamento</div></div>
         <div class="content">
           <div class="tabs tabs-rel">
             <button class="tab active" id="fattab-analise" onclick="showFatTab('fat-analise',this)">Faturamento × Aluguel</button>
             <button class="tab" id="fattab-relatorio" onclick="showFatTab('fat-relatorio',this)">Relatório</button>
-            <button class="tab" id="fattab-contratos" onclick="showFatTab('fat-contratos',this)">Contratos</button>
-            <button class="tab" id="fattab-emails" onclick="showFatTab('fat-emails',this)">E-mails de Alerta</button>
           </div>
 
           <!-- ══ ABA 1: FATURAMENTO × ALUGUEL ══ -->
@@ -698,29 +699,7 @@ tbody tr:hover td{background:var(--bg)}
             </div>
           </div>
 
-          <!-- ══ ABA 2: CONTRATOS ══ -->
-          <div id="fat-contratos" style="display:none">
-            <div class="card">
-              <div class="card-body">
-                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem">
-                  <div style="font-weight:700;font-size:13px">📋 Contratos de Aluguel por Loja</div>
-                  <div class="filters" style="margin:0">
-                    <div class="fg"><label class="fl">Loja</label><select class="fc" id="ct-floja" onchange="renderContratos()"><option value="">Todas</option></select></div>
-                    <div class="fg"><label class="fl">Grupo</label><select class="fc" id="ct-fgrupo" onchange="renderContratos()">
-                      <option value="">Todos os grupos</option>
-                      <option value="ZONA FRANCA">ZONA FRANCA</option>
-                      <option value="MERCADO LOCAL">MERCADO LOCAL</option>
-                    </select></div>
-                    <div style="display:flex;align-items:flex-end;gap:.4rem"><button class="btn btn-ghost" onclick="exportContratosPDF()">⬇ PDF</button><button class="btn btn-ghost" onclick="limparFiltrosFat('contratos')" style="color:#c0392b">✕ Limpar</button></div>
-                  </div>
-                </div>
-                <div style="font-size:11.5px;color:var(--ink3);margin-bottom:.75rem">⚠️ Contratos a <b>8 meses ou menos</b> do vencimento aparecem com alerta vermelho (<b>14 meses</b> para Amazonas Shopping-JMS, Manauara Castanheira, Manauara Tucumã, Ponta Negra Shoping, Quiosque Via Norte, Quiosque Manauara, Quiosque Pátio Roraima e Sumaúma). Clique em ✏️ para preencher metragem e datas de cada loja.</div>
-                <div id="contratos-wrap"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- ══ ABA 3: RELATÓRIO ══ -->
+          <!-- ══ ABA 2: RELATÓRIO ══ -->
           <div id="fat-relatorio" style="display:none">
             <div class="card" style="margin-bottom:1rem">
               <div class="card-body">
@@ -742,8 +721,40 @@ tbody tr:hover td{background:var(--bg)}
             </div>
             <div id="fat-relatorio-wrap"><div class="empty"><div class="empty-icon">📈</div><div>Sem dados suficientes para o relatório</div></div></div>
           </div>
+        </div>
+      </div>
 
-          <!-- ══ ABA 4: E-MAILS DE ALERTA ══ -->
+      <div id="page-contratos" class="page">
+        <div class="topbar"><div class="page-title">Contratos</div></div>
+        <div class="content">
+          <div class="tabs tabs-rel">
+            <button class="tab active" id="contratostab-contratos" onclick="showContratosTab('fat-contratos',this)">Contratos</button>
+            <button class="tab" id="contratostab-emails" onclick="showContratosTab('fat-emails',this)">E-mails de Alerta</button>
+          </div>
+
+          <!-- ══ ABA 1: CONTRATOS ══ -->
+          <div id="fat-contratos">
+            <div class="card">
+              <div class="card-body">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem">
+                  <div style="font-weight:700;font-size:13px">📋 Contratos de Aluguel por Loja</div>
+                  <div class="filters" style="margin:0">
+                    <div class="fg"><label class="fl">Loja</label><select class="fc" id="ct-floja" onchange="renderContratos()"><option value="">Todas</option></select></div>
+                    <div class="fg"><label class="fl">Grupo</label><select class="fc" id="ct-fgrupo" onchange="renderContratos()">
+                      <option value="">Todos os grupos</option>
+                      <option value="ZONA FRANCA">ZONA FRANCA</option>
+                      <option value="MERCADO LOCAL">MERCADO LOCAL</option>
+                    </select></div>
+                    <div style="display:flex;align-items:flex-end;gap:.4rem"><button class="btn btn-ghost" onclick="exportContratosPDF()">⬇ PDF</button><button class="btn btn-ghost" onclick="limparFiltrosFat('contratos')" style="color:#c0392b">✕ Limpar</button></div>
+                  </div>
+                </div>
+                <div style="font-size:11.5px;color:var(--ink3);margin-bottom:.75rem">⚠️ Contratos a <b>8 meses ou menos</b> do vencimento aparecem com alerta vermelho (<b>14 meses</b> para Amazonas Shopping-JMS, Manauara Castanheira, Manauara Tucumã, Ponta Negra Shoping, Quiosque Via Norte, Quiosque Manauara, Quiosque Pátio Roraima e Sumaúma). Clique em ✏️ para preencher metragem e datas de cada loja.</div>
+                <div id="contratos-wrap"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ══ ABA 2: E-MAILS DE ALERTA ══ -->
           <div id="fat-emails" style="display:none">
             <div class="card" id="card-add-email-alerta" style="margin-bottom:1rem">
               <div class="card-body">
@@ -1515,7 +1526,7 @@ function toggleAdminFeatures(isAdmin){
 }
 
 function aplicarRestricaoPerfil(perfil){
-  const navMap={dashboard:'.nav-item[onclick*="dashboard"]',relatorio:'.nav-item[onclick*="relatorio"]',lancamento:'.nav-item[onclick*="lancamento"]',faturamento:'.nav-item[onclick*="faturamento"]',cadastros:'.nav-item[onclick*="cadastros"]'};
+  const navMap={dashboard:'.nav-item[onclick*="dashboard"]',relatorio:'.nav-item[onclick*="relatorio"]',lancamento:'.nav-item[onclick*="lancamento"]',faturamento:'.nav-item[onclick*="faturamento"]',contratos:'.nav-item[onclick*="contratos"]',cadastros:'.nav-item[onclick*="cadastros"]'};
   let primeiraPermitida=null;
   FUNCIONALIDADES_PERFIL.forEach(f=>{
     const nav=document.querySelector(navMap[f.id]);
@@ -1747,6 +1758,7 @@ function goPage(id,btn){
   if(id==='dashboard')renderDash();
   if(id==='cadastros')renderCads();
   if(id==='faturamento')initFatPage();
+  if(id==='contratos')initContratosPage();
   if(id==='relatorio'){
     // Aba padrão (Detalhado por Mês) já pré-carrega Ano 2026 + Zona Franca, com dados frescos do banco
     const ini=document.getElementById('rd-ano-ini');if(ini)ini.value='2026';
@@ -4174,6 +4186,14 @@ function refreshViewsLancamentos(){
   if(ativa==='page-faturamento'){
     const an=document.getElementById('fat-analise');
     if(an&&an.style.display!=='none')renderFatAnalise?.();
+    else{
+      const rel=document.getElementById('fat-relatorio');
+      if(rel&&rel.style.display!=='none')renderFatRelatorio?.();
+    }
+  }
+  if(ativa==='page-contratos'){
+    const ct=document.getElementById('fat-contratos');
+    if(ct&&ct.style.display!=='none')renderContratos?.();
   }
   }catch(ex){console.log('refreshViewsLancamentos:',ex.message);}
 }
@@ -4244,7 +4264,8 @@ const FUNCIONALIDADES_PERFIL=[
   {id:'dashboard',label:'Dashboard'},
   {id:'relatorio',label:'Relatório'},
   {id:'lancamento',label:'Lançamento'},
-  {id:'faturamento',label:'Faturamento'},
+  {id:'faturamento',label:'% Aluguel/Faturamento'},
+  {id:'contratos',label:'Contratos'},
   {id:'cadastros',label:'Cadastros'}
 ];
 
@@ -4282,7 +4303,6 @@ function initFatPage(){
   const dl=document.getElementById('ft-loja-list');
   if(dl)dl.innerHTML=lojasOrd.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">`).join('');
   fs('fta-loja',lojasOrd,'Todas');
-  fs('ct-floja',lojasOrd,'Todas');
   // Padrão de abertura: Grupo ZONA FRANCA + Ano 2026 em todas as abas,
   // com os dados já exibidos automaticamente (sem precisar clicar em Gerar).
   aplicarPadraoFat();
@@ -4291,7 +4311,14 @@ function initFatPage(){
     const permitidas=subAbasFatPermitidas();
     // Renderiza a sub-aba que o perfil realmente pode ver
     if(!permitidas||permitidas.includes('fat-analise'))renderFatAnalise();
-    if(permitidas&&permitidas.includes('fat-contratos'))renderContratos();
+  });
+}
+function initContratosPage(){
+  const lojasOrd=S.lojas.map(l=>l.nome).sort();
+  fs('ct-floja',lojasOrd,'Todas');
+  aplicarPadraoContratos();
+  loadFatData().then(()=>{
+    renderContratos();
     verificarAlertasContratos();
   });
 }
@@ -4309,20 +4336,18 @@ function bloquearSeVisualizador(){
   }
   return false;
 }
-// Perfis com acesso restrito a sub-abas específicas dentro de Faturamento:
+// Perfil com acesso restrito a uma sub-aba específica dentro de % Aluguel/Faturamento:
 //   faturamento (Usuário I) → apenas "Faturamento × Aluguel" (lança e edita)
-//   contratos   (Usuário II) → apenas "Contratos" (edita contratos por loja)
 // Os demais perfis enxergam todas as sub-abas (null = sem restrição).
 const SUBABAS_FAT_POR_PERFIL={
-  faturamento:['fat-analise'],
-  contratos:['fat-contratos']
+  faturamento:['fat-analise']
 };
 function subAbasFatPermitidas(){
   return SUBABAS_FAT_POR_PERFIL[currentUser?.perfil]||null;
 }
 function aplicarRestricaoSubAbasFat(){
   const permitidas=subAbasFatPermitidas();
-  [['fattab-analise','fat-analise'],['fattab-relatorio','fat-relatorio'],['fattab-contratos','fat-contratos'],['fattab-emails','fat-emails']]
+  [['fattab-analise','fat-analise'],['fattab-relatorio','fat-relatorio']]
     .forEach(([btnId,painelId])=>{
       const btn=document.getElementById(btnId);
       const liberada=!permitidas||permitidas.includes(painelId);
@@ -4348,7 +4373,11 @@ function showFatTab(id,btn){
   aplicarPadraoFat();
   if(id==='fat-analise')renderFatAnalise();
   else if(id==='fat-relatorio')renderFatRelatorio();
-  else if(id==='fat-contratos')renderContratos();
+}
+function showContratosTab(id,btn){
+  showTab(id,btn);
+  aplicarPadraoContratos();
+  if(id==='fat-contratos')renderContratos();
   else if(id==='fat-emails')renderEmailsAlerta();
 }
 // Limpa os filtros da aba indicada (volta a exibir todos os grupos e lojas,
@@ -4468,7 +4497,10 @@ function aplicarPadraoFat(){
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
   set('fta-grupo','ZONA FRANCA'); set('fta-ano','2026');   // Faturamento × Aluguel
   set('fr-grupo','ZONA FRANCA');  set('fr-ano','2026');    // Relatório
-  set('ct-fgrupo','ZONA FRANCA');                          // Contratos
+}
+function aplicarPadraoContratos(){
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+  set('ct-fgrupo','ZONA FRANCA');
 }
 
 // Mostra instantaneamente empresa, cidade/UF e último faturamento lançado ao selecionar a loja
