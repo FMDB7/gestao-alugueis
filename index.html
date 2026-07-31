@@ -219,7 +219,7 @@ tbody tr:hover td{background:var(--bg)}
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Relatório
         </div>
         <div class="nav-item nav-item-featured" onclick="goPage('faturamento',this)">
-          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Faturamento
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>% Aluguel/Faturamento
         </div>
         <div class="nav-section">Operação</div>
         <div class="nav-item" onclick="goPage('lancamento',this)">
@@ -633,6 +633,12 @@ tbody tr:hover td{background:var(--bg)}
                     <option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option>
                   </select></div>
                   <div class="fg"><label class="fl">Categoria</label><select class="fc" id="ra-cat" onchange="renderAnual()"><option value="">Todas</option></select></div>
+                  <div class="fg"><label class="fl">Mês</label><select class="fc" id="ra-mes" onchange="renderAnual()"><option value="">Todos</option>
+                    <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option><option value="MARÇO">Março</option>
+                    <option value="ABRIL">Abril</option><option value="MAIO">Maio</option><option value="JUNHO">Junho</option>
+                    <option value="JULHO">Julho</option><option value="AGOSTO">Agosto</option><option value="SETEMBRO">Setembro</option>
+                    <option value="OUTUBRO">Outubro</option><option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
+                  </select></div>
                   <div class="fg" style="min-width:150px">
                     <label class="fl">Grupo</label>
                     <select class="fc" id="ra-grupo" onchange="renderAnual()">
@@ -2985,12 +2991,13 @@ function renderAnual(){
   const lojas=[...raSelectedLojas];
   const ano=parseInt(document.getElementById('ra-ano').value);
   const cat=document.getElementById('ra-cat').value;
+  const mes=document.getElementById('ra-mes')?.value||'';
 
   const grupo=document.getElementById('ra-grupo')?.value||'';
   const d=S.lancamentos.filter(l=>
     (!emp||l.empresa_nome===emp)&&
     (!lojas.length||lojas.includes(l.loja_nome))&&
-    l.ano===ano&&(!cat||l.cat_nome===cat)&&
+    l.ano===ano&&(!cat||l.cat_nome===cat)&&(!mes||l.mes===mes)&&
     (!grupo||getGrupoLoja(l.loja_nome)===grupo)
   );
 
@@ -3036,7 +3043,7 @@ function renderAnual(){
     const tendTxt=tendencia==='alta'?'trajetória ascendente':(tendencia==='queda'?'trajetória de redução':'comportamento estável');
     insight={maiorAlta,maiorQueda,primeiro,ultimo,varAcumPct,mediaVar,tendencia,tendTxt,cat};
   }
-  anualState={d,lojasU,ano,cat,emp,lojas,totalGeral,mesTotais,mesesComDado,variacoes,insight,chartImg:null};
+  anualState={d,lojasU,ano,cat,mes,emp,lojas,totalGeral,mesTotais,mesesComDado,variacoes,insight,chartImg:null};
 
   let insightHTML='';
   if(insight){
@@ -3182,12 +3189,13 @@ function renderAnual(){
 }
 
 function exportAnualPDF(){
-  const {d,lojasU,ano,cat,emp,totalGeral,mesTotais,insight,chartImg}=anualState;
+  const {d,lojasU,ano,cat,mes,emp,totalGeral,mesTotais,insight,chartImg}=anualState;
   if(!lojasU||!lojasU.length){toast('⚠️ Gere o relatório primeiro');return;}
 
   const filtros=[];
   if(emp)filtros.push('Empresa: '+emp);
   if(cat)filtros.push('Categoria: '+cat);
+  if(mes)filtros.push('Mês: '+mes.charAt(0)+mes.slice(1).toLowerCase());
   filtros.push('Ano: '+ano);
 
   // Bloco de insight executivo + gráfico (fiel ao exibido na tela)
@@ -3336,7 +3344,7 @@ function limparFiltrosDet(){
 }
 
 function limparFiltrosAnual(){
-  ['ra-emp','ra-ano','ra-cat','ra-grupo'].forEach(id=>{
+  ['ra-emp','ra-ano','ra-cat','ra-mes','ra-grupo'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.value='';
   });
