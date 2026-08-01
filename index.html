@@ -221,6 +221,9 @@ tbody tr:hover td{background:var(--bg)}
         <div class="nav-item nav-item-featured" onclick="goPage('faturamento',this)">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>Aluguel/Faturamento
         </div>
+        <div class="nav-item" id="nav-lancar-fat" onclick="irLancarFaturamento(this)" style="color:#5b8dff;font-weight:600">
+          <svg fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Lançar Faturamento Mensal
+        </div>
         <div class="nav-item nav-item-featured" onclick="goPage('contratos',this)">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg>Contratos
         </div>
@@ -1540,6 +1543,13 @@ function aplicarRestricaoPerfil(perfil){
     if(nav)nav.style.display=pode?'flex':'none';
     if(pode&&!primeiraPermitida)primeiraPermitida=f.id;
   });
+  // Atalho "Lançar Faturamento Mensal": some se o perfil não acessa Faturamento
+  // ou se é um perfil somente-leitura (Visualizador não pode lançar, só consultar)
+  const navLancarFat=document.getElementById('nav-lancar-fat');
+  if(navLancarFat){
+    const podeVerFat=perfilPodeAcessar(perfil,'faturamento');
+    navLancarFat.style.display=(podeVerFat&&perfil!=='visualizador')?'flex':'none';
+  }
   // Se a página atual não é mais permitida para este perfil, redireciona para a primeira área liberada
   const activePage=document.querySelector('.page.active');
   const idAtual=activePage?activePage.id.replace('page-',''):null;
@@ -4522,6 +4532,15 @@ function onFtLojaChange(){
 }
 
 // ── Faturamento mensal ──
+// Atalho do menu principal: navega até % Aluguel/Faturamento e já abre o modal de lançamento
+function irLancarFaturamento(){
+  const navPrincipal=document.querySelector('.nav-item[onclick*="goPage(\'faturamento\'"]');
+  goPage('faturamento',navPrincipal);
+  // Só abre o modal se a navegação realmente ocorreu (perfil tem acesso e não foi bloqueado)
+  if(document.getElementById('page-faturamento')?.classList.contains('active')){
+    setTimeout(()=>abrirModalFat(),50);
+  }
+}
 function abrirModalFat(){
   if(bloquearSeVisualizador())return;
   const modal=document.getElementById('modal-fat');
