@@ -219,7 +219,7 @@ tbody tr:hover td{background:var(--bg)}
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Aluguéis Relatório
         </div>
         <div class="nav-item nav-item-featured" onclick="goPage('faturamento',this)">
-          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>% Aluguel/Faturamento
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>% Aluguel/Faturamento
         </div>
         <div class="nav-item nav-item-featured" onclick="goPage('contratos',this)">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg>Contratos
@@ -710,6 +710,12 @@ tbody tr:hover td{background:var(--bg)}
                       <option value="">Todos os grupos</option>
                       <option value="ZONA FRANCA">ZONA FRANCA</option>
                       <option value="MERCADO LOCAL">MERCADO LOCAL</option>
+                    </select></div>
+                    <div class="fg"><label class="fl">Mês</label><select class="fc" id="fr-mes" onchange="renderFatRelatorio()"><option value="">Todos</option>
+                      <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option><option value="MARÇO">Março</option>
+                      <option value="ABRIL">Abril</option><option value="MAIO">Maio</option><option value="JUNHO">Junho</option>
+                      <option value="JULHO">Julho</option><option value="AGOSTO">Agosto</option><option value="SETEMBRO">Setembro</option>
+                      <option value="OUTUBRO">Outubro</option><option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
                     </select></div>
                     <div class="fg"><label class="fl">Ano</label><select class="fc" id="fr-ano" onchange="renderFatRelatorio()">
                       <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
@@ -4481,7 +4487,7 @@ function limparFiltrosFat(aba){
     set('fta-loja','');set('fta-grupo','');set('fta-ano','2026');
     renderFatAnalise();
   }else if(aba==='relatorio'){
-    set('fr-grupo','');set('fr-ano','2026');
+    set('fr-grupo','');set('fr-mes','');set('fr-ano','2026');
     renderFatRelatorio();
   }else if(aba==='contratos'){
     set('ct-floja','');set('ct-fgrupo','');
@@ -4806,8 +4812,8 @@ function exportFatAnalisePDF(){
 
 // ── Relatório executivo Faturamento × Aluguel ──
 let frState={};
-function calcRankingFat(grupo,ano){
-  const fats=S.faturamentos.filter(f=>f.ano===ano&&(!grupo||getGrupoLoja(f.loja_nome)===grupo));
+function calcRankingFat(grupo,ano,mes){
+  const fats=S.faturamentos.filter(f=>f.ano===ano&&(!grupo||getGrupoLoja(f.loja_nome)===grupo)&&(!mes||f.mes===mes));
   const lojasU=[...new Set(fats.map(f=>f.loja_nome))];
   const ranking=lojasU.map(loja=>{
     const fatsLoja=fats.filter(f=>f.loja_nome===loja);
@@ -4825,8 +4831,9 @@ function _renderFatRelatorioImpl(){
   const wrap=document.getElementById('fat-relatorio-wrap');
   if(!wrap)return;
   const grupo=document.getElementById('fr-grupo')?.value||'';
+  const mes=document.getElementById('fr-mes')?.value||'';
   const ano=parseInt(document.getElementById('fr-ano')?.value||'2026');
-  const ranking=calcRankingFat(grupo,ano);
+  const ranking=calcRankingFat(grupo,ano,mes);
   document.getElementById('btn-fr-pdf').style.display=ranking.length?'inline-flex':'none';
   if(!ranking.length){wrap.innerHTML='<div class="empty"><div class="empty-icon">📈</div><div>Sem dados suficientes para o relatório (lance faturamento e aluguel das lojas primeiro)</div></div>';return;}
 
@@ -4839,7 +4846,7 @@ function _renderFatRelatorioImpl(){
   const piorLoja=ranking[0];
   const melhorLoja=ranking[ranking.length-1];
 
-  frState={ranking,grupo,ano,totFatGeral,totAlGeral,pctMedio,alertas,piorLoja,melhorLoja,chartImg:null};
+  frState={ranking,grupo,ano,mes,totFatGeral,totAlGeral,pctMedio,alertas,piorLoja,melhorLoja,chartImg:null};
 
   const top10=ranking.slice(0,10);
   const maxPct=Math.max(...top10.map(r=>r.pct),1);
@@ -4905,7 +4912,7 @@ function _renderFatRelatorioImpl(){
 }
 
 function exportFatRelatorioPDF(){
-  const{ranking,grupo,ano,totFatGeral,totAlGeral,pctMedio,alertas,piorLoja,melhorLoja}=frState;
+  const{ranking,grupo,ano,mes,totFatGeral,totAlGeral,pctMedio,alertas,piorLoja,melhorLoja}=frState;
   if(!ranking||!ranking.length){toast('⚠️ Gere o relatório primeiro');return;}
   const corPct=pct=>pct>15?'#d93b3b':(pct>10?'#c97d0a':'#0d9e6e');
   const statusPct=pct=>pct>15?'Alerta':(pct>10?'Atenção':'Saudável');
@@ -4943,7 +4950,7 @@ function exportFatRelatorioPDF(){
   </style></head><body>
   <div class="tip">⚠️ Ativar <strong>Gráficos de plano de fundo</strong> para cores<button onclick="window.print()">🖨️ Salvar PDF</button></div>
   <div class="header">
-    <div><div class="logo">🏢 ALUGUÉIS — TOP Internacional</div><div class="sub">Relatório Executivo • Faturamento × Aluguel • ${grupo||'Todos os grupos'} • ${ano}</div></div>
+    <div><div class="logo">🏢 ALUGUÉIS — TOP Internacional</div><div class="sub">Relatório Executivo • Faturamento × Aluguel • ${grupo||'Todos os grupos'}${mes?' • '+mes.charAt(0)+mes.slice(1).toLowerCase():''} • ${ano}</div></div>
     <div class="meta">Gerado em:<br>${new Date().toLocaleString('pt-BR')}</div>
   </div>
   <div class="badges">
