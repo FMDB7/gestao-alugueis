@@ -665,7 +665,10 @@ tbody tr:hover td{background:var(--bg)}
       </div>
 
       <div id="page-faturamento" class="page">
-        <div class="topbar"><div class="page-title">% Aluguel/Faturamento</div></div>
+        <div class="topbar">
+          <div class="page-title">% Aluguel/Faturamento</div>
+          <button class="btn btn-primary" id="btn-lancar-fat" onclick="abrirModalFat()">+ Lançar Faturamento Mensal</button>
+        </div>
         <div class="content">
           <div class="tabs tabs-rel">
             <button class="tab active" id="fattab-analise" onclick="showFatTab('fat-analise',this)">Faturamento × Aluguel</button>
@@ -674,9 +677,6 @@ tbody tr:hover td{background:var(--bg)}
 
           <!-- ══ ABA 1: FATURAMENTO × ALUGUEL ══ -->
           <div id="fat-analise">
-            <div style="margin-bottom:1rem">
-              <button class="btn btn-primary" id="btn-lancar-fat" onclick="abrirModalFat()">+ Lançar Faturamento Mensal</button>
-            </div>
             <div class="card">
               <div class="card-body">
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem">
