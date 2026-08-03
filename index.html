@@ -3414,6 +3414,14 @@ function pctBadgePill(pct,decimals=1){
   const seta=up?'▲':'▼';
   return `<span style="display:inline-block;background:${bg};color:${cor};font-weight:700;font-size:9.5px;padding:1px 6px;border-radius:10px;white-space:nowrap;margin-left:4px">${pct>=0?'+':''}${pct.toFixed(decimals)}% ${seta}</span>`;
 }
+// Mesma pílula de variação, em tamanho reduzido para caber nas tabelas densas do PDF impresso.
+function pctBadgePillPDF(pct,decimals=1){
+  const up=pct>=0;
+  const cor=up?'#0d6e4e':'#a32d2d';
+  const bg=up?'#e3f7ee':'#fbe4e4';
+  const seta=up?'▲':'▼';
+  return `<span style="display:inline-block;background:${bg};color:${cor};font-weight:700;font-size:7px;padding:1px 4px;border-radius:8px;white-space:nowrap;margin-left:3px">${pct>=0?'+':''}${pct.toFixed(decimals)}%${seta}</span>`;
+}
 
 
 // ── RELATÓRIO DETALHADO ───────────────────────────────────
@@ -3615,6 +3623,7 @@ function exportDetalhadoPDF(){
     const dL=d.filter(x=>x.loja_nome===loja);
     const lojaTot=dL.reduce((s,x)=>s+parseFloat(x.valor),0);
     const lojaCat={};cats.forEach(c=>{lojaCat[c]=0;});
+    let rTotAnt=null; // total do mês anterior desta loja, para a variação (▲/▼)
     anos.forEach(ano=>{
       const dA=dL.filter(x=>x.ano===ano);if(!dA.length)return;
       const anoCat={};cats.forEach(c=>{anoCat[c]=0;});
@@ -3625,13 +3634,15 @@ function exportDetalhadoPDF(){
         const bg=rc%2===0?'#ffffff':'#f8f9ff';
         const rC={};
         cats.forEach(c=>{const v=dM.filter(x=>x.cat_nome===c).reduce((s,x)=>s+parseFloat(x.valor),0);rC[c]=v;anoCat[c]=(anoCat[c]||0)+v;lojaCat[c]=(lojaCat[c]||0)+v;grandCat[c]=(grandCat[c]||0)+v;});
+        const variacaoMes=rTotAnt!==null&&rTotAnt>0?((rTot-rTotAnt)/rTotAnt*100):null;
+        rTotAnt=rTot;
         rows+=`<tr style="background-color:${bg}">
           <td style="font-weight:700;font-size:8px;color:#1a3db8;border-right:3px solid #2d5be3">${loja}</td>
           <td style="font-weight:600;color:#2d5be3;font-size:8px">${ano}</td>
           <td style="font-size:8px">${mes.slice(0,1)+mes.slice(1).toLowerCase()}</td>
           ${cats.map(c=>{const v=rC[c];const p=rTot>0?(v/rTot*100):0;return`<td style="text-align:right;font-size:8px">${v>0?fBR(v):'—'}</td><td style="text-align:center;font-size:8px;color:${v>0?'#2d5be3':'#ccc'}">${v>0?p.toFixed(1)+'%':'—'}</td>`;}).join('')}
           <td style="text-align:right;font-weight:700;color:#0d9e6e;font-size:8px">${fBR(rTot)}</td>
-          <td style="text-align:center;font-size:8px;color:#0d9e6e;font-weight:600">${totalGeral>0?(rTot/totalGeral*100).toFixed(1):'0'}%</td>
+          <td style="text-align:center;font-size:8px;color:#0d9e6e;font-weight:600;white-space:nowrap">${totalGeral>0?(rTot/totalGeral*100).toFixed(1):'0'}%${variacaoMes!==null?pctBadgePillPDF(variacaoMes):''}</td>
         </tr>`;
         rc++;
       });
@@ -3725,6 +3736,7 @@ function exportDetalhadoPDF(){
     <span class="badge ba">${d.length} lançamentos</span>
     <span class="badge bp">${cats.length} categorias</span>
   </div>
+  <div style="font-size:8px;color:#888;margin-bottom:.5rem">▲/▼ = variação do total do mês vs. mês anterior da mesma loja</div>
   <table>
     ${thead}
     <tbody>
