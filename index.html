@@ -289,6 +289,7 @@ tbody tr:hover td{background:var(--bg)}
           </div>
         </div>
         <div class="content">
+          <div id="d-pct-aluguel-fat"></div>
           <div class="kpi-grid" id="d-kpis"></div>
           <div class="charts-grid" style="margin-bottom:1rem">
             <div class="card" style="grid-column:1/-1;margin-bottom:0">
@@ -2153,12 +2154,80 @@ async function delLH(id){
 
 let CH={};
 function dC(id){if(CH[id]){CH[id].destroy();delete CH[id];}}
+// Card executivo do Dashboard: % Aluguel sobre Faturamento, com classificação
+// Saudável/Atenção/Alerta e um medidor visual (gauge) para leitura rápida pela diretoria.
+function renderCardPctAluguelFat(a,m,e,lf,gf,totAluguel,qtdLancamentos){
+  const el=document.getElementById('d-pct-aluguel-fat');
+  if(!el)return;
+  const empLojaMap={};S.lojas.forEach(l=>{empLojaMap[l.nome]=l.empresa_nome;});
+  const fats=(S.faturamentos||[]).filter(f=>
+    (!a||String(f.ano)===a)&&(!m||f.mes===m)&&
+    (!e||empLojaMap[f.loja_nome]===e)&&(!lf||f.loja_nome===lf)&&
+    (!gf||getGrupoLoja(f.loja_nome)===gf));
+  const totFaturamento=fats.reduce((s,f)=>s+f.valor,0);
+
+  if(totFaturamento<=0){
+    el.innerHTML=`<div class="card" style="margin-bottom:1rem"><div class="card-body" style="padding:1rem 1.25rem;display:flex;align-items:center;gap:.6rem;color:var(--ink3);font-size:12.5px">
+      <span style="font-size:16px">📐</span> Sem faturamento lançado para os filtros atuais — cadastre em <b>Aluguel/Faturamento</b> para ver o indicador aqui.
+    </div></div>`;
+    return;
+  }
+
+  const pct=totAluguel/totFaturamento*100;
+  const cor=pct>15?'#d93b3b':(pct>10?'#c97d0a':'#0d9e6e');
+  const bg=pct>15?'#fbe2e2':(pct>10?'#fdf5d6':'#e8f8f3');
+  const status=pct>15?'Alerta':(pct>10?'Atenção':'Saudável');
+  const statusIcon=pct>15?'🔴':(pct>10?'🟡':'🟢');
+  const msg=pct>15
+    ?'Custo de ocupação elevado — priorizar renegociação de contratos'
+    :(pct>10?'Dentro do limite, mas requer acompanhamento':'Custo de ocupação sob controle');
+  const gaugePos=Math.min(100,(pct/20)*100); // escala visual de 0% a 20%+
+
+  el.innerHTML=`
+  <div class="card" style="margin-bottom:1rem;border-left:4px solid ${cor}">
+    <div class="card-body" style="padding:1.1rem 1.4rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem">
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <span style="font-size:17px">📐</span>
+          <span style="font-weight:700;font-size:14px;color:var(--ink)">% Aluguel sobre Faturamento</span>
+        </div>
+        <span style="background:${bg};color:${cor};padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap">${statusIcon} ${status}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:1.5rem;align-items:end;margin-bottom:1rem">
+        <div>
+          <div style="font-size:10.5px;color:var(--ink3);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.2rem">Faturamento Total</div>
+          <div style="font-size:21px;font-weight:700;color:var(--ink)">${fBR(totFaturamento)}</div>
+        </div>
+        <div>
+          <div style="font-size:10.5px;color:var(--ink3);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.2rem">Aluguel Total</div>
+          <div style="font-size:21px;font-weight:700;color:var(--ink)">${fBR(totAluguel)}</div>
+        </div>
+        <div>
+          <div style="font-size:10.5px;color:var(--ink3);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.2rem">% Aluguel / Faturamento</div>
+          <div style="display:flex;align-items:baseline;gap:.5rem">
+            <span style="font-size:34px;font-weight:800;color:${cor};line-height:1">${pct.toFixed(1)}%</span>
+            <span style="font-size:11.5px;color:var(--ink3)">${msg}</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div style="position:relative;height:9px;border-radius:5px;background:linear-gradient(to right,#0d9e6e 0%,#0d9e6e 50%,#c97d0a 50%,#c97d0a 75%,#d93b3b 75%,#d93b3b 100%)">
+          <div style="position:absolute;top:-4px;left:calc(${gaugePos}% - 2px);width:4px;height:17px;background:#1a1a2e;border-radius:2px;box-shadow:0 0 0 2px #fff"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--ink3);margin-top:4px">
+          <span>0%</span><span>10% · limite saudável</span><span>15% · limite atenção</span><span>20%+</span>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
 function renderDash(){
   const a=document.getElementById('d-ano').value,m=document.getElementById('d-mes').value,e=document.getElementById('d-emp').value;
   const lf=document.getElementById('d-loja').value;
   const gf=document.getElementById('d-grupo')?.value||'';
   const d=S.lancamentos.filter(l=>(!a||String(l.ano)===a)&&(!m||l.mes===m)&&(!e||l.empresa_nome===e)&&(!lf||l.loja_nome===lf)&&(!gf||getGrupoLoja(l.loja_nome)===gf));
   const tot=d.reduce((s,l)=>s+parseFloat(l.valor),0);
+  renderCardPctAluguelFat(a,m,e,lf,gf,tot,d.length);
   const t25=d.filter(l=>l.ano===2025).reduce((s,l)=>s+parseFloat(l.valor),0);
   const t26=d.filter(l=>l.ano===2026).reduce((s,l)=>s+parseFloat(l.valor),0);
   const nL=new Set(d.map(l=>l.loja_id)).size;
