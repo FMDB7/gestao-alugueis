@@ -690,6 +690,12 @@ tbody tr:hover td{background:var(--bg)}
                       <option value="ZONA FRANCA">ZONA FRANCA</option>
                       <option value="MERCADO LOCAL">MERCADO LOCAL</option>
                     </select></div>
+                    <div class="fg"><label class="fl">Mês</label><select class="fc" id="fta-mes" onchange="renderFatAnalise()"><option value="">Todos</option>
+                      <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option><option value="MARÇO">Março</option>
+                      <option value="ABRIL">Abril</option><option value="MAIO">Maio</option><option value="JUNHO">Junho</option>
+                      <option value="JULHO">Julho</option><option value="AGOSTO">Agosto</option><option value="SETEMBRO">Setembro</option>
+                      <option value="OUTUBRO">Outubro</option><option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
+                    </select></div>
                     <div class="fg"><label class="fl">Ano</label><select class="fc" id="fta-ano" onchange="renderFatAnalise()">
                       <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
                     </select></div>
@@ -4520,7 +4526,7 @@ function exportContratosPDF(){
 function limparFiltrosFat(aba){
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
   if(aba==='analise'){
-    set('fta-loja','');set('fta-grupo','');set('fta-ano','2026');
+    set('fta-loja','');set('fta-grupo','');set('fta-mes','');set('fta-ano','2026');
     renderFatAnalise();
   }else if(aba==='relatorio'){
     set('fr-grupo','');set('fr-mes','');set('fr-ano','2026');
@@ -4664,10 +4670,12 @@ function _renderFatAnaliseImpl(){
   if(!wrap)return;
   const fLoja=document.getElementById('fta-loja')?.value||'';
   const fGrupo=document.getElementById('fta-grupo')?.value||'';
+  const fMes=document.getElementById('fta-mes')?.value||'';
   const fAno=parseInt(document.getElementById('fta-ano')?.value||'2026');
   let fats=S.faturamentos.filter(f=>f.ano===fAno
     &&(!fLoja||f.loja_nome===fLoja)
-    &&(!fGrupo||getGrupoLoja(f.loja_nome)===fGrupo));
+    &&(!fGrupo||getGrupoLoja(f.loja_nome)===fGrupo)
+    &&(!fMes||f.mes===fMes));
   if(!fats.length){wrap.innerHTML='<div class="empty"><div class="empty-icon">📊</div><div>Nenhum faturamento lançado para os filtros</div></div>';document.getElementById('btn-fta-pdf').style.display='none';return;}
   fats=fats.sort((a,b)=>a.loja_nome.localeCompare(b.loja_nome)||a.mes_num-b.mes_num);
 
@@ -4731,7 +4739,7 @@ function _renderFatAnaliseImpl(){
   }).join('');
 
   const pctGeral=totFatGeral>0?(totAlGeral/totFatGeral*100):0;
-  fatAnaliseState={fats,lojasU,fAno,fGrupo,fLoja,totFatGeral,totAlGeral,pctGeral,linhas};
+  fatAnaliseState={fats,lojasU,fAno,fGrupo,fMes,fLoja,totFatGeral,totAlGeral,pctGeral,linhas};
   document.getElementById('btn-fta-pdf').style.display='inline-flex';
   const geralBg='#0d9e6e';
   const totalGeralRow=`<tr>
@@ -4764,7 +4772,7 @@ function _renderFatAnaliseImpl(){
 }
 
 function exportFatAnalisePDF(){
-  const{fats,lojasU,fAno,fGrupo,fLoja,totFatGeral,totAlGeral,pctGeral,linhas}=fatAnaliseState;
+  const{fats,lojasU,fAno,fGrupo,fMes,fLoja,totFatGeral,totAlGeral,pctGeral,linhas}=fatAnaliseState;
   if(!fats||!fats.length){toast('⚠️ Gere os dados primeiro');return;}
   const corPct=pct=>pct>15?'#d93b3b':(pct>10?'#c97d0a':'#0d9e6e');
   const statusPct=pct=>pct>15?'Alerta':(pct>10?'Atenção':'Saudável');
@@ -4773,6 +4781,7 @@ function exportFatAnalisePDF(){
   const filtros=[];
   if(fLoja)filtros.push('Loja: '+fLoja);
   if(fGrupo)filtros.push('Grupo: '+fGrupo);
+  if(fMes)filtros.push('Mês: '+fMes.charAt(0)+fMes.slice(1).toLowerCase());
   filtros.push('Ano: '+fAno);
 
   let rows='';
