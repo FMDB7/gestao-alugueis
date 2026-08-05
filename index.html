@@ -995,6 +995,7 @@ tbody tr:hover td{background:var(--bg)}
                   <div class="fg"><label class="fl">Empresa *</label><select class="fc" id="nl-emp"><option value="">Selecione...</option></select></div>
                   <div class="fg"><label class="fl">Cidade *</label><input type="text" class="fc" id="nl-cidade" placeholder="Ex: MANAUS"/></div>
                   <div class="fg"><label class="fl">UF *</label><input type="text" class="fc" id="nl-uf" maxlength="2" placeholder="AM"/></div>
+                  <div class="fg"><label class="fl">Grupo *</label><select class="fc" id="nl-grupo"><option value="">Selecione...</option><option value="ZONA FRANCA">ZONA FRANCA</option><option value="MERCADO LOCAL">MERCADO LOCAL</option></select></div>
                 </div>
                 <button class="btn btn-primary" onclick="addLoja()">Adicionar loja</button>
               </div>
@@ -1138,6 +1139,11 @@ const GRUPOS_LOJAS = {
 function getGrupoLoja(nomeLoja){
   if(!nomeLoja) return 'MERCADO LOCAL';
   const nome = nomeLoja.trim();
+  // Fonte de verdade: campo "Grupo" cadastrado na própria loja
+  const loja = S.lojas?.find(l=>l.nome.trim()===nome);
+  if(loja?.grupo) return loja.grupo;
+  // Reserva de segurança: mapeamento antigo, para o raro caso de a loja
+  // ainda não ter sido carregada em S.lojas no momento da chamada
   for(const [grupo,lojas] of Object.entries(GRUPOS_LOJAS)){
     if(lojas.some(l=>l.trim()===nome)) return grupo;
   }
@@ -2517,12 +2523,13 @@ function renderCads(){
   const el=document.getElementById('list-emp');
   if(el&&S.empresas.length)el.innerHTML=`<table><thead><tr><th>#</th><th>Empresa</th><th></th></tr></thead><tbody>${S.empresas.sort((a,b)=>a.nome.localeCompare(b.nome)).map((e,i)=>`<tr><td style="color:var(--ink3)">${i+1}</td><td><strong>${e.nome}</strong></td><td><button class="btn btn-danger" onclick="delEmp('${e.id}')">Remover</button></td></tr>`).join('')}</tbody></table>`;
   const el2=document.getElementById('list-loja');
-  if(el2&&S.lojas.length)el2.innerHTML=`<div style="overflow-x:auto"><table><thead><tr><th>Loja</th><th>Empresa</th><th>Cidade</th><th>UF</th><th style="min-width:150px;text-align:center">Ações</th></tr></thead><tbody>${S.lojas.sort((a,b)=>a.nome.localeCompare(b.nome)).map(l=>`
+  if(el2&&S.lojas.length)el2.innerHTML=`<div style="overflow-x:auto"><table><thead><tr><th>Loja</th><th>Empresa</th><th>Cidade</th><th>UF</th><th>Grupo</th><th style="min-width:150px;text-align:center">Ações</th></tr></thead><tbody>${S.lojas.sort((a,b)=>a.nome.localeCompare(b.nome)).map(l=>`
   <tr id="loja-row-${l.id}">
     <td><strong id="loja-nome-${l.id}">${l.nome}</strong></td>
     <td style="font-size:12px">${l.empresa_nome}</td>
     <td>${l.cidade||'—'}</td>
     <td><span class="badge bb">${l.uf||'—'}</span></td>
+    <td><span class="badge" style="background:${l.grupo==='ZONA FRANCA'?'#eef2fd':'#fdf5e6'};color:${l.grupo==='ZONA FRANCA'?'#2d5be3':'#c97d0a'}">${l.grupo||'—'}</span></td>
     <td style="text-align:center">
       <div style="display:flex;gap:4px;justify-content:center">
         <button class="btn btn-ghost btn-sm" onclick="editarLoja('${l.id}')">✏️ Editar</button>
@@ -2531,14 +2538,18 @@ function renderCads(){
     </td>
   </tr>
   <tr id="loja-edit-${l.id}" style="display:none;background:var(--blue-bg)">
-    <td colspan="5" style="padding:.6rem .875rem">
-      <div style="display:grid;grid-template-columns:1.5fr 1.5fr 1fr .7fr auto auto;gap:.5rem;align-items:center">
+    <td colspan="6" style="padding:.6rem .875rem">
+      <div style="display:grid;grid-template-columns:1.3fr 1.3fr .9fr .6fr 1.1fr auto auto;gap:.5rem;align-items:center">
         <input type="text" id="loja-input-nome-${l.id}" value="${l.nome.replace(/"/g,'&quot;')}" class="fc" placeholder="Nome"/>
         <select id="loja-input-emp-${l.id}" class="fc">
           ${S.empresas.map(e=>`<option value="${e.id}" ${e.id===l.empresa_id?'selected':''}>${e.nome}</option>`).join('')}
         </select>
         <input type="text" id="loja-input-cidade-${l.id}" value="${(l.cidade||'').replace(/"/g,'&quot;')}" class="fc" placeholder="Cidade"/>
         <input type="text" id="loja-input-uf-${l.id}" value="${(l.uf||'').replace(/"/g,'&quot;')}" maxlength="2" class="fc" placeholder="UF" style="text-transform:uppercase"/>
+        <select id="loja-input-grupo-${l.id}" class="fc">
+          <option value="ZONA FRANCA" ${l.grupo==='ZONA FRANCA'?'selected':''}>ZONA FRANCA</option>
+          <option value="MERCADO LOCAL" ${l.grupo==='MERCADO LOCAL'?'selected':''}>MERCADO LOCAL</option>
+        </select>
         <button class="btn btn-success btn-sm" onclick="salvarLoja('${l.id}')">✔ Salvar</button>
         <button class="btn btn-ghost btn-sm" onclick="cancelarEditLoja('${l.id}')">Cancelar</button>
       </div>
@@ -2653,7 +2664,7 @@ function exportLojasPDF(grupo){
   const win=window.open('','_blank');win.document.write(html);win.document.close();
 }
 
-async function addLoja(){const n=document.getElementById('nl-nome').value.trim(),en=document.getElementById('nl-emp').value,c=document.getElementById('nl-cidade').value.trim().toUpperCase(),u=document.getElementById('nl-uf').value.trim().toUpperCase();if(!n||!en||!c||!u){toast('⚠️ Preencha todos os campos');return;}const e=S.empresas.find(x=>x.nome===en);if(!e)return;try{await db('lojas',{method:'POST',body:JSON.stringify({nome:n,empresa_id:e.id,cidade:c,uf:u})});document.getElementById('nl-nome').value='';document.getElementById('nl-cidade').value='';document.getElementById('nl-uf').value='';toast('✅ Loja adicionada!');await loadData();renderCads();}catch(ex){toast('❌ '+ex.message);}}
+async function addLoja(){const n=document.getElementById('nl-nome').value.trim(),en=document.getElementById('nl-emp').value,c=document.getElementById('nl-cidade').value.trim().toUpperCase(),u=document.getElementById('nl-uf').value.trim().toUpperCase(),g=document.getElementById('nl-grupo').value;if(!n||!en||!c||!u||!g){toast('⚠️ Preencha todos os campos, incluindo o Grupo');return;}const e=S.empresas.find(x=>x.nome===en);if(!e)return;try{await db('lojas',{method:'POST',body:JSON.stringify({nome:n,empresa_id:e.id,cidade:c,uf:u,grupo:g})});document.getElementById('nl-nome').value='';document.getElementById('nl-cidade').value='';document.getElementById('nl-uf').value='';document.getElementById('nl-grupo').value='';toast('✅ Loja adicionada!');await loadData();renderCads();}catch(ex){toast('❌ '+ex.message);}}
 async function delLoja(id){
   const qtd=S.lancamentos.filter(l=>l.loja_id===id).length;
   const msg=qtd>0
@@ -2680,9 +2691,10 @@ async function salvarLoja(id){
   const empresa_id=document.getElementById('loja-input-emp-'+id).value;
   const cidade=document.getElementById('loja-input-cidade-'+id).value.trim().toUpperCase();
   const uf=document.getElementById('loja-input-uf-'+id).value.trim().toUpperCase();
-  if(!nome||!empresa_id||!cidade||!uf){toast('⚠️ Preencha todos os campos');return;}
+  const grupo=document.getElementById('loja-input-grupo-'+id).value;
+  if(!nome||!empresa_id||!cidade||!uf||!grupo){toast('⚠️ Preencha todos os campos');return;}
   try{
-    await db(`lojas?id=eq.${id}`,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({nome,empresa_id,cidade,uf})});
+    await db(`lojas?id=eq.${id}`,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({nome,empresa_id,cidade,uf,grupo})});
     toast('✅ Loja atualizada!');
     await loadData();
     renderCads();
