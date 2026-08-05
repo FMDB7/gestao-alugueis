@@ -1372,7 +1372,7 @@ async function processarLoginMicrosoft(msEmail,msNome){
     document.getElementById('app').style.display='block';
     await loadData();
     startAutoRefresh();
-    await loadPermissoesPerfil();
+    await Promise.all([loadPermissoesPerfil(), loadFatData()]);
     u.gruposBloqueados = await carregarRestricoesGrupoUsuario(u.id);
     aplicarRestricaoPerfil(u.perfil);
     toast('✅ Bem-vindo, '+u.nome+'!');
@@ -1513,7 +1513,7 @@ async function fazerLogin(){
     document.getElementById('app').style.display='block';
     await loadData();
     startAutoRefresh();
-    await loadPermissoesPerfil();
+    await Promise.all([loadPermissoesPerfil(), loadFatData()]);
     u.gruposBloqueados = await carregarRestricoesGrupoUsuario(u.id);
     aplicarRestricaoPerfil(u.perfil);
 
@@ -1667,7 +1667,7 @@ async function logout(forced=false){
     } else {
       document.getElementById('uname').textContent = currentUser.nome;
     }
-    await loadPermissoesPerfil();
+    await Promise.all([loadPermissoesPerfil(), loadFatData()]);
     currentUser.gruposBloqueados = await carregarRestricoesGrupoUsuario(currentUser.id);
     aplicarRestricaoPerfil(currentUser.perfil);
     resetInactivityTimer();
