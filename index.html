@@ -2317,7 +2317,7 @@ function renderRel(){
   const tot=rows.reduce((s,r)=>s+r.valor,0);
   const lbs=grupos.map(g=>lblmap[g]).join(' + ');
 
-  relState={rows,tot,lbs,grupos,d,e,a,m,c};
+  relState={rows,tot,lbs,grupos,d,e,a,m,c,grupo};
   if(btnPdf)btnPdf.style.display='inline-flex';
 
   // Colors for chart
@@ -2405,8 +2405,9 @@ function renderRel(){
 }
 
 function exportPDF(){
-  const {rows,tot,lbs,grupos,d,e,a,m,c}=relState||{};
+  const {rows,tot,lbs,grupos,d,e,a,m,c,grupo}=relState||{};
   if(!rows||!rows.length){toast('⚠️ Gere o relatório primeiro');return;}
+  const tituloGrupo=grupo==='ZONA FRANCA'?'GRUPO ZONA FRANCA':(grupo==='MERCADO LOCAL'?'GRUPO MERCADO LOCAL':'GRUPO ZONA FRANCA E MERCADO LOCAL');
   const filtros=[];
   if(e)filtros.push('Empresa: '+e);
   if(a)filtros.push('Ano: '+a);
@@ -2466,7 +2467,7 @@ function exportPDF(){
   </style></head><body>
   <div class="tip">⚠️ Para cores no PDF: <strong>Mais configurações → Gráficos de plano de fundo</strong><button onclick="window.print()">🖨️ Salvar PDF</button></div>
   <div class="header">
-    <div><div class="logo">🏢 ALUGUÉIS — TOP Internacional</div><div class="sub">Relatório Agrupado por ${lbs}</div></div>
+    <div><div class="logo">🏢 ${tituloGrupo}</div><div class="sub">ALUGUÉIS — Relatório Agrupado por ${lbs}</div></div>
     <div class="meta">Gerado em:<br>${new Date().toLocaleString('pt-BR')}</div>
   </div>
   <div class="filtros">📌 ${filtros.join(' · ')}</div>
@@ -3157,7 +3158,7 @@ function renderAnual(){
     const tendTxt=tendencia==='alta'?'trajetória ascendente':(tendencia==='queda'?'trajetória de redução':'comportamento estável');
     insight={maiorAlta,maiorQueda,primeiro,ultimo,varAcumPct,mediaVar,tendencia,tendTxt,cat};
   }
-  anualState={d,lojasU,ano,cat,mes,emp,lojas,totalGeral,mesTotais,mesesComDado,variacoes,insight,chartImg:null};
+  anualState={d,lojasU,ano,cat,mes,grupo,emp,lojas,totalGeral,mesTotais,mesesComDado,variacoes,insight,chartImg:null};
 
   let insightHTML='';
   if(insight){
@@ -3303,8 +3304,9 @@ function renderAnual(){
 }
 
 function exportAnualPDF(){
-  const {d,lojasU,ano,cat,mes,emp,totalGeral,mesTotais,insight,chartImg}=anualState;
+  const {d,lojasU,ano,cat,mes,grupo,emp,totalGeral,mesTotais,insight,chartImg}=anualState;
   if(!lojasU||!lojasU.length){toast('⚠️ Gere o relatório primeiro');return;}
+  const tituloGrupo=grupo==='ZONA FRANCA'?'GRUPO ZONA FRANCA':(grupo==='MERCADO LOCAL'?'GRUPO MERCADO LOCAL':'GRUPO ZONA FRANCA E MERCADO LOCAL');
 
   const filtros=[];
   if(emp)filtros.push('Empresa: '+emp);
@@ -3383,7 +3385,7 @@ function exportAnualPDF(){
   </style></head><body>
   <div class="tip">⚠️ Ativar <strong>Gráficos de plano de fundo</strong> para cores<button onclick="window.print()">🖨️ Salvar PDF</button></div>
   <div class="header">
-    <div><div class="logo">🏢 ALUGUÉIS — TOP Internacional</div><div class="sub">Relatório Anual por Loja • ${ano}</div></div>
+    <div><div class="logo">🏢 ${tituloGrupo}</div><div class="sub">ALUGUÉIS — Relatório Anual por Loja • ${ano}</div></div>
     <div class="meta">Gerado em:<br>${new Date().toLocaleString('pt-BR')}</div>
   </div>
   <div class="filtros">📌 ${filtros.join(' · ')}</div>
@@ -3609,7 +3611,7 @@ function renderDetalhado(){
   const lojasU=Object.keys(lojaAcum).sort((a,b)=>lojaAcum[b]-lojaAcum[a]);
   const totalGeral=d.reduce((s,l)=>s+parseFloat(l.valor),0);
   const anos=[];for(let a=anoIni;a<=anoFim;a++)anos.push(a);
-  detState={d,cats,lojasU,anos,totalGeral,emp,lojas,anoIni,anoFim,cat,mes};
+  detState={d,cats,lojasU,anos,totalGeral,emp,lojas,anoIni,anoFim,cat,mes,grupo};
   document.getElementById('btn-det-pdf').style.display='inline-flex';
 
   let html=`<div style="padding:.75rem 1.25rem;border-bottom:1px solid var(--border);display:flex;gap:.75rem;flex-wrap:wrap;align-items:center">
@@ -3700,8 +3702,9 @@ function renderDetalhado(){
 }
 
 function exportDetalhadoPDF(){
-  const {d,cats,lojasU,anos,totalGeral,emp,lojas,anoIni,anoFim,cat,mes}=detState;
+  const {d,cats,lojasU,anos,totalGeral,emp,lojas,anoIni,anoFim,cat,mes,grupo}=detState;
   if(!lojasU||!lojasU.length){toast('Gere o relatório primeiro');return;}
+  const tituloGrupo=grupo==='ZONA FRANCA'?'GRUPO ZONA FRANCA':(grupo==='MERCADO LOCAL'?'GRUPO MERCADO LOCAL':'GRUPO ZONA FRANCA E MERCADO LOCAL');
   const filtros=[];
   if(emp)filtros.push('Empresa: '+emp);
   if(lojas&&lojas.length)filtros.push('Lojas: '+lojas.join(', '));
@@ -3816,8 +3819,8 @@ function exportDetalhadoPDF(){
   </div>
   <div class="header">
     <div>
-      <div class="logo">🏢 ALUGUÉIS — TOP Internacional</div>
-      <div class="sub">Relatório Detalhado por Loja • Análise Mês a Mês com Percentuais</div>
+      <div class="logo">🏢 ${tituloGrupo}</div>
+      <div class="sub">ALUGUÉIS — Relatório Detalhado por Loja • Análise Mês a Mês com Percentuais</div>
     </div>
     <div class="meta">Gerado em:<br>${new Date().toLocaleString('pt-BR')}</div>
   </div>
@@ -5074,6 +5077,7 @@ function exportFatRelatorioPDF(){
   if(!ranking||!ranking.length){toast('⚠️ Gere o relatório primeiro');return;}
   const corPct=pct=>pct>15?'#d93b3b':(pct>10?'#c97d0a':'#0d9e6e');
   const statusPct=pct=>pct>15?'Alerta':(pct>10?'Atenção':'Saudável');
+  const tituloGrupo=grupo==='ZONA FRANCA'?'GRUPO ZONA FRANCA':(grupo==='MERCADO LOCAL'?'GRUPO MERCADO LOCAL':'GRUPO ZONA FRANCA E MERCADO LOCAL');
   // Mesmo TOP 10 exibido na tela (ranking já vem ordenado do maior % para o menor)
   const top10=ranking.slice(0,10);
   const maxPct=Math.max(...top10.map(r=>r.pct),1);
@@ -5108,7 +5112,7 @@ function exportFatRelatorioPDF(){
   </style></head><body>
   <div class="tip">⚠️ Ativar <strong>Gráficos de plano de fundo</strong> para cores<button onclick="window.print()">🖨️ Salvar PDF</button></div>
   <div class="header">
-    <div><div class="logo">🏢 ALUGUÉIS — TOP Internacional</div><div class="sub">Relatório Executivo • Faturamento × Aluguel • ${grupo||'Todos os grupos'}${mes?' • '+mes.charAt(0)+mes.slice(1).toLowerCase():''} • ${ano}</div></div>
+    <div><div class="logo">🏢 ${tituloGrupo}</div><div class="sub">ALUGUÉIS — Relatório Executivo • Faturamento × Aluguel${mes?' • '+mes.charAt(0)+mes.slice(1).toLowerCase():''} • ${ano}</div></div>
     <div class="meta">Gerado em:<br>${new Date().toLocaleString('pt-BR')}</div>
   </div>
   <div class="badges">
