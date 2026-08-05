@@ -1373,6 +1373,10 @@ async function processarLoginMicrosoft(msEmail,msNome){
     await loadData();
     startAutoRefresh();
     await Promise.all([loadPermissoesPerfil(), loadFatData()]);
+    // O Dashboard já renderizou dentro de loadData() acima, mas nesse momento
+    // os dados de faturamento ainda não tinham chegado — atualiza o card
+    // "% Aluguel sobre Faturamento" agora que loadFatData() já terminou.
+    if(document.getElementById('page-dashboard')?.classList.contains('active'))renderDash();
     u.gruposBloqueados = await carregarRestricoesGrupoUsuario(u.id);
     aplicarRestricaoPerfil(u.perfil);
     toast('✅ Bem-vindo, '+u.nome+'!');
@@ -1514,6 +1518,10 @@ async function fazerLogin(){
     await loadData();
     startAutoRefresh();
     await Promise.all([loadPermissoesPerfil(), loadFatData()]);
+    // O Dashboard já renderizou dentro de loadData() acima, mas nesse momento
+    // os dados de faturamento ainda não tinham chegado — atualiza o card
+    // "% Aluguel sobre Faturamento" agora que loadFatData() já terminou.
+    if(document.getElementById('page-dashboard')?.classList.contains('active'))renderDash();
     u.gruposBloqueados = await carregarRestricoesGrupoUsuario(u.id);
     aplicarRestricaoPerfil(u.perfil);
 
@@ -1668,6 +1676,10 @@ async function logout(forced=false){
       document.getElementById('uname').textContent = currentUser.nome;
     }
     await Promise.all([loadPermissoesPerfil(), loadFatData()]);
+    // O Dashboard já renderizou dentro de loadData() acima, mas nesse momento
+    // os dados de faturamento ainda não tinham chegado — atualiza o card
+    // "% Aluguel sobre Faturamento" agora que loadFatData() já terminou.
+    if(document.getElementById('page-dashboard')?.classList.contains('active'))renderDash();
     currentUser.gruposBloqueados = await carregarRestricoesGrupoUsuario(currentUser.id);
     aplicarRestricaoPerfil(currentUser.perfil);
     resetInactivityTimer();
