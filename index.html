@@ -587,12 +587,18 @@ tbody tr:hover td{background:var(--bg)}
                     <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
                   </select></div>
                   <div class="fg"><label class="fl">Categoria</label><select class="fc" id="rd-cat" onchange="renderDetalhado()"><option value="">Todas</option></select></div>
-                  <div class="fg"><label class="fl">Mês</label><select class="fc" id="rd-mes" onchange="renderDetalhado()"><option value="">Todos</option>
-                    <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option><option value="MARÇO">Março</option>
-                    <option value="ABRIL">Abril</option><option value="MAIO">Maio</option><option value="JUNHO">Junho</option>
-                    <option value="JULHO">Julho</option><option value="AGOSTO">Agosto</option><option value="SETEMBRO">Setembro</option>
-                    <option value="OUTUBRO">Outubro</option><option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
-                  </select></div>
+<div class="fg" style="position:relative">
+                    <label class="fl">Mês</label>
+                    <div id="rd-mes-trigger" onclick="toggleMesDD('rd')" class="fc" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none">
+                      <span id="rd-mes-label" style="color:#9399b8">Todos os meses</span><span style="font-size:9px;color:#9399b8">▼</span>
+                    </div>
+                    <div id="rd-mes-dd" style="display:none;position:absolute;top:100%;left:0;z-index:50;background:#fff;border:1px solid var(--border2);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.15);width:190px;max-height:260px;overflow-y:auto;margin-top:2px">
+                      <div style="padding:.35rem .6rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:11px;font-weight:700;color:#2d5be3" onclick="toggleTodosMeses('rd')">
+                        <input type="checkbox" id="rd-mes-all" onclick="event.stopPropagation();toggleTodosMeses('rd')" style="accent-color:#2d5be3"/> Todos os meses
+                      </div>
+                      <div id="rd-mes-list"></div>
+                    </div>
+                  </div>
                   <div class="fg" style="min-width:150px">
                     <label class="fl">Grupo</label>
                     <select class="fc" id="rd-grupo" onchange="renderDetalhado()">
@@ -639,12 +645,18 @@ tbody tr:hover td{background:var(--bg)}
                     <option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option>
                   </select></div>
                   <div class="fg"><label class="fl">Categoria</label><select class="fc" id="ra-cat" onchange="renderAnual()"><option value="">Todas</option></select></div>
-                  <div class="fg"><label class="fl">Mês</label><select class="fc" id="ra-mes" onchange="renderAnual()"><option value="">Todos</option>
-                    <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option><option value="MARÇO">Março</option>
-                    <option value="ABRIL">Abril</option><option value="MAIO">Maio</option><option value="JUNHO">Junho</option>
-                    <option value="JULHO">Julho</option><option value="AGOSTO">Agosto</option><option value="SETEMBRO">Setembro</option>
-                    <option value="OUTUBRO">Outubro</option><option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
-                  </select></div>
+<div class="fg" style="position:relative">
+                    <label class="fl">Mês</label>
+                    <div id="ra-mes-trigger" onclick="toggleMesDD('ra')" class="fc" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none">
+                      <span id="ra-mes-label" style="color:#9399b8">Todos os meses</span><span style="font-size:9px;color:#9399b8">▼</span>
+                    </div>
+                    <div id="ra-mes-dd" style="display:none;position:absolute;top:100%;left:0;z-index:50;background:#fff;border:1px solid var(--border2);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.15);width:190px;max-height:260px;overflow-y:auto;margin-top:2px">
+                      <div style="padding:.35rem .6rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:11px;font-weight:700;color:#2d5be3" onclick="toggleTodosMeses('ra')">
+                        <input type="checkbox" id="ra-mes-all" onclick="event.stopPropagation();toggleTodosMeses('ra')" style="accent-color:#2d5be3"/> Todos os meses
+                      </div>
+                      <div id="ra-mes-list"></div>
+                    </div>
+                  </div>
                   <div class="fg" style="min-width:150px">
                     <label class="fl">Grupo</label>
                     <select class="fc" id="ra-grupo" onchange="renderAnual()">
@@ -691,12 +703,18 @@ tbody tr:hover td{background:var(--bg)}
                       <option value="ZONA FRANCA">ZONA FRANCA</option>
                       <option value="MERCADO LOCAL">MERCADO LOCAL</option>
                     </select></div>
-                    <div class="fg"><label class="fl">Mês</label><select class="fc" id="fta-mes" onchange="renderFatAnalise()"><option value="">Todos</option>
-                      <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option><option value="MARÇO">Março</option>
-                      <option value="ABRIL">Abril</option><option value="MAIO">Maio</option><option value="JUNHO">Junho</option>
-                      <option value="JULHO">Julho</option><option value="AGOSTO">Agosto</option><option value="SETEMBRO">Setembro</option>
-                      <option value="OUTUBRO">Outubro</option><option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
-                    </select></div>
+<div class="fg" style="position:relative">
+                      <label class="fl">Mês</label>
+                      <div id="fta-mes-trigger" onclick="toggleMesDD('fta')" class="fc" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none">
+                        <span id="fta-mes-label" style="color:#9399b8">Todos os meses</span><span style="font-size:9px;color:#9399b8">▼</span>
+                      </div>
+                      <div id="fta-mes-dd" style="display:none;position:absolute;top:100%;left:0;z-index:50;background:#fff;border:1px solid var(--border2);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.15);width:190px;max-height:260px;overflow-y:auto;margin-top:2px">
+                        <div style="padding:.35rem .6rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:11px;font-weight:700;color:#2d5be3" onclick="toggleTodosMeses('fta')">
+                          <input type="checkbox" id="fta-mes-all" onclick="event.stopPropagation();toggleTodosMeses('fta')" style="accent-color:#2d5be3"/> Todos os meses
+                        </div>
+                        <div id="fta-mes-list"></div>
+                      </div>
+                    </div>
                     <div class="fg"><label class="fl">Ano</label><select class="fc" id="fta-ano" onchange="renderFatAnalise()">
                       <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
                     </select></div>
@@ -720,12 +738,18 @@ tbody tr:hover td{background:var(--bg)}
                       <option value="ZONA FRANCA">ZONA FRANCA</option>
                       <option value="MERCADO LOCAL">MERCADO LOCAL</option>
                     </select></div>
-                    <div class="fg"><label class="fl">Mês</label><select class="fc" id="fr-mes" onchange="renderFatRelatorio()"><option value="">Todos</option>
-                      <option value="JANEIRO">Janeiro</option><option value="FEVEREIRO">Fevereiro</option><option value="MARÇO">Março</option>
-                      <option value="ABRIL">Abril</option><option value="MAIO">Maio</option><option value="JUNHO">Junho</option>
-                      <option value="JULHO">Julho</option><option value="AGOSTO">Agosto</option><option value="SETEMBRO">Setembro</option>
-                      <option value="OUTUBRO">Outubro</option><option value="NOVEMBRO">Novembro</option><option value="DEZEMBRO">Dezembro</option>
-                    </select></div>
+<div class="fg" style="position:relative">
+                      <label class="fl">Mês</label>
+                      <div id="fr-mes-trigger" onclick="toggleMesDD('fr')" class="fc" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none">
+                        <span id="fr-mes-label" style="color:#9399b8">Todos os meses</span><span style="font-size:9px;color:#9399b8">▼</span>
+                      </div>
+                      <div id="fr-mes-dd" style="display:none;position:absolute;top:100%;left:0;z-index:50;background:#fff;border:1px solid var(--border2);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.15);width:190px;max-height:260px;overflow-y:auto;margin-top:2px">
+                        <div style="padding:.35rem .6rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:11px;font-weight:700;color:#2d5be3" onclick="toggleTodosMeses('fr')">
+                          <input type="checkbox" id="fr-mes-all" onclick="event.stopPropagation();toggleTodosMeses('fr')" style="accent-color:#2d5be3"/> Todos os meses
+                        </div>
+                        <div id="fr-mes-list"></div>
+                      </div>
+                    </div>
                     <div class="fg"><label class="fl">Ano</label><select class="fc" id="fr-ano" onchange="renderFatRelatorio()">
                       <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
                     </select></div>
@@ -1190,6 +1214,55 @@ async function db(path,opts={}){
 
 let S={empresas:[],lojas:[],categorias:[],lancamentos:[]};
 const MESES=['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+
+// ── Multi-seleção de Meses (dropdown com checkboxes) — reutilizado em Detalhado por
+// Mês (rd), Anual por Loja (ra), Faturamento × Aluguel (fta) e Relatório de Faturamento (fr).
+// Conjunto vazio = "todos os meses" (comportamento padrão, sem filtrar nada).
+const MESES_SELECIONADOS={rd:new Set(),ra:new Set(),fta:new Set(),fr:new Set()};
+const MES_RENDER_FN={rd:'renderDetalhado',ra:'renderAnual',fta:'renderFatAnalise',fr:'renderFatRelatorio'};
+function getMesesFiltro(prefix){ return [...(MESES_SELECIONADOS[prefix]||[])]; }
+function toggleMesDD(prefix){
+  const dd=document.getElementById(prefix+'-mes-dd');
+  if(!dd)return;
+  const abrir=dd.style.display==='none';
+  document.querySelectorAll('[id$="-mes-dd"]').forEach(d=>d.style.display='none'); // fecha outros abertos
+  if(abrir){ renderMesList(prefix); dd.style.display='block'; }
+}
+function renderMesList(prefix){
+  const list=document.getElementById(prefix+'-mes-list');if(!list)return;
+  const set=MESES_SELECIONADOS[prefix];
+  list.innerHTML=MESES.map(m=>`<div style="padding:.3rem .6rem;display:flex;align-items:center;gap:.4rem;cursor:pointer;border-top:1px solid var(--border);font-size:12px" onclick="toggleMesItem('${prefix}','${m}')">
+    <input type="checkbox" ${set.has(m)?'checked':''} onclick="event.stopPropagation();toggleMesItem('${prefix}','${m}')" style="accent-color:#2d5be3"/> ${m.charAt(0)+m.slice(1).toLowerCase()}
+  </div>`).join('');
+  const allChk=document.getElementById(prefix+'-mes-all');
+  if(allChk)allChk.checked=set.size===0;
+}
+function toggleMesItem(prefix,mes){
+  const set=MESES_SELECIONADOS[prefix];
+  set.has(mes)?set.delete(mes):set.add(mes);
+  updateMesTrigger(prefix); renderMesList(prefix);
+  window[MES_RENDER_FN[prefix]]?.();
+}
+function toggleTodosMeses(prefix){
+  MESES_SELECIONADOS[prefix]=new Set(); // limpar seleção = "todos os meses"
+  updateMesTrigger(prefix); renderMesList(prefix);
+  window[MES_RENDER_FN[prefix]]?.();
+}
+function updateMesTrigger(prefix){
+  const set=MESES_SELECIONADOS[prefix];
+  const lbl=document.getElementById(prefix+'-mes-label');if(!lbl)return;
+  const n=set.size;
+  const um=n===1?[...set][0]:'';
+  lbl.textContent=n===0?'Todos os meses':n===1?(um.charAt(0)+um.slice(1).toLowerCase()):`${n} meses selecionados`;
+  lbl.style.color=n===0?'#9399b8':'#0f1117';
+}
+document.addEventListener('click',e=>{
+  ['rd','ra','fta','fr'].forEach(prefix=>{
+    const dd=document.getElementById(prefix+'-mes-dd');
+    const tr=document.getElementById(prefix+'-mes-trigger');
+    if(dd&&tr&&!dd.contains(e.target)&&!tr.contains(e.target))dd.style.display='none';
+  });
+});
 const CLR=['#2d5be3','#d97706','#0d9e6e','#6d3fd4','#d93b3b','#0891b2','#db2777','#65a30d','#ea580c','#8b5cf6'];
 
 let currentUser=null;
@@ -3118,13 +3191,14 @@ function renderAnual(){
   const lojas=[...raSelectedLojas];
   const ano=parseInt(document.getElementById('ra-ano').value);
   const cat=document.getElementById('ra-cat').value;
-  const mes=document.getElementById('ra-mes')?.value||'';
+  const mesesSel=getMesesFiltro('ra');
+  const mes=mesesSel.length===1?mesesSel[0]:''; // mantém compatibilidade com o resto da função quando só 1 mês está marcado
 
   const grupo=document.getElementById('ra-grupo')?.value||'';
   const d=S.lancamentos.filter(l=>
     (!emp||l.empresa_nome===emp)&&
     (!lojas.length||lojas.includes(l.loja_nome))&&
-    l.ano===ano&&(!cat||l.cat_nome===cat)&&(!mes||l.mes===mes)&&
+    l.ano===ano&&(!cat||l.cat_nome===cat)&&(!mesesSel.length||mesesSel.includes(l.mes))&&
     (!grupo||getGrupoLoja(l.loja_nome)===grupo)
   );
 
@@ -3170,7 +3244,7 @@ function renderAnual(){
     const tendTxt=tendencia==='alta'?'trajetória ascendente':(tendencia==='queda'?'trajetória de redução':'comportamento estável');
     insight={maiorAlta,maiorQueda,primeiro,ultimo,varAcumPct,mediaVar,tendencia,tendTxt,cat};
   }
-  anualState={d,lojasU,ano,cat,mes,grupo,emp,lojas,totalGeral,mesTotais,mesesComDado,variacoes,insight,chartImg:null};
+  anualState={d,lojasU,ano,cat,mes,mesesSel,grupo,emp,lojas,totalGeral,mesTotais,mesesComDado,variacoes,insight,chartImg:null};
 
   let insightHTML='';
   if(insight){
@@ -3316,14 +3390,14 @@ function renderAnual(){
 }
 
 function exportAnualPDF(){
-  const {d,lojasU,ano,cat,mes,grupo,emp,totalGeral,mesTotais,insight,chartImg}=anualState;
+  const {d,lojasU,ano,cat,mes,mesesSel,grupo,emp,totalGeral,mesTotais,insight,chartImg}=anualState;
   if(!lojasU||!lojasU.length){toast('⚠️ Gere o relatório primeiro');return;}
   const tituloGrupo=grupo==='ZONA FRANCA'?'GRUPO ZONA FRANCA':(grupo==='MERCADO LOCAL'?'GRUPO MERCADO LOCAL':'GRUPO ZONA FRANCA E MERCADO LOCAL');
 
   const filtros=[];
   if(emp)filtros.push('Empresa: '+emp);
   if(cat)filtros.push('Categoria: '+cat);
-  if(mes)filtros.push('Mês: '+mes.charAt(0)+mes.slice(1).toLowerCase());
+  if(mesesSel&&mesesSel.length)filtros.push((mesesSel.length>1?'Meses: ':'Mês: ')+mesesSel.map(m=>m.charAt(0)+m.slice(1).toLowerCase()).join(', '));
   filtros.push('Ano: '+ano);
 
   // Bloco de insight executivo + gráfico (fiel ao exibido na tela)
@@ -3461,7 +3535,7 @@ function limparFiltrosRel(){
 }
 
 function limparFiltrosDet(){
-  ['rd-emp','rd-ano-ini','rd-ano-fim','rd-cat','rd-mes','rd-grupo'].forEach(id=>{
+  ['rd-emp','rd-ano-ini','rd-ano-fim','rd-cat','rd-grupo'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.value='';
   });
@@ -3470,6 +3544,8 @@ function limparFiltrosDet(){
   rdSelectedLojas=new Set();
   updateRdLojaTrigger();
   buildRdLojaDD();
+  MESES_SELECIONADOS.rd=new Set();
+  updateMesTrigger('rd');
   document.getElementById('det-wrap').innerHTML='<div class="empty"><div class="empty-icon">📊</div><div>Configure os filtros e clique em Gerar</div></div>';
   const btnPdf=document.getElementById('btn-det-pdf');
   if(btnPdf) btnPdf.style.display='none';
@@ -3477,7 +3553,7 @@ function limparFiltrosDet(){
 }
 
 function limparFiltrosAnual(){
-  ['ra-emp','ra-ano','ra-cat','ra-mes','ra-grupo'].forEach(id=>{
+  ['ra-emp','ra-ano','ra-cat','ra-grupo'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.value='';
   });
@@ -3485,6 +3561,8 @@ function limparFiltrosAnual(){
   raSelectedLojas=new Set();
   updateRaLojaTrigger();
   buildRaLojaDD();
+  MESES_SELECIONADOS.ra=new Set();
+  updateMesTrigger('ra');
   document.getElementById('anual-wrap').innerHTML='<div class="empty"><div class="empty-icon">📅</div><div>Configure os filtros e clique em Gerar</div></div>';
   const btnPdf=document.getElementById('btn-anual-pdf');
   if(btnPdf) btnPdf.style.display='none';
@@ -3601,10 +3679,11 @@ function renderDetalhado(){
   const anoIni=parseInt(document.getElementById('rd-ano-ini').value);
   const anoFim=parseInt(document.getElementById('rd-ano-fim').value);
   const cat=document.getElementById('rd-cat').value;
-  const mes=document.getElementById('rd-mes')?.value||'';
+  const mesesSel=getMesesFiltro('rd');
+  const mes=mesesSel.length===1?mesesSel[0]:'';
   if(anoFim<anoIni){toast('Ano final deve ser >= inicial');return;}
   const grupo=document.getElementById('rd-grupo')?.value||'';
-  const d=S.lancamentos.filter(l=>(!emp||l.empresa_nome===emp)&&(!lojas.length||lojas.includes(l.loja_nome))&&(l.ano>=anoIni&&l.ano<=anoFim)&&(!cat||l.cat_nome===cat)&&(!mes||l.mes===mes)&&(!grupo||getGrupoLoja(l.loja_nome)===grupo));
+  const d=S.lancamentos.filter(l=>(!emp||l.empresa_nome===emp)&&(!lojas.length||lojas.includes(l.loja_nome))&&(l.ano>=anoIni&&l.ano<=anoFim)&&(!cat||l.cat_nome===cat)&&(!mesesSel.length||mesesSel.includes(l.mes))&&(!grupo||getGrupoLoja(l.loja_nome)===grupo));
   const wrap=document.getElementById('det-wrap');
   if(!d.length){wrap.innerHTML='<div class="empty"><div class="empty-icon">📊</div><div>Nenhum dado</div></div>';document.getElementById('btn-det-pdf').style.display='none';return;}
   // Ordem definida das colunas
@@ -3623,7 +3702,7 @@ function renderDetalhado(){
   const lojasU=Object.keys(lojaAcum).sort((a,b)=>lojaAcum[b]-lojaAcum[a]);
   const totalGeral=d.reduce((s,l)=>s+parseFloat(l.valor),0);
   const anos=[];for(let a=anoIni;a<=anoFim;a++)anos.push(a);
-  detState={d,cats,lojasU,anos,totalGeral,emp,lojas,anoIni,anoFim,cat,mes,grupo};
+  detState={d,cats,lojasU,anos,totalGeral,emp,lojas,anoIni,anoFim,cat,mes,mesesSel,grupo};
   document.getElementById('btn-det-pdf').style.display='inline-flex';
 
   let html=`<div style="padding:.75rem 1.25rem;border-bottom:1px solid var(--border);display:flex;gap:.75rem;flex-wrap:wrap;align-items:center">
@@ -3714,14 +3793,14 @@ function renderDetalhado(){
 }
 
 function exportDetalhadoPDF(){
-  const {d,cats,lojasU,anos,totalGeral,emp,lojas,anoIni,anoFim,cat,mes,grupo}=detState;
+  const {d,cats,lojasU,anos,totalGeral,emp,lojas,anoIni,anoFim,cat,mes,mesesSel,grupo}=detState;
   if(!lojasU||!lojasU.length){toast('Gere o relatório primeiro');return;}
   const tituloGrupo=grupo==='ZONA FRANCA'?'GRUPO ZONA FRANCA':(grupo==='MERCADO LOCAL'?'GRUPO MERCADO LOCAL':'GRUPO ZONA FRANCA E MERCADO LOCAL');
   const filtros=[];
   if(emp)filtros.push('Empresa: '+emp);
   if(lojas&&lojas.length)filtros.push('Lojas: '+lojas.join(', '));
   if(cat)filtros.push('Categoria: '+cat);
-  if(mes)filtros.push('Mês: '+mes.charAt(0)+mes.slice(1).toLowerCase());
+  if(mesesSel&&mesesSel.length)filtros.push((mesesSel.length>1?'Meses: ':'Mês: ')+mesesSel.map(m=>m.charAt(0)+m.slice(1).toLowerCase()).join(', '));
   filtros.push('Período: '+anoIni+' a '+anoFim);
   const grandCat={};cats.forEach(c=>{grandCat[c]=0;});
   let rows='';let rc=0;
@@ -4627,10 +4706,12 @@ function exportContratosPDF(){
 function limparFiltrosFat(aba){
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
   if(aba==='analise'){
-    set('fta-loja','');set('fta-grupo','');set('fta-mes','');set('fta-ano','2026');
+    set('fta-loja','');set('fta-grupo','');set('fta-ano','2026');
+    MESES_SELECIONADOS.fta=new Set();updateMesTrigger('fta');
     renderFatAnalise();
   }else if(aba==='relatorio'){
-    set('fr-grupo','');set('fr-mes','');set('fr-ano','2026');
+    set('fr-grupo','');set('fr-ano','2026');
+    MESES_SELECIONADOS.fr=new Set();updateMesTrigger('fr');
     renderFatRelatorio();
   }else if(aba==='contratos'){
     set('ct-floja','');set('ct-fgrupo','');
@@ -4785,12 +4866,13 @@ function _renderFatAnaliseImpl(){
   if(!wrap)return;
   const fLoja=document.getElementById('fta-loja')?.value||'';
   const fGrupo=document.getElementById('fta-grupo')?.value||'';
-  const fMes=document.getElementById('fta-mes')?.value||'';
+  const mesesSel=getMesesFiltro('fta');
+  const fMes=mesesSel.length===1?mesesSel[0]:'';
   const fAno=parseInt(document.getElementById('fta-ano')?.value||'2026');
   let fats=S.faturamentos.filter(f=>f.ano===fAno
     &&(!fLoja||f.loja_nome===fLoja)
     &&(!fGrupo||getGrupoLoja(f.loja_nome)===fGrupo)
-    &&(!fMes||f.mes===fMes));
+    &&(!mesesSel.length||mesesSel.includes(f.mes)));
   if(!fats.length){wrap.innerHTML='<div class="empty"><div class="empty-icon">📊</div><div>Nenhum faturamento lançado para os filtros</div></div>';document.getElementById('btn-fta-pdf').style.display='none';return;}
   fats=fats.sort((a,b)=>a.loja_nome.localeCompare(b.loja_nome)||a.mes_num-b.mes_num);
 
@@ -4858,7 +4940,7 @@ function _renderFatAnaliseImpl(){
   }).join('');
 
   const pctGeral=totFatGeral>0?(totAlGeral/totFatGeral*100):0;
-  fatAnaliseState={fats,lojasU,fAno,fGrupo,fMes,fLoja,totFatGeral,totAlGeral,pctGeral,linhas};
+  fatAnaliseState={fats,lojasU,fAno,fGrupo,fMes,mesesSel,fLoja,totFatGeral,totAlGeral,pctGeral,linhas};
   document.getElementById('btn-fta-pdf').style.display='inline-flex';
   const geralBg='#0d9e6e';
   const totalGeralRow=`<tr>
@@ -4891,7 +4973,7 @@ function _renderFatAnaliseImpl(){
 }
 
 function exportFatAnalisePDF(){
-  const{fats,lojasU,fAno,fGrupo,fMes,fLoja,totFatGeral,totAlGeral,pctGeral,linhas}=fatAnaliseState;
+  const{fats,lojasU,fAno,fGrupo,fMes,mesesSel,fLoja,totFatGeral,totAlGeral,pctGeral,linhas}=fatAnaliseState;
   if(!fats||!fats.length){toast('⚠️ Gere os dados primeiro');return;}
   const corPct=pct=>pct>15?'#d93b3b':(pct>10?'#c97d0a':'#0d9e6e');
   const statusPct=pct=>pct>15?'Alerta':(pct>10?'Atenção':'Saudável');
@@ -4900,7 +4982,7 @@ function exportFatAnalisePDF(){
   const filtros=[];
   if(fLoja)filtros.push('Loja: '+fLoja);
   if(fGrupo)filtros.push('Grupo: '+fGrupo);
-  if(fMes)filtros.push('Mês: '+fMes.charAt(0)+fMes.slice(1).toLowerCase());
+  if(mesesSel&&mesesSel.length)filtros.push((mesesSel.length>1?'Meses: ':'Mês: ')+mesesSel.map(m=>m.charAt(0)+m.slice(1).toLowerCase()).join(', '));
   filtros.push('Ano: '+fAno);
 
   let rows='';
@@ -4985,8 +5067,8 @@ function exportFatAnalisePDF(){
 
 // ── Relatório executivo Faturamento × Aluguel ──
 let frState={};
-function calcRankingFat(grupo,ano,mes){
-  const fats=S.faturamentos.filter(f=>f.ano===ano&&(!grupo||getGrupoLoja(f.loja_nome)===grupo)&&(!mes||f.mes===mes));
+function calcRankingFat(grupo,ano,mesesSel){
+  const fats=S.faturamentos.filter(f=>f.ano===ano&&(!grupo||getGrupoLoja(f.loja_nome)===grupo)&&(!mesesSel||!mesesSel.length||mesesSel.includes(f.mes)));
   const lojasU=[...new Set(fats.map(f=>f.loja_nome))];
   const ranking=lojasU.map(loja=>{
     const fatsLoja=fats.filter(f=>f.loja_nome===loja);
@@ -5004,9 +5086,10 @@ function _renderFatRelatorioImpl(){
   const wrap=document.getElementById('fat-relatorio-wrap');
   if(!wrap)return;
   const grupo=document.getElementById('fr-grupo')?.value||'';
-  const mes=document.getElementById('fr-mes')?.value||'';
+  const mesesSel=getMesesFiltro('fr');
+  const mes=mesesSel.length===1?mesesSel[0]:'';
   const ano=parseInt(document.getElementById('fr-ano')?.value||'2026');
-  const ranking=calcRankingFat(grupo,ano,mes);
+  const ranking=calcRankingFat(grupo,ano,mesesSel);
   document.getElementById('btn-fr-pdf').style.display=ranking.length?'inline-flex':'none';
   if(!ranking.length){wrap.innerHTML='<div class="empty"><div class="empty-icon">📈</div><div>Sem dados suficientes para o relatório (lance faturamento e aluguel das lojas primeiro)</div></div>';return;}
 
@@ -5019,7 +5102,7 @@ function _renderFatRelatorioImpl(){
   const piorLoja=ranking[0];
   const melhorLoja=ranking[ranking.length-1];
 
-  frState={ranking,grupo,ano,mes,totFatGeral,totAlGeral,pctMedio,alertas,piorLoja,melhorLoja,chartImg:null};
+  frState={ranking,grupo,ano,mes,mesesSel,totFatGeral,totAlGeral,pctMedio,alertas,piorLoja,melhorLoja,chartImg:null};
 
   const top10=ranking.slice(0,10);
   const maxPct=Math.max(...top10.map(r=>r.pct),1);
@@ -5085,7 +5168,7 @@ function _renderFatRelatorioImpl(){
 }
 
 function exportFatRelatorioPDF(){
-  const{ranking,grupo,ano,mes,totFatGeral,totAlGeral,pctMedio,alertas,piorLoja,melhorLoja}=frState;
+  const{ranking,grupo,ano,mes,mesesSel,totFatGeral,totAlGeral,pctMedio,alertas,piorLoja,melhorLoja}=frState;
   if(!ranking||!ranking.length){toast('⚠️ Gere o relatório primeiro');return;}
   const corPct=pct=>pct>15?'#d93b3b':(pct>10?'#c97d0a':'#0d9e6e');
   const statusPct=pct=>pct>15?'Alerta':(pct>10?'Atenção':'Saudável');
@@ -5124,7 +5207,7 @@ function exportFatRelatorioPDF(){
   </style></head><body>
   <div class="tip">⚠️ Ativar <strong>Gráficos de plano de fundo</strong> para cores<button onclick="window.print()">🖨️ Salvar PDF</button></div>
   <div class="header">
-    <div><div class="logo">🏢 ${tituloGrupo}</div><div class="sub">ALUGUÉIS — Relatório Executivo • Faturamento × Aluguel${mes?' • '+mes.charAt(0)+mes.slice(1).toLowerCase():''} • ${ano}</div></div>
+    <div><div class="logo">🏢 ${tituloGrupo}</div><div class="sub">ALUGUÉIS — Relatório Executivo • Faturamento × Aluguel${mesesSel&&mesesSel.length?' • '+mesesSel.map(m=>m.charAt(0)+m.slice(1).toLowerCase()).join(', '):''} • ${ano}</div></div>
     <div class="meta">Gerado em:<br>${new Date().toLocaleString('pt-BR')}</div>
   </div>
   <div class="badges">
