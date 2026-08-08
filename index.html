@@ -2381,6 +2381,53 @@ function renderCardPctAluguelFat(a,m,e,lf,gf,totAluguel,qtdLancamentos){
     </div>
   </div>`;
 }
+// Tooltip customizado do gráfico "Evolução mensal" — cartão escuro, total em destaque
+// no topo e uma linha por ano (bolinha colorida + valor + % do total do mês),
+// no mesmo estilo visual usado em apps financeiros modernos.
+function tooltipMensalCustom(context){
+  const{chart,tooltip}=context;
+  let el=document.getElementById('tt-mensal');
+  if(!el){
+    el=document.createElement('div');
+    el.id='tt-mensal';
+    el.style.cssText='position:absolute;pointer-events:none;z-index:50;opacity:0;transition:opacity .1s ease;transform:translate(-50%,0)';
+    chart.canvas.parentNode.appendChild(el);
+  }
+  if(tooltip.opacity===0){el.style.opacity=0;return;}
+
+  const mesLabel=tooltip.title?.[0]||'';
+  const pontos=(tooltip.dataPoints||[]).filter(p=>p.raw>0);
+  const totalMes=pontos.reduce((s,p)=>s+(p.raw||0),0);
+
+  const linhas=pontos.map(p=>{
+    const v=p.raw||0;
+    const pct=totalMes>0?(v/totalMes*100).toFixed(1):'0.0';
+    const cor=p.dataset.borderColor;
+    return`<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:6px 0;border-top:1px solid rgba(255,255,255,.1)">
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="width:8px;height:8px;border-radius:50%;background:${cor};flex-shrink:0"></span>
+        <span style="color:#fff;font-weight:700;font-size:12px">${p.dataset.label}</span>
+      </div>
+      <div style="text-align:right">
+        <div style="color:#fff;font-weight:700;font-size:12.5px;white-space:nowrap">${fBR(v)}</div>
+        <div style="color:rgba(255,255,255,.5);font-size:10px">${pct}%</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML=`<div style="background:#12141c;border-radius:12px;padding:12px 14px;box-shadow:0 14px 32px rgba(0,0,0,.4);min-width:200px;font-family:inherit">
+    <div style="display:flex;align-items:center;gap:6px;color:#fff;font-weight:700;font-size:13px;margin-bottom:5px">📅 ${mesLabel}</div>
+    <div style="color:#3ddc84;font-weight:700;font-size:14.5px;margin-bottom:2px">Total: ${fBR(totalMes)}</div>
+    ${linhas||'<div style="color:rgba(255,255,255,.5);font-size:11px;padding-top:4px">Sem lançamentos neste mês</div>'}
+  </div>`;
+
+  el.style.opacity=1;
+  el.style.left=tooltip.caretX+'px';
+  const acimaDoTopo=tooltip.caretY-14<130; // perto do topo do gráfico? mostra abaixo do ponto em vez de acima
+  el.style.top=acimaDoTopo?(tooltip.caretY+14)+'px':(tooltip.caretY-14)+'px';
+  el.style.transform=acimaDoTopo?'translate(-50%,0)':'translate(-50%,-100%)';
+}
+
 function renderDash(){
   const a=document.getElementById('d-ano').value,m=document.getElementById('d-mes').value,e=document.getElementById('d-emp').value;
   const lf=document.getElementById('d-loja').value;
@@ -2403,7 +2450,7 @@ function renderDash(){
   const bm25=MESES.map(m=>d.filter(l=>l.ano===2025&&l.mes===m).reduce((s,l)=>s+parseFloat(l.valor),0));
   const bm26=MESES.map(m=>d.filter(l=>l.ano===2026&&l.mes===m).reduce((s,l)=>s+parseFloat(l.valor),0));
   const totalMensal=[...bm25,...bm26].reduce((s,v)=>s+v,0);
-  dC('m');CH.m=new Chart(document.getElementById('c-mensal'),{type:'line',data:{labels:MESES.map(m=>m.slice(0,3)),datasets:[{label:'2025',data:bm25,borderColor:'#2d5be3',backgroundColor:'#2d5be312',borderWidth:2,tension:.35,fill:true,pointRadius:3},{label:'2026',data:bm26,borderColor:'#0d9e6e',backgroundColor:'#0d9e6e0d',borderWidth:2,tension:.35,fill:true,pointRadius:3,borderDash:[5,3]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw||0;const pct=totalMensal>0?(v/totalMensal*100).toFixed(1):0;return ` ${ctx.dataset.label}: ${fS(v)} (${pct}%)`;},title:ctx=>`Mês: ${ctx[0].label}`}}},scales:{y:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}}}});
+  dC('m');CH.m=new Chart(document.getElementById('c-mensal'),{type:'line',data:{labels:MESES.map(m=>m.slice(0,3)),datasets:[{label:'2025',data:bm25,borderColor:'#2d5be3',backgroundColor:'#2d5be312',borderWidth:2,tension:.35,fill:true,pointRadius:3},{label:'2026',data:bm26,borderColor:'#0d9e6e',backgroundColor:'#0d9e6e0d',borderWidth:2,tension:.35,fill:true,pointRadius:3,borderDash:[5,3]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false,external:tooltipMensalCustom}},scales:{y:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}}}});
   const emps=[...new Set(d.map(l=>l.empresa_nome))].sort();
   const empPairs=emps.map((e,i)=>({nome:e,val:d.filter(l=>l.empresa_nome===e).reduce((s,l)=>s+parseFloat(l.valor),0),clr:CLR[i%CLR.length]})).sort((a,b)=>b.val-a.val);
   const empTot=empPairs.reduce((s,x)=>s+x.val,0);
