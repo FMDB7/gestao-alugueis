@@ -305,6 +305,7 @@ tbody tr:hover td{background:var(--bg)}
             <div class="card" style="grid-column:1/-1;margin-bottom:0"><div class="card-hd"><div class="card-title">🏆 Top 10 lojas — maior custo de aluguel</div></div><div class="card-body"><div class="chart-wrap" style="height:300px"><canvas id="c-loja"></canvas></div></div></div>
             <div class="card" style="margin-bottom:0"><div class="card-hd"><div class="card-title">Por empresa</div></div><div class="card-body"><div class="chart-wrap" style="height:190px"><canvas id="c-empresa"></canvas></div></div></div>
             <div class="card" style="margin-bottom:0"><div class="card-hd"><div class="card-title">Por categoria</div></div><div class="card-body"><div class="chart-wrap" style="height:190px"><canvas id="c-cat"></canvas></div></div></div>
+            <div class="card" style="margin-bottom:0"><div class="card-hd"><div class="card-title">Volume por Categoria (R$)</div></div><div class="card-body"><div class="chart-wrap" style="height:190px"><canvas id="c-cat-col"></canvas></div></div></div>
             <div class="card" style="margin-bottom:0"><div class="card-hd"><div class="card-title">Por cidade</div></div><div class="card-body"><div class="chart-wrap" style="height:190px"><canvas id="c-cidade"></canvas></div></div></div>
           </div>
         </div>
@@ -2465,7 +2466,11 @@ function renderDash(){
   ];
   const catVals=cats.map(c=>d.filter(l=>l.cat_nome===c).reduce((s,l)=>s+parseFloat(l.valor),0));
   const catTot=catVals.reduce((s,v)=>s+v,0);
-  dC('c');CH.c=new Chart(document.getElementById('c-cat'),{type:'doughnut',data:{labels:cats,datasets:[{data:catVals,backgroundColor:CLR,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:10},padding:5,generateLabels:chart=>{const ds=chart.data.datasets[0];return chart.data.labels.map((lbl,i)=>{const v=ds.data[i];const pct=catTot>0?(v/catTot*100).toFixed(1):0;return{text:`${lbl}: ${pct}%`,fillStyle:ds.backgroundColor[i],strokeStyle:'#fff',lineWidth:2,index:i};});}}},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw||0;const pct=catTot>0?(v/catTot*100).toFixed(1):0;return ` ${fS(v)} — ${pct}%`;}}}}}}); 
+  dC('c');CH.c=new Chart(document.getElementById('c-cat'),{type:'doughnut',data:{labels:cats,datasets:[{data:catVals,backgroundColor:CLR,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:10},padding:5,generateLabels:chart=>{const ds=chart.data.datasets[0];return chart.data.labels.map((lbl,i)=>{const v=ds.data[i];const pct=catTot>0?(v/catTot*100).toFixed(1):0;return{text:`${lbl}: ${pct}%`,fillStyle:ds.backgroundColor[i],strokeStyle:'#fff',lineWidth:2,index:i};});}}},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw||0;const pct=catTot>0?(v/catTot*100).toFixed(1):0;return ` ${fS(v)} — ${pct}%`;}}}}}});
+  // Mesma base de dados do doughnut acima, em formato de coluna — mais fácil de comparar
+  // valores exatos entre categorias do que enxergar diferenças de ângulo numa pizza.
+  const catOrdenado=cats.map((c,i)=>({c,v:catVals[i]})).sort((a,b)=>b.v-a.v);
+  dC('ccol');CH.ccol=new Chart(document.getElementById('c-cat-col'),{type:'bar',data:{labels:catOrdenado.map(x=>x.c.split(' ').slice(0,2).join(' ')),datasets:[{data:catOrdenado.map(x=>x.v),backgroundColor:catOrdenado.map(x=>CLR[cats.indexOf(x.c)%CLR.length]),borderRadius:5}]},plugins:[dashBarLabels(false)],options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw||0;const pct=catTot>0?(v/catTot*100).toFixed(1):0;return ` ${fS(v)} — ${pct}% do total`;}}}},scales:{y:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false},ticks:{font:{size:9.5},maxRotation:30}}}}});
   const cids=[...new Set(d.map(l=>l.cidade).filter(Boolean))].sort();
   const cidPairs=cids.map((c,i)=>({nome:c,val:d.filter(l=>l.cidade===c).reduce((s,l)=>s+parseFloat(l.valor),0)})).sort((a,b)=>b.val-a.val);
   const cidTot=cidPairs.reduce((s,x)=>s+x.val,0);
