@@ -289,6 +289,7 @@ tbody tr:hover td{background:var(--bg)}
           </div>
         </div>
         <div class="content">
+          <div id="d-insight"></div>
           <div id="d-pct-aluguel-fat"></div>
           <div class="kpi-grid" id="d-kpis"></div>
           <div class="charts-grid" style="margin-bottom:1rem">
@@ -301,10 +302,10 @@ tbody tr:hover td{background:var(--bg)}
               </div>
               <div class="card-body"><div class="chart-wrap" style="height:210px"><canvas id="c-mensal"></canvas></div></div>
             </div>
+            <div class="card" style="grid-column:1/-1;margin-bottom:0"><div class="card-hd"><div class="card-title">🏆 Top 10 lojas — maior custo de aluguel</div></div><div class="card-body"><div class="chart-wrap" style="height:300px"><canvas id="c-loja"></canvas></div></div></div>
             <div class="card" style="margin-bottom:0"><div class="card-hd"><div class="card-title">Por empresa</div></div><div class="card-body"><div class="chart-wrap" style="height:190px"><canvas id="c-empresa"></canvas></div></div></div>
             <div class="card" style="margin-bottom:0"><div class="card-hd"><div class="card-title">Por categoria</div></div><div class="card-body"><div class="chart-wrap" style="height:190px"><canvas id="c-cat"></canvas></div></div></div>
             <div class="card" style="margin-bottom:0"><div class="card-hd"><div class="card-title">Por cidade</div></div><div class="card-body"><div class="chart-wrap" style="height:190px"><canvas id="c-cidade"></canvas></div></div></div>
-            <div class="card" style="margin-bottom:0"><div class="card-hd"><div class="card-title">Top 10 lojas</div></div><div class="card-body"><div class="chart-wrap" style="height:270px"><canvas id="c-loja"></canvas></div></div></div>
           </div>
         </div>
       </div>
@@ -2243,8 +2244,76 @@ async function delLH(id){
   }catch(ex){toast('❌ '+ex.message);}
 }
 
+// Insight Executivo do Dashboard: lê os mesmos dados já calculados para os gráficos
+// e monta um resumo narrativo automático — visão rápida sem precisar interpretar 5 gráficos.
+function renderInsightDash(a,m,gf,tot,t25,t26,vp,empPairs,cats,catVals,cidPairs,top,bm25,bm26){
+  const el=document.getElementById('d-insight');
+  if(!el)return;
+  if(tot<=0){el.innerHTML='';return;}
+
+  const topEmp=empPairs[0];
+  const iCatMax=catVals.indexOf(Math.max(...catVals));
+  const topCat=cats[iCatMax];
+  const topCatVal=catVals[iCatMax];
+  const topCidade=cidPairs[0];
+  const topLoja=top[0];
+
+  // Mês de maior gasto, olhando o(s) ano(s) realmente presentes nos dados filtrados
+  const mesTot=MESES.map((mesNome,i)=>({mes:mesNome,val:(bm25[i]||0)+(bm26[i]||0)}));
+  const topMes=mesTot.reduce((mx,x)=>x.val>mx.val?x:mx,mesTot[0]);
+
+  const tendTxt=vp===null?'':(vp>0?`<span style="color:#ffb4b4">alta de ${vp.toFixed(1)}% ▲</span> em relação a 2025`:`<span style="color:#8ff0c4">queda de ${Math.abs(vp).toFixed(1)}% ▼</span> em relação a 2025`);
+  const periodoTxt=a?`${m?m.charAt(0)+m.slice(1).toLowerCase()+'/':''}${a}`:'todo o período';
+  const grupoTxt=gf?` no grupo <b>${gf}</b>`:'';
+
+  el.innerHTML=`
+  <div style="background:linear-gradient(135deg,#0f1f4d,#1a3db8);border-radius:10px;color:#fff;padding:.85rem 1.1rem;margin-bottom:1rem">
+    <div style="display:flex;align-items:center;gap:.4rem;font-weight:700;font-size:13px;letter-spacing:.02em;margin-bottom:.4rem">💡 INSIGHT EXECUTIVO — VISÃO GERAL</div>
+    <div style="font-size:12.5px;line-height:1.65;color:rgba(255,255,255,.94)">
+      Em <b>${periodoTxt}</b>${grupoTxt}, o total de aluguéis somou <b>${fBR(tot)}</b>${vp!==null?`, com ${tendTxt}`:''}.
+      ${topEmp?`A empresa com maior custo é <b>${topEmp.nome}</b> (${fBR(topEmp.val)}). `:''}
+      ${topCat?`A categoria de maior peso é <b>${topCat}</b>, representando ${tot>0?(topCatVal/tot*100).toFixed(1):0}% do total. `:''}
+      ${topLoja?`A loja com maior custo é <b>${topLoja[0]}</b> (${fBR(topLoja[1])}). `:''}
+      ${topMes&&topMes.val>0?`O mês de maior gasto foi <b>${topMes.mes.charAt(0)+topMes.mes.slice(1).toLowerCase()}</b> (${fBR(topMes.val)}).`:''}
+    </div>
+    <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.5rem">
+      ${topEmp?`<span style="background:rgba(255,255,255,.12);padding:2px 9px;border-radius:20px;font-size:10.5px;font-weight:600;white-space:nowrap">🏢 Maior empresa: ${topEmp.nome}</span>`:''}
+      ${topLoja?`<span style="background:rgba(255,255,255,.12);padding:2px 9px;border-radius:20px;font-size:10.5px;font-weight:600;white-space:nowrap">🏆 Maior loja: ${topLoja[0]}</span>`:''}
+      ${topCidade?`<span style="background:rgba(255,255,255,.12);padding:2px 9px;border-radius:20px;font-size:10.5px;font-weight:600;white-space:nowrap">📍 Maior cidade: ${topCidade.nome}</span>`:''}
+      ${vp!==null?`<span style="background:rgba(255,255,255,.12);padding:2px 9px;border-radius:20px;font-size:10.5px;font-weight:600;white-space:nowrap">${vp>0?'📈':'📉'} ${vp>0?'+':''}${vp.toFixed(1)}% vs 2025</span>`:''}
+    </div>
+  </div>`;
+}
 let CH={};
 function dC(id){if(CH[id]){CH[id].destroy();delete CH[id];}}
+// Plugin nativo (sem lib externa) para mostrar o valor de cada barra direto no gráfico,
+// permitindo leitura rápida sem precisar passar o mouse (hover).
+function dashBarLabels(horizontal){
+  return{
+    id:'dashBarLabels'+(horizontal?'H':'V'),
+    afterDatasetsDraw(chart){
+      const{ctx}=chart;
+      const meta=chart.getDatasetMeta(0);
+      const data=chart.data.datasets[0].data;
+      ctx.save();
+      ctx.font='700 10px Arial';
+      ctx.fillStyle='#1a1a2e';
+      meta.data.forEach((bar,i)=>{
+        const v=data[i];
+        if(!v)return;
+        const label=fS(v);
+        if(horizontal){
+          ctx.textAlign='left';ctx.textBaseline='middle';
+          ctx.fillText(label,bar.x+6,bar.y);
+        }else{
+          ctx.textAlign='center';ctx.textBaseline='bottom';
+          ctx.fillText(label,bar.x,bar.y-4);
+        }
+      });
+      ctx.restore();
+    }
+  };
+}
 // Card executivo do Dashboard: % Aluguel sobre Faturamento, com classificação
 // Saudável/Atenção/Alerta e um medidor visual (gauge) para leitura rápida pela diretoria.
 function renderCardPctAluguelFat(a,m,e,lf,gf,totAluguel,qtdLancamentos){
@@ -2338,7 +2407,7 @@ function renderDash(){
   const emps=[...new Set(d.map(l=>l.empresa_nome))].sort();
   const empPairs=emps.map((e,i)=>({nome:e,val:d.filter(l=>l.empresa_nome===e).reduce((s,l)=>s+parseFloat(l.valor),0),clr:CLR[i%CLR.length]})).sort((a,b)=>b.val-a.val);
   const empTot=empPairs.reduce((s,x)=>s+x.val,0);
-  dC('e');CH.e=new Chart(document.getElementById('c-empresa'),{type:'bar',data:{labels:empPairs.map(x=>x.nome.split(' ').slice(0,2).join(' ')),datasets:[{data:empPairs.map(x=>x.val),backgroundColor:empPairs.map(x=>x.clr),borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw||0;const pct=empTot>0?(v/empTot*100).toFixed(1):0;return ` ${fS(v)} — ${pct}% do total`;}}}},scales:{y:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false},ticks:{font:{size:10}}}}}});
+  dC('e');CH.e=new Chart(document.getElementById('c-empresa'),{type:'bar',data:{labels:empPairs.map(x=>x.nome.split(' ').slice(0,2).join(' ')),datasets:[{data:empPairs.map(x=>x.val),backgroundColor:empPairs.map(x=>x.clr),borderRadius:5}]},plugins:[dashBarLabels(false)],options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw||0;const pct=empTot>0?(v/empTot*100).toFixed(1):0;return ` ${fS(v)} — ${pct}% do total`;}}}},scales:{y:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false},ticks:{font:{size:10}}}}}});
   // Ordem definida das colunas
   const COLS_ORDER=['ALUGUEL MÍNIMO','ENCARGOS COMUNS/COND GERAL','ENC ESPECÍFICO(AR COND, ENERGIA,OUTROS)','FUNDO DE PROMOÇÃO/MÍDIA','ALUGUEL COMPLEMENTAR'];
   const allCats=[...new Set(d.map(l=>l.cat_nome))];
@@ -2353,11 +2422,12 @@ function renderDash(){
   const cids=[...new Set(d.map(l=>l.cidade).filter(Boolean))].sort();
   const cidPairs=cids.map((c,i)=>({nome:c,val:d.filter(l=>l.cidade===c).reduce((s,l)=>s+parseFloat(l.valor),0)})).sort((a,b)=>b.val-a.val);
   const cidTot=cidPairs.reduce((s,x)=>s+x.val,0);
-  dC('ci');CH.ci=new Chart(document.getElementById('c-cidade'),{type:'bar',data:{labels:cidPairs.map(x=>x.nome),datasets:[{data:cidPairs.map(x=>x.val),backgroundColor:'#6d3fd4',borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw||0;const pct=cidTot>0?(v/cidTot*100).toFixed(1):0;return ` ${fS(v)} — ${pct}% do total`;}}}},scales:{y:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false},ticks:{font:{size:10},maxRotation:40}}}}});
+  dC('ci');CH.ci=new Chart(document.getElementById('c-cidade'),{type:'bar',data:{labels:cidPairs.map(x=>x.nome),datasets:[{data:cidPairs.map(x=>x.val),backgroundColor:'#6d3fd4',borderRadius:5}]},plugins:[dashBarLabels(false)],options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw||0;const pct=cidTot>0?(v/cidTot*100).toFixed(1):0;return ` ${fS(v)} — ${pct}% do total`;}}}},scales:{y:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false},ticks:{font:{size:10},maxRotation:40}}}}});
   const lm={};d.forEach(l=>{lm[l.loja_nome]=(lm[l.loja_nome]||0)+parseFloat(l.valor);});
   const top=Object.entries(lm).sort((a,b)=>b[1]-a[1]).slice(0,10);
   const lojaTot=top.reduce((s,[,v])=>s+v,0);
-  dC('l');CH.l=new Chart(document.getElementById('c-loja'),{type:'bar',data:{labels:top.map(([k])=>k),datasets:[{data:top.map(([,v])=>v),backgroundColor:'#2d5be3',borderRadius:5}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw||0;const pct=lojaTot>0?(v/lojaTot*100).toFixed(1):0;return ` ${fS(v)} — ${pct}% do top 10`;}}}},scales:{x:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},y:{grid:{display:false},ticks:{font:{size:11}}}}}});
+  dC('l');CH.l=new Chart(document.getElementById('c-loja'),{type:'bar',data:{labels:top.map(([k])=>k),datasets:[{data:top.map(([,v])=>v),backgroundColor:'#2d5be3',borderRadius:5}]},plugins:[dashBarLabels(true)],options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,layout:{padding:{right:60}},plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw||0;const pct=lojaTot>0?(v/lojaTot*100).toFixed(1):0;return ` ${fS(v)} — ${pct}% do top 10`;}}}},scales:{x:{ticks:{callback:v=>fS(v)},grid:{color:'rgba(0,0,0,.04)'}},y:{grid:{display:false},ticks:{font:{size:11}}}}}});
+  renderInsightDash(a,m,gf,tot,t25,t26,vp,empPairs,cats,catVals,cidPairs,top,bm25,bm26);
 }
 
 let relState={rows:[],tot:0,lb:'',d:[],e:'',a:'',m:'',g:''};
